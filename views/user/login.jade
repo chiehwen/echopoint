@@ -1,0 +1,27 @@
+include ../mixins
+extends ../layout
+
+block content
+	script console.log(!{JSON.stringify(message)});
+	div
+		- if (locals.message == 'email-password-error') {
+			div#login-notice-header
+				h1 Invalid email and password combination
+				p Please try again below
+		- } else if (locals.message == 'password reset') {
+			div#login-notice-header
+				p Password has been reset and sent the provided email address
+		- } else if (locals.message != '') {
+			div#login-notice-header
+				h1 #{locals.message}
+		- }
+		div#login-logo
+			//-div #{locals.message}
+			a(href="/") vocada
+			em 0.0.1
+			//-p#login-password-recovery
+			a(href="user/password-recovery", id="login-password-recovery") recover password
+		div(id="login-form-container", class="login-page-containers float-left")
+			mixin userLoginForm
+		div#login-powered
+			img(src="http://speaksocial.tv/img/powered-by-speak-social.png")

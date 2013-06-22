@@ -1,0 +1,162 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+body {
+  font: normal 13px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background: #F5F5F5;
+}
+a {
+  color: #003D4C;
+  text-decoration: none;
+}
+a:hover {
+  color: #367889;
+}
+/*
+* login page 
+*/
+#login-logo {
+  position: relative;
+  width: 355px;
+  margin: 50px auto 4px;
+  padding: 0;
+}
+#login-logo a {
+  color: #353535;
+  font-weight: 400;
+  font-size: 60px;
+}
+#login-logo em {
+  color: #999;
+  font-weight: 100;
+  font-size: 9px;
+  margin-left: 5px;
+}
+#login-logo a#login-password-recovery {
+  position: absolute;
+  right: 4px;
+  bottom: 10px;
+  font-size: 8px;
+  letter-spacing: 1px;
+  text-transform: lowercase;
+  color: #353535;
+}
+#login-logo a#login-password-recovery:hover {
+  color: #367889;
+}
+#login-form-container form {
+  width: 360px;
+  margin: 0 auto;
+  padding: 0;
+}
+#login-form-container fieldset {
+  margin: 0 auto;
+  padding: 20px 16px 0 16px;
+  width: 320px;
+  background: #FFF;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+  -moz-box-shadow: 1px 1px 7px 1px #bbb;
+  -webkit-box-shadow: 1px 1px 7px 1px #bbb;
+  box-shadow: 1px 1px 7px 1px #bbb;
+  border: 1px solid #E5E5E5;
+}
+#login-form-container fieldset div.input {
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  border: 0 none;
+  background: #FFF;
+  position: relative;
+  padding: 9px;
+  margin: 0px 0px 10px;
+}
+#login-form-container fieldset label {
+  color: #777;
+  text-shadow: none;
+  -webkit-text-shadow: none;
+  -moz-text-shadow: none;
+  display: block;
+  margin-bottom: 3px;
+  margin: 0px;
+  padding: 0px;
+  font-weight: bold;
+  font-size: 10px;
+  text-transform: lowercase;
+}
+#login-form-container fieldset div.checkbox label {
+  margin: 1px 0 0 2px;
+  padding: 0;
+  line-height: 20px;
+}
+#login-form-container fieldset input {
+  padding: 3px 0 3px 8px;
+  margin: 2px 0 0;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #EEE;
+  background: white;
+  color: #666;
+  width: 99%;
+  font-weight: bold;
+}
+#login-form-container fieldset input[type="checkbox"] {
+  float: left;
+  margin: 5px 6px 7px 2px;
+  width: auto;
+}
+#login-form-container form div.submit {
+  position: absolute;
+  margin: -49px 0 0 246px;
+  padding: .5em;
+  padding-left: 12px;
+  border: 0;
+  vertical-align: text-top;
+}
+#login-form-container form div.submit input {
+  width: auto;
+  font-weight: bold;
+  color: white;
+  background: #21759b url(/img/icons/button-grad.png) repeat-x scroll left top;
+  text-shadow: rgba(0, 0, 0, 0.3) 0 -1px 0;
+  cursor: pointer;
+  padding: 2px 10px;
+  text-align: center;
+  border: 1px solid #298CBA;
+  border-radius: 0 4px 0 4px;
+}
+#login-powered {
+  margin: 24px auto 0;
+  width: 350px;
+}
+#login-powered img {
+  float: right;
+  width: 180px;
+}
+#login-notice-header {
+  margin: 25px auto 0;
+  text-align: center;
+  letter-spacing: 1px;
+}
+#login-notice-header h1 {
+  color: #444;
+  margin: 0 0 5px 5px;
+  font-size: 17px;
+  font-weight: bold;
+}
+#login-notice-header p {
+  color: #555;
+  margin-left: 5px;
+}
+/*
+*	create user page
+*/
+#create-user-header {
+  float: right;
+  font-size: 16px;
+}

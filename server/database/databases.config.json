@@ -1,0 +1,30 @@
+{
+	"primary": {
+		"name": "vocada",
+		"host": "localhost",
+		"port": "mongo.Connection.DEFAULT_PORT",
+		"collections": {
+			"user": {
+				"name": "user",
+				"description": "This collection holds the user data",
+				"meta": {
+
+				}
+			}
+		}
+	},
+	"test": {
+		"name": "test",
+		"host": "localhost",
+		"port": "mongo.Connection.DEFAULT_PORT",
+		"collections": {
+			"user": {
+				"name": "user",
+				"description": "This collection holds the user data",
+				"meta": {
+
+				}
+			}
+		}
+	}
+}

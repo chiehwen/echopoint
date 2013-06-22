@@ -1,0 +1,33 @@
+mixin userLoginForm
+	form(action="/login", method="POST", id="login-form", accept-charset="utf-8")
+		input(type="hidden", name="_method", value="POST")
+		fieldset
+			div(class="input text required")
+				label email
+				input(type="text", name="email", id="login-user", required)
+			div(class="input password required")
+				label password
+				input(type="password", name="password", id="login-password", required)
+			div(class="input checkbox")
+				input(type="hidden", name="auto-login", value="0", id="auto-login_")
+				input(type="checkbox", name="auto-login", value="1", id="auto-login")
+				label remember me
+		div.submit
+			input(type="submit", value="Sign In")
+
+mixin createUserForm
+	form(action="/user/create", method="POST", id="create-user-form", accept-charset="utf-8")
+		input(type="hidden", name="_method", value="POST")
+		fieldset
+			div(class="input text required")
+				label email
+				input(type="text", name="email", id="create-user-email", required)
+			div(class="input password required")
+				label password
+				input(type="password", name="password", id="create-user-password", required)
+			//-div(class="input checkbox")
+				input(type="hidden", name="auto-login", value="0", id="auto-login_")
+				input(type="checkbox", name="auto-login", value="1", id="auto-login")
+				label remember me
+		div.submit
+			input(type="submit", value="Create")
