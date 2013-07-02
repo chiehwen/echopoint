@@ -2,109 +2,156 @@
  * User Controller
  */
 
-// Module dependencies
-var Interface = require('../server/libraries/class'),
-    Auth = require('../server/auth'),
-    Route = require('../routes/user'),
-    UserModel = require('../models/user');
+// module dependencies
+var Model = Model || Object,
+    passport = require('passport');
 
-// Export Controller as an object of class based actions
-module.exports = UserController = {
-	_meta: {
-		name: 'user',
-		engine: 'jade',
-		_before: function() {
+// export controller as an object literal
+var UserController = function constructor() {
+		var _meta = {
+			name: 'user',
+			engine: 'jade',
+		};
 
-		},
-		_after: function() {
+		return {
+			login: (function() { return {
+				
+				path: '/login',
+				restricted: false,
+				get: function(req, res){
+					if(req.session.passport.user) {
+						res.redirect('/dashboard');
+					} else {
+						res.render(
+							'user/login', 
+							{
+							 	title: 'Vocada | Login',
+							 	message: req.session.messages
+							}
+						);
+					}
+				},
+				post: passport.authenticate('local', 
+					{ 
+						successRedirect: '/dashboard',
+						failureRedirect: '/login',
+						failureMessage: true 
+					}
+				)
+			}})(),
 
-		},
-	},
+			logout: (function() { return {
 
-	login: Interface.Class.extend({
-		init: function() {
-			this.method = 'mutliple';
-			this.path = '/login';
-			this.restricted = false;
-		},
-		get: Route.user.login.get,
-		post: Route.user.login.post
-	}),
-	logout: Interface.Class.extend({
-		init: function() {
-			this.method = 'get';
-			this.path = '/logout';
-			this.restricted = false;
-		},
-		get: Route.user.logout.get
-	}),
-	create: Interface.Class.extend({
-		init: function() {
-			this.method = 'mutliple';
-			this.path = '/user/create';
-			this.restricted = false;
-		},
-		get: Route.user.create.get,
-		post: function(req, res) {
-			User = new UserModel({
-				email: req.body.email,
-				password: req.body.password
-			});
+				path: '/logout',
+				restricted: false,
 
-			User.save(function(err){
-				if (err) throw err;
-				res.redirect('/login');
-			});
-		}
-	}),
-	dashboard: Interface.Class.extend({
-		init: function() {
-			this.method = 'get';
-			this.path = '/dashboard';
-		},
-		get: function(req, res) {
-			res.send('Dashboard will go here <a href="/logout">logout</a>');
-		}
-	}),
-	wizard: Interface.Class.extend({
-		// May need to move to business controller
-		init: function() {
-			this.method = 'get';
-			this.path = '/wizard';
-		},
-		get: function(req, res) {
+				get: function(req, res) {
+					req.session.destroy(function(){
+					  res.redirect('/login');
+					});
+				}
+			}})(),
 
-		}
-	}),
-	profile: Interface.Class.extend({
-		init: function() {
-			this.method = 'get';
-			this.path = '/profile';
-		},
-		get: function(req, res) {
-			res.send('Profile will go here <a href="/logout">logout</a>');
-		}
-	}),
-	update: Interface.Class.extend({
-		init: function() {
-			this.method = 'put';
-			this.path = '/user/update';
-		},
-		put: function(req, res) {
+			create: (function() { return {
 
-		}
-	}),
-	delete: Interface.Class.extend({
-		init: function() {
-			this.method = 'multiple';
-			this.path = '/user/delete';
-		},
-		get: function(req, res) {
+				restricted: false,
+				get: function(req, res) {
+					res.render(
+						'user/create', 
+						{
+					  	title: 'Vocada | Create User'
+					 	}
+					)
+				},
+				post: function(req, res, next) {
+					Model.User.findOne({email: req.body.email}, function(err, user) {
+						if (err) return next(err);
+						if(!user) {
+							var newUser = new Model.User({
+								email: req.body.email,
+								password: req.body.password
+							});
 
-		},
-		delete: function(req, res) {
+							newUser.save(function(err){
+								if (err) return next(err);
+								req.login(newUser, function(err) {
+								  if (err) return next(err);
+								  res.redirect('/dashboard');
+								});
+							});
+						} else {
+							req.session.messages.push("This email is already registered");
+							res.redirect('/user/create');
+						}
+					});		
+				}
+			}})(),
 
-		}
-	}),
+			list: (function() { return {
+				get: function(req, res) {
+					res.send("respond with a resource")
+				}
+			}})(),
 
-};
+			dashboard: (function() { return {
+
+				path: '/dashboard',
+				get: function(req, res) {
+					res.render(
+						'user/dashboard', 
+						{
+					  	title: 'Vocada | User Dashboard'
+					 	}
+					)
+				}
+			}})(),
+
+			wizard: (function() { return {
+				// may need to move to business controller
+				path: '/wizard',
+				get: function(req, res) {
+
+				}
+			}})(),
+
+			profile: (function() { return {
+
+				path: '/profile',
+				get: function(req, res) {
+					res.render(
+						'user/profile', 
+						{
+					  	title: 'Vocada | User Profile'
+					 	}
+					)
+				}
+			}})(),
+
+			update: (function() { return {
+				put: function(req, res) {
+
+				}
+			}})(),
+
+			delete: (function() { return {
+				get: function(req, res) {
+						res.send(req.session.passport.user);
+				},
+				delete: function(req, res) {
+					if(req.session.passport.user) {
+						var id = req.session.passport.user;
+						Model.User.remove({ _id: id }, function (err) {
+						  if (err) throw err;
+						  req.session.destroy(function(){
+							  res.redirect('/user/create');
+							});
+						});
+					}
+				}
+			}})()
+
+		} // end return object 
+	} // end constructor
+
+
+module.exports = UserController;

@@ -31,3 +31,20 @@ mixin createUserForm
 				label remember me
 		div.submit
 			input(type="submit", value="Create")
+
+mixin createBusinessForm
+	form(action="/business/create", method="POST", id="create-business-form", accept-charset="utf-8")
+		input(type="hidden", name="_method", value="POST")
+		fieldset
+			div(class="input text required")
+				label name
+				input(type="text", name="name", id="create-business-name", required)
+			//-div(class="input password required")
+				label password
+				input(type="password", name="password", id="create-user-password", required)
+			//-div(class="input checkbox")
+				input(type="hidden", name="auto-login", value="0", id="auto-login_")
+				input(type="checkbox", name="auto-login", value="1", id="auto-login")
+				label remember me
+		div.submit
+			input(type="submit", value="Create")

@@ -1,15 +1,15 @@
 // Module dependencies.
-var Interface = require('../libraries/class'),
+var Class = require('./libraries/class'),
 		fs = require('fs'),
 		mongo = require('mongodb'),
 		mongoose = require('mongoose');
 		
 // Export Database as a class
-module.exports = Database = Interface.Class.extend({
+var Database = Class.extend({
 	init: function() {
-		this.databases = JSON.parse(fs.readFileSync('./server/database/databases.config.json'));
+		this.databases = JSON.parse(fs.readFileSync('./server/config/databases.config.json'));
 		this.db = Object;
-		this.mongooseUri = 'mongodb://localhost:27017/mongoosetesttwo';
+		this.mongooseUri = 'mongodb://localhost:27017/vocada_dev';
 	},
 	connect: function(method) {
 		if(method == 'mongoose') {
@@ -45,3 +45,5 @@ module.exports = Database = Interface.Class.extend({
 		return this.db;
 	}
 });
+
+module.exports = Database;

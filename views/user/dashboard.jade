@@ -1,0 +1,30 @@
+include ../mixins
+extends ../layout
+
+script console.log(!{JSON.stringify(locals)});
+
+block content
+	div#sidebar
+		div.logo
+			a(href="/") vocada
+			em 0.0.1
+		div#guide
+			h3 help
+			ul
+				li quick start
+		div#social
+			h3 social media
+			ul
+				li 
+					a(href="#") facebook
+				li 
+					a(href="#") twitter
+	
+	p Dashboard will go here
+		a(href="/logout") logout
+	form(action="/user/delete", method="POST", id="delete-user", accept-charset="utf-8")
+		input(type="hidden", name="_method", value="DELETE")
+		input(type="submit", value="Delete User")
+	a(href="/business/create") create new business
+	br
+	a(href="/business/list") list your businesses

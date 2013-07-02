@@ -4,7 +4,7 @@
  * MIT Licensed.
  */
 // Inspired by base2 and Prototype
-var initializing = false, fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+var initializing = false; fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
     
 // The base Class implementation (does nothing)
 Class = function() {};
@@ -63,6 +63,5 @@ Class.extend = function(prop) {
 };
 
 if(!(typeof exports === 'undefined')) {
-    exports.Class = Class;
+    module.exports = Class;
 }
-
