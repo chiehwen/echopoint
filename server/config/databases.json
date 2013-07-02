@@ -1,0 +1,17 @@
+{
+	"primary": {
+		"name": "vocada",
+		"host": "localhost",
+		"port": 27017
+	},
+	"dev": {
+		"name": "vocada_dev",
+		"host": "localhost",
+		"port": 27017
+	},
+	"test": {
+		"name": "vocada_test",
+		"host": "localhost",
+		"port": 27017
+	}
+}

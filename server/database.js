@@ -1,49 +1,59 @@
 // Module dependencies.
-var Class = require('./libraries/class'),
-		fs = require('fs'),
-		mongo = require('mongodb'),
-		mongoose = require('mongoose');
-		
-// Export Database as a class
-var Database = Class.extend({
-	init: function() {
-		this.databases = JSON.parse(fs.readFileSync('./server/config/databases.config.json'));
-		this.db = Object;
-		this.mongooseUri = 'mongodb://localhost:27017/vocada_dev';
-	},
-	connect: function(method) {
-		if(method == 'mongoose') {
-			this.mongoose();
-		} else {
-			this.open(function(err, success){
-				if (err) throw err;
-				console.log('Successfully connected to MongoDB');
-			});
-		}
-	},
-	mongoose: function() {
-		mongoose.connect(this.mongooseUri, function(err) {
-			if (err) throw err;
-			console.log('Successfully connected to MongoDB via the node mongoose module');
-		});
-	},
-	open: function(callback) {
-		this.db = new mongo.Db(
-			this.databases.primary.name, 
-			new mongo.Server(this.databases.primary.host, mongo.Connection.DEFAULT_PORT, {})
-		);
+var fs = require('fs'),
+		//mongo = require('mongodb'),
+		mongoose = require('mongoose');		
 
-		this.db.open(function(err) {
-			if(err) {
-				return callback(err);
-			} else {
-				return callback(null, 'Current MongoDB database has been opened successfully.');
+var Database = (function() {
+
+	// Private attribute that holds the single instance
+  var databaseInstance;
+
+  function constructor() {
+
+  	var databases = JSON.parse(fs.readFileSync('./server/config/databases.json')),
+  			mongooseUri = buildMongooseUri('dev');
+
+  	function load(type) {
+
+  		switch(type) {
+  			case 'mongoose':
+					mongoose.connect(mongooseUri, function(err) {
+						if (err) throw err;
+						console.log('Successfully connected to MongoDB via the node mongoose module');
+					});
+  				break;
+  			case 'redis':
+  				// TODO: add redis database functionality
+  				break;
+  		}
+  	}
+
+  	function buildMongooseUri(type) {
+  		database = databases[type || databaseType];
+  		return 'mongodb://' 
+  				+ database.host 
+  				+ ':' 
+  				+ database.port 
+  				+ '/'
+  				+ database.name; 
+  	}
+
+  	return {
+			connect: function(method) {
+				load(method);
 			}
-		});
-	},
-	getCurrentDatabase: function() {
-		return this.db;
-	}
-});
+
+    } // end return object
+  } // end constructor
+
+	return {
+    getInstance: function() {
+      if(!databaseInstance)
+        databaseInstance = constructor();
+      return databaseInstance;
+    }
+  }
+
+})();
 
 module.exports = Database;

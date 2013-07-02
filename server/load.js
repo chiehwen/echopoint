@@ -1,13 +1,14 @@
 // Module dependencies.
 var http = require('http'),
-		db = require('./database'),
 		fs = require('fs'),
+		Database = require('./database').getInstance(),
 		Auth = require('./auth').getInstance(),
 		Model = Model || Object;
 
 var LoadServer = (function() {
 
-	var serverInstance; // Private attribute that holds the single instance
+	// Private attribute that holds the single instance
+	var serverInstance;
 
 	function constructor(parent, options) {
 
@@ -19,7 +20,6 @@ var LoadServer = (function() {
 		// private functions
 		function database() {
 			// Connect to database
-			var Database = new db;
 			Database.connect('mongoose');
 		};
 
@@ -31,6 +31,7 @@ var LoadServer = (function() {
 		function models() {
 
 			var models = [];
+			var Models = require('./model');
 
 			// read through the models directory
 			fs.readdirSync(__dirname + '/../models').forEach(function(name){
@@ -48,7 +49,7 @@ var LoadServer = (function() {
 				// add model name to the local models variable
 				models.push(name);
 				// add "instatiated" model to the local ModelClasses variable
-				ModelClasses[name] = instatiate('model', name);
+				ModelClasses[name] = Models[name.capitalize() + 'Model'].getInstance();//instatiate('model', name);
 			});
 
 			// a safety break variable for while loop in case of error
@@ -102,13 +103,13 @@ var LoadServer = (function() {
 					models.splice(index, 1);
 				};
 
-				// safety first
+				// safety first (while loop protection)
 				safety++;
 			}
 		};
 
 		function controllers() {
-			Controllers = require('./controller');
+			var Controllers = require('./controller');
 
 			// read through the controllers directory
 			fs.readdirSync(__dirname + '/../controllers').forEach(function(name){
@@ -116,7 +117,6 @@ var LoadServer = (function() {
 				// Remove .js from controller file names 
 				name = name.slice(0, -3);
 
-				//Controller = instatiate('controller', name);
 				Controller = Controllers[name.capitalize() + 'Controller'].getInstance();
 
 				for(var route in Controller) {

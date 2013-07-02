@@ -9,7 +9,8 @@ var //Class = require('./libraries/class'),
 
 var Auth = (function() {
 
-var authInstance; // Private attribute that holds the single instance
+// Private attribute that holds the single instance
+var authInstance;
 
 	function constructor() {
 
@@ -82,7 +83,7 @@ var authInstance; // Private attribute that holds the single instance
 				session[type]();
 				return this;
 			},
-			
+
 			// These are Authentication functions
 			authenticate: function(unverified, password, callback) {
 				bcrypt.compare(unverified, password, function(err, match) {
@@ -105,8 +106,9 @@ var authInstance; // Private attribute that holds the single instance
 					req.session.messages = 'please login to continue';
 			    res.redirect('/login');
 				}
-			},
-		}
+			}
+
+		} // end return object
 	} // end constructor
 
 	return {
