@@ -73,7 +73,7 @@ var LoadServer = (function() {
 							else if(typeof Model[childModelName.capitalize()] != 'undefined') {
 								var currentSchema = typeof ModelClasses[name].getSchema();
 								if(typeof currentSchema[childModelName.capitalize()] == 'undefined')
-									ModelClasses[name].updateSchema(childModelName.capitalize(), Model[childModelName.capitalize()].schema);
+									ModelClasses[name].updateSchema(childModelName.capitalize(), [Model[childModelName.capitalize()].schema]);
 							}
 						}
 					}

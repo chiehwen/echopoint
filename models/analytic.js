@@ -1,26 +1,24 @@
 /**
- * Business Model
+ * Analytic Model
  */
 
-var BusinessModel = {
+var AnalyticModel = {
 
   Architecture: {
     schema: {
 			id: { type: Number, default: -1},
 			name: { type: String},
-			meta: {
-				created: { type: Date, default: Date.now},
-				createdTimestamp: { type: Number, default: Date.now() },
-			}   
+      meta: {
+        created: { type: Date, default: Date.now},
+        createdTimestamp: { type: Number, default: Date.now() },
+      } 
 		},
     options: {
       // autoIndex should be false in production (http://mongoosejs.com/docs/guide.html#indexes)
       autoIndex: true
     },
     associations: {
-      hasOne: ['app', 'analytic'],
-      belongsTo : ['user'],
-      notNested: {}
+      belongsTo : ['business']
     }  
   },
 
@@ -40,4 +38,4 @@ var BusinessModel = {
   }
 };
 
-module.exports = BusinessModel;
+module.exports = AnalyticModel;

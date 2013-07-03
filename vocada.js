@@ -18,11 +18,12 @@ Boot.start(function(app) {
 
 // TEMP: removes all users from User collection
 var Model = Model || Object;
+//console.log(Model.User.Business);
 //Model.User.remove(function(err){if(err) throw err});
 //console.log(Model.User.schema);
 Model.User.find(function(err, users) {
 		users.forEach(function(user) {
-		//console.log(user);
+		//console.log(user.Business);
 	});
 });
 Model.User.findOne({email: "123"}, function(err, user) {

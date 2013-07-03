@@ -1,4 +1,8 @@
 @primary-font: normal 13px "Helvetica Neue", Helvetica, Arial, sans-serif;
+@light-blue: #3399cc;
+@dark-blue: #546f8e;
+
+@current-blue: #546f8e;
 
 * {
 	padding: 0;
@@ -21,6 +25,22 @@ a:hover {
 
 li {
 	list-style-type: none;
+}
+
+/*
+* global action classes 
+*/
+
+.clear {
+	clear: both;
+}
+
+.show {
+	display: block;
+}
+
+.hide {
+	display: none;
 }
 
 /*
@@ -193,6 +213,198 @@ li {
 * dashboard
 */
 
+
+/*
+* content
+*/
+
+#content {
+	//float: left;
+	//width: 86%;
+}
+
+.content-padding {
+	padding: 1.5%;
+}
+
+/*
+* top navigation
+*/
+
+#top-navigation-bar {
+	background: #e1e1e1;
+	height: 45px;
+	position: relative;
+}
+
+
+.logo {
+	height: 45px;
+	text-align: center;
+}
+
+.logo a {
+	font-size: 38px;
+	letter-spacing: 1px;
+}
+
+.logo em {
+	font-size: 9px;
+	margin: 0 0 0 4px;
+}
+
+#open-popup-menu a i {
+	font-size: 18px;
+	//line-height: 38px;
+	color: #EEE;
+	cursor: pointer;
+	cursor: hand;
+}
+
+#open-popup-menu,
+#user-navigation {
+	position: absolute;
+	top: 8px;
+	right: 12px;
+	height: 45px;
+}
+
+#open-popup-menu {
+	top: 7px;
+	left: 12px;
+	right: auto;
+}
+
+#user-navigation > div {
+	display: inline-block;
+	margin-left: 10px;
+	position: relative;
+	float: left;
+}
+
+#open-popup-menu a,
+#user-navigation > div > a {
+	display: inline-block;
+	background: @current-blue; //#333;
+	padding: 7px 10px;
+	//line-height: 31px;
+	color: #eee;
+	-moz-box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2), 1px 1px 0 rgba(255,255,255,0.2);
+	-webkit-box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2), 1px 1px 0 rgba(255,255,255,0.2);
+	box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2), 1px 1px 0 rgba(255,255,255,0.2);
+	cursor: pointer;
+	cursor: hand;
+}
+
+#open-popup-menu a {
+	padding: 7px 9px 5px
+}
+
+#user-navigation > div#notification > a {
+	padding: 6px 9px; // 3px 14px 2px;
+	background: #666;
+}
+
+#open-popup-menu a:hover, 
+#user-navigation > div > a:hover {
+	background: #666;
+}
+
+#notification > a i {
+	font-size: 16px;
+	//line-height: 40px;
+}
+
+#user-menu > a i {
+	font-size: 12px;
+	margin-left: 9px;
+}
+
+#top-navigation-bar.blue {
+	background: @current-blue;
+}
+
+#top-navigation-bar.dark {
+	background: #666;
+}
+
+.dropdown-menu {
+	position: absolute;
+	top: 100%;
+	left: auto;
+	right: 0;
+	z-index: 1000;
+	float: left;
+	min-width: 160px;
+	padding: 5px 0;
+	margin: 2px 0 0;
+	list-style: none;
+	background-color: #fff;
+	border: 1px solid #ccc;
+	border: 1px solid rgba(0,0,0,0.2);
+	-webkit-box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+	-moz-box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+	box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+	-webkit-background-clip: padding-box;
+	-moz-background-clip: padding;
+	background-clip: padding-box;
+}
+
+#notification .dropdown-menu {
+	min-width: 280px;
+}
+
+.dropdown-menu li {
+	line-height: 20px;
+}
+
+.dropdown-menu li a {
+	font-size: 11px;
+	display: block;
+	padding: 3px 20px;
+	clear: both;
+	font-weight: normal;
+	line-height: 20px;
+	color: #333;
+	white-space: nowrap;
+	-moz-transition: all 0.2s ease-out 0s;
+	-webkit-transition: all 0.2s ease-out 0s;
+	transition: all 0.2s ease-out 0s;
+}
+
+.dropdown-menu li a:hover {
+	background: #546f8e;
+	color: #fff;
+}
+
+.dropdown-menu li a i {
+	margin-right: 10px;
+}
+
+.dropdown-menu li.sign-out {
+	padding-top: 5px;
+	margin-top: 4px;
+	border-top:1px solid #e5e5e5;
+}
+
+// styles test, can remove
+.blue .logo a,
+.blue .logo em,
+.blue #open-popup-menu i,
+.dark .logo a,
+.dark .logo em,
+.dark #open-popup-menu i {
+	color: #EEE;
+}
+
+.dark #user-navigation > div > a {
+	background: #444;
+}
+
+/*
+* sidebar
+*/
+
 #sidebar {
 	float: left;
 	width: 14%;
@@ -224,7 +436,134 @@ li {
 	height: 100%;
 	float: left;
 	width: 100%;
-	background: #3399cc;
+	background: @current-blue;
+}
+
+/*
+* popup menu
+*/
+
+#popup-navigation {
+	position: absolute;
+	width: 100%;
+	height: 94%;
+	padding: 48px 0 0;
+	top: 0;
+	left: 0;
+	background-color: rgba(255,255,255,0.85); // css3 only
+	z-index: 999; // should overlay everything else
+}
+
+#navigation-container {
+	width: 960px;
+	margin: 0 auto;
+}
+
+#navigation-container .menu-block {
+	border-top: 1px solid #ddd;
+	padding-top: 15px;
+	clear: both;
+}
+
+#navigation-container .menu-block:first-child {
+	border-top: 0 none;
+	padding-top: 0;
+}
+
+#navigation-container .menu-block h1 {
+	width: 50%;
+	height: 100px;
+	text-align: center;
+	line-height: 100px;
+	font-size: 60px;
+	font-weight: lighter;
+	letter-spacing: 2px;
+	background: @current-blue;
+	color: #fff;
+	margin-top: 0;
+	float: left;
+  // put the below in media @media (min-width: 1200px)
+	//height: 370px;
+	//height: 370px;
+}
+
+#navigation-container .menu-block.two-row h1 {
+	//height: 215px;
+	//line-height: 215px;
+}
+
+#navigation-container .menu-block h1 a {
+	color: #FFF;
+}
+
+.menu-block .menu {
+	width: 50%;
+	float: left;
+}
+
+.menu-block .menu a {
+	background: #e8e8e8;
+	color: #333;
+	width: 100px;
+	height: 100px;
+	margin: 0 0 15px 20px;
+	background-position: center;
+	background-repeat: no-repeat;
+	float: left;
+	min-height: 1px;
+	position: relative;
+}
+
+.menu-block .menu a:hover {
+	text-decoration: none;
+	background-color: #666;
+	color: #e8e8e8;
+}
+
+
+.menu-block .menu a span {
+	position: relative;
+	bottom: -80px;
+	left: 8px;
+	font-size: 12px;
+	letter-spacing: 2px;
+}
+
+.icon i {
+	position: absolute;
+	color: #515151;
+	font-size: 44px;
+	line-height: 46px;
+	top: 22px;
+	width: 100px;
+	text-align: center;
+}
+
+a.icon:hover i {
+	color: #e8e8e8;
+}
+
+.icon.bitly i {
+	font-weight: bold;
+	font-style: normal;
+	font-size: 38px;
+}
+
+.close-navigation-menu {
+	position: absolute;
+	top: 12px;
+	right: 10px;
+}
+
+.close-navigation-menu i {
+	font-size: 20px;
+	color: #444;
+	cursor: pointer;
+	cursor: hand;
+}
+
+.close-navigation-menu i:hover {
+	color: #000;
 }
 
 /*
@@ -234,4 +573,27 @@ li {
 	float: right;
 	//margin: -27px 5px 5px 4px;
 	font-size: 16px;
+}
+
+
+// Media size overrides for responsive layout
+
+/* Large desktop */
+@media (min-width: 1200px) {
+
+}
+ 
+/* Portrait tablet to landscape and desktop */
+@media (min-width: 768px) and (max-width: 979px) {
+
+}
+ 
+/* Landscape phone to portrait tablet */
+@media (max-width: 767px) {
+
+}
+ 
+/* Landscape phones and down */
+@media (max-width: 480px) {
+
 }

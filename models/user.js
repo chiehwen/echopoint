@@ -12,6 +12,8 @@ var UserModel = {
       name: { type: String},
       email: { type: String, required: true, index: { unique: true } },
       password: { type: String, required: true },
+      // roles: admin, user
+      role: { type: String, required: true, default: 'user' }, 
       meta: {
         created: { type: Date, default: Date.now},
         createdTimestamp: { type: Number, default: Date.now() },

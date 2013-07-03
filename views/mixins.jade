@@ -48,3 +48,145 @@ mixin createBusinessForm
 				label remember me
 		div.submit
 			input(type="submit", value="Create")
+
+mixin topNavigationMenu
+	div(id="top-navigation-bar")
+		div#open-popup-menu
+			a
+				i.icon-list
+		div.logo
+			a(href="/") vocada
+			em 0.0.1
+		div#user-navigation
+			div#notification
+				a.dropdown-toggle
+					i.icon-info-sign
+				ul(class="dropdown-menu hide")
+					li.nav-header Notifications
+			div#user-menu
+				a.dropdown-toggle Hello 
+					b Scott Carlson
+					i.icon-caret-down
+				ul(class="dropdown-menu hide")
+					li
+						a(href="#") 
+							i.icon-edit
+							span Edit Personal Profile
+					li
+						a(href="#") 
+							i.icon-wrench
+							span Account Settings
+					li.sign-out
+						a(href="#") 
+							i.icon-off
+							span Sign Out
+
+mixin popupNavigationMenu
+	div(id="popup-navigation", class="hide")
+		div.close-navigation-menu
+			i.icon-remove-sign
+		div#navigation-container
+			div(class="menu-block one-row")
+				h1
+					a data
+				div.menu
+					div
+						a(href="#", class="icon dashboard")
+							i.icon-th
+							span dashboard
+						a(href="#", class="icon notifications")
+							i.icon-bolt
+							span alerts
+						a(href="#", class="icon analytics")
+							i.icon-bar-chart
+							span analytics
+
+			div(class="menu-block two-row")
+				h1
+					a social
+				div.menu
+					div
+						a(href="#", class="icon facebook")
+							i.icon-facebook
+							span facebook
+						a(href="#", class="icon twitter")
+							i.icon-twitter
+							span twitter
+						a(href="#", class="icon yelp")
+							i.icon-yelp
+							span yelp
+						a(href="#", class="icon foursquare")
+							i.icon-foursquare
+							span foursquare
+						a(href="#", class="icon pinterest")
+							i.icon-pinterest
+							span pinterest
+						a(href="#", class="icon instagram")
+							i.icon-instagram
+							span instagram
+
+			div(class="menu-block one-row")
+				h1
+					a tools
+				div.menu
+					div
+						a(href="#", class="icon bitly")
+							i .ly
+							span bitly
+						a(href="#", class="icon responders")
+							i.icon-retweet
+							span responders
+						a(href="#", class="icon users")
+							i.icon-user
+							span users
+
+			div(class="menu-block one-row")
+				h1
+					a help
+				div.menu
+					div
+						a(href="#", class="icon quick-start")
+							i.icon-rocket
+							span quick start
+						a(href="#", class="icon faq")
+							i.icon-question
+							span faq
+
+//- update the sidebar to look like dev.ss.tv
+	and it must be actived by user in options (not standard)
+
+mixin sidebarNavigationMenu
+	div#sidebar
+		div.logo
+			a(href="/") vocada
+			em 0.0.1
+		div#console
+			h3 console
+			ul
+				li
+					a dashboard
+				li
+					a analytics
+		div#social
+			h3 social media
+			ul
+				li 
+					a(href="#") facebook
+				li 
+					a(href="#") twitter
+		div#advanced
+			h3 advanced
+			ul
+				li
+					a responders
+				li
+					a rss sharing
+				li
+					a sub users
+		div#guide
+			h3 guides
+			ul
+				li
+					a quick start
+				li
+					a faq
