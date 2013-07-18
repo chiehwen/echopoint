@@ -4,6 +4,7 @@ html
 		title= title
 		//-link(rel='stylesheet', href='/stylesheets/bootstrap.responsive.min.css')
 		//-link(rel='stylesheet', href='/fonts/font-awesome/less/font-awesome.css')
+		link(rel='stylesheet', href='/stylesheets/bootstrap.min.css')
 		link(rel='stylesheet', href='//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css')
 		link(rel='stylesheet', href='/fonts/font-awesome/css/font-awesome-social.css')
 		link(rel='stylesheet', href='/stylesheets/style.css')
@@ -11,5 +12,7 @@ html
 	body
 		block content
 
+		script console.log(!{JSON.stringify(locals)}); //- TEMP
 		script(src='//ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js')
+		script(src="/javascript/bootstrap.min.js")
 		script(src="/javascript/vocada.js")

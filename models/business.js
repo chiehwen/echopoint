@@ -18,10 +18,10 @@ var BusinessModel = {
       autoIndex: true
     },
     associations: {
-      hasOne: ['app', 'analytic'],
+      hasOne: ['analytics'],
       belongsTo : ['user'],
       notNested: {}
-    }  
+    }
   },
 
   Middleware: {

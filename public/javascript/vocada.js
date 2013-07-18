@@ -9,7 +9,10 @@ $(document).ready(function() {
 		$('#user-navigation, #open-popup-menu').removeClass('hide');
 	})
 
-	$('.dropdown-toggle').on('click', function() {
+	// bootstrap functions
+	$('.dropdown-toggle').dropdown()
+
+	/*$('.dropdown-toggle').on('click', function() {
 
 		// see if we need to show the dropdown menu clicked or hide it with the others
 		var showMenu = false;
@@ -23,5 +26,5 @@ $(document).ready(function() {
 		
 		if(showMenu)
 			$(this).siblings('.dropdown-menu').removeClass('hide');
-	});
+	});*/
 });

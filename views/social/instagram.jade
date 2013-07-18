@@ -1,0 +1,21 @@
+include ../mixins
+extends ../layout
+
+block content
+	mixin popupNavigationMenu
+	
+	div#main
+		mixin topNavigationMenu
+		div.content
+			div.social-login
+				p Please login to Instagram using your business account.
+				div(class="social-login-button instagram-login-button")
+					a(href="/social/facebook", class="icon blue border app-color instagram")
+						i.icon-instagram
+						span login
+
+			div.help-box
+				a(href="#") "My business is a Facebook personal page!" No worries click here for a guide on switching your personal page to a business page. 
+
+			div.help-box
+				a(href="#") "I'm not the admin of my Facebook page!" No worries click here to see a guide of having a current admin grant you access.

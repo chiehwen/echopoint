@@ -24,29 +24,32 @@ var AppSetup = (function() {
 			var app = this.application;
 
 			// all environments
-			app.set('port', process.env.PORT || 3000);
-			app.set('views', __dirname + '/../views');
-			app.set('view engine', 'jade');
+			app
+				.set('port', process.env.PORT || 3000)
+				.set('views', __dirname + '/../views')
+				.set('view engine', 'jade');
 
 			// express middleware
-			app.use(express.favicon());
-			app.use(express.logger('dev'));
-			app.use(express.bodyParser());
-			app.use(express.methodOverride());
-			app.use(express.cookieParser('The world is full of secrets!'));
-			app.use(express.session('Yes, even wizards have secrets...'));
+			app
+				.use(express.favicon())
+				.use(express.logger('dev'))
+				.use(express.bodyParser())
+				.use(express.methodOverride())
+				.use(express.cookieParser('The world is full of secrets!'))
+				.use(express.session('Yes, even wizards have secrets...'))
+
+				// passport setup
+				.use(passport.initialize())
+				.use(passport.session())
+
+				// custom middleware
+				.use(Middleware.sessionMessages)
+				.use(Middleware.loadSocialSessions)
 			
-			// passport setup
-			app.use(passport.initialize());
-			app.use(passport.session());
-
-			// custom middleware
-			app.use(Middleware.sessionMessages);
-
-			// route conditions
-			app.use(app.router);
-			app.use(require('less-middleware')({ src: __dirname + '/../public' }));
-			app.use(express.static(path.join(__dirname, '../public')));
+				// route conditions
+				.use(app.router)
+				.use(require('less-middleware')({ src: __dirname + '/../public' }))
+				.use(express.static(path.join(__dirname, '../public')));
 
 			return app;
 		}

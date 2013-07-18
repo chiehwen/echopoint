@@ -1,14 +1,12 @@
 include ../mixins
 extends ../layout
 
-script console.log(!{JSON.stringify(locals)});
-
 block content
 	mixin popupNavigationMenu
 	
-	div#content
+	div#main
 		mixin topNavigationMenu
-		div.content-padding
+		div.content
 			p Dashboard will go here
 				a(href="/logout") logout
 			form(action="/user/delete", method="POST", id="delete-user", accept-charset="utf-8")

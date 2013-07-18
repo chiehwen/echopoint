@@ -1,0 +1,26 @@
+include ../mixins
+extends ../layout
+
+block content
+	mixin popupNavigationMenu
+	script console.log(!{JSON.stringify(locals)});
+	div#main
+		mixin topNavigationMenu
+		div.content
+			- if (locals.twitter.connected == true && locals.twitter.data) {
+				div
+					!{JSON.stringify(locals.twitter.data)}
+			- } else {
+				div.social-login
+					p Please login to Twitter using your business account.
+					div(class="social-login-button twitter-login-button")
+						a(href="#{twitter.url}", class="icon blue border app-color twitter")
+							i.icon-twitter
+							span login
+
+				div.help-box
+					a(href="#") "My business is a Facebook personal page!" No worries click here for a guide on switching your personal page to a business page. 
+
+				div.help-box
+					a(href="#") "I'm not the admin of my Facebook page!" No worries click here to see a guide of having a current admin grant you access.
+			- }

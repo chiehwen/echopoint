@@ -2,7 +2,6 @@ include ../mixins
 extends ../layout
 
 block content
-	script console.log(!{JSON.stringify(message)});
 	div
 		- if (locals.message == 'email-password-error') {
 			div#login-notice-header

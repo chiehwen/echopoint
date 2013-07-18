@@ -4,7 +4,7 @@
 
 // controller dependencies
 var passport = require('passport'),
-		Model = Model || Object;
+	Model = Model || Object;
 
 var UserController = {
 	login: {
@@ -26,7 +26,7 @@ var UserController = {
 		},
 		post: passport.authenticate('local', 
 			{ 
-				successRedirect: '/dashboard',
+				successReturnToOrRedirect: '/dashboard',
 				failureRedirect: '/login',
 				failureMessage: true 
 			}

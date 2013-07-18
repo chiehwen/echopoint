@@ -55,19 +55,25 @@ mixin topNavigationMenu
 			a
 				i.icon-list
 		div.logo
-			a(href="/") vocada
-			em 0.0.1
+			- if (FALSE && typeof location != 'undefined' && location != '') {
+				//-span(class="icon-mini blue facebook")
+					i.icon-facebook
+				a(href="#")= location
+			- } else {
+				a(href="/") vocada
+				em 0.0.1
+			- }
 		div#user-navigation
 			div#notification
-				a.dropdown-toggle
+				a(href="#", class="dropdown-toggle", data-toggle="dropdown")
 					i.icon-info-sign
 				ul(class="dropdown-menu hide")
 					li.nav-header Notifications
 			div#user-menu
-				a.dropdown-toggle Hello 
+				a(href="#", class="dropdown-toggle", data-toggle="dropdown") Hello 
 					b Scott Carlson
 					i.icon-caret-down
-				ul(class="dropdown-menu hide")
+				ul(class="dropdown-menu")
 					li
 						a(href="#") 
 							i.icon-edit
@@ -77,7 +83,7 @@ mixin topNavigationMenu
 							i.icon-wrench
 							span Account Settings
 					li.sign-out
-						a(href="#") 
+						a(href="/logout") 
 							i.icon-off
 							span Sign Out
 
@@ -91,7 +97,7 @@ mixin popupNavigationMenu
 					a data
 				div.menu
 					div
-						a(href="#", class="icon dashboard")
+						a(href="/dashboard", class="icon dashboard")
 							i.icon-th
 							span dashboard
 						a(href="#", class="icon notifications")
@@ -106,22 +112,22 @@ mixin popupNavigationMenu
 					a social
 				div.menu
 					div
-						a(href="#", class="icon facebook")
+						a(href="/social/facebook", class="icon facebook")
 							i.icon-facebook
 							span facebook
-						a(href="#", class="icon twitter")
+						a(href="/social/twitter", class="icon twitter")
 							i.icon-twitter
 							span twitter
-						a(href="#", class="icon yelp")
+						a(href="/social/yelp", class="icon yelp")
 							i.icon-yelp
 							span yelp
-						a(href="#", class="icon foursquare")
+						a(href="/social/foursquare", class="icon foursquare")
 							i.icon-foursquare
 							span foursquare
-						a(href="#", class="icon pinterest")
+						a(href="/social/pinterest", class="icon pinterest")
 							i.icon-pinterest
 							span pinterest
-						a(href="#", class="icon instagram")
+						a(href="/social/instagram", class="icon instagram")
 							i.icon-instagram
 							span instagram
 

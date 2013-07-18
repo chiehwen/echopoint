@@ -11,8 +11,20 @@
     "less-middleware": "*",
     "mongodb": "*",
     "mongoose": "*",
+    "oauth": "*",
     "passport": "*",
+    "connect-ensure-login": "*",
+    "bcrypt": "*",
     "passport-local": "*",
-    "bcrypt": "*"
+    "connect-auth": "*",
+    "passport-facebook": "*",
+    "fbgraph": "*",
+    "passport-twitter": "*",
+    "twit": "*",
+    "passport-google": "*",
+    "passport-foursquare": "*",
+    "passport-instagram": "*",
+    "passport-bitly": "*",
+    "yelp": "*"
   }
 }

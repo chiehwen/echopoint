@@ -9,11 +9,43 @@ var UserModel = {
 
   Architecture: {
     schema: {
-      name: { type: String},
-      email: { type: String, required: true, index: { unique: true } },
-      password: { type: String, required: true },
+      name: {type: String},
+      email: {type: String, required: true, index: { unique: true } },
+      password: {type: String, required: true},
       // roles: admin, user
-      role: { type: String, required: true, default: 'user' }, 
+      role: {type: String, required: true, default: 'user' },
+      Business: [{}],
+      Social: {
+        facebook: {
+          id: {type: String},
+          oauthAccessToken: {type: String},
+          //oauthAccessTokenSecret: {type: String},
+          expires: {type: Number},
+          created: {type: Date},
+          createdTimestamp: {type: Number, default: Date.now()}
+        },
+        twitter: {
+          id: {type: String},
+          oauthAccessToken: {type: String},
+          oauthAccessTokenSecret: {type: String},
+          created: {type: Date},
+          expires: {type: String}
+        },
+        yelp: {
+          id: {type: String},
+          oauthAccessToken: {type: String},
+          oauthAccessTokenSecret: {type: String},
+          created: {type: Date},
+          expires: {type: String}
+        },
+        foursquare: {
+          id: {type: String},
+          oauthAccessToken: {type: String},
+          oauthAccessTokenSecret: {type: String},
+          created: {type: Date},
+          expires: {type: String}
+        }
+      },
       meta: {
         created: { type: Date, default: Date.now},
         createdTimestamp: { type: Number, default: Date.now() },

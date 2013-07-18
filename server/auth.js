@@ -1,11 +1,14 @@
 /**
  * Module dependencies.
  */
-var //Class = require('./libraries/class'),
-		bcrypt = require('bcrypt'),
-		passport = require('passport'),
-		Model = Model || Object,
-		LocalStrategy = require('passport-local').Strategy;
+var fs = require('fs'),
+	bcrypt = require('bcrypt'),
+	passport = require('passport'),
+	oauth = require('oauth'),
+	Model = Model || Object,
+	LocalStrategy = require('passport-local').Strategy,
+	Facebook = require('fbgraph'),
+	Twit = require('twit');
 
 var Auth = (function() {
 
@@ -15,7 +18,8 @@ var authInstance;
 	function constructor() {
 
 		// private variables
-		var saltWorkFactor = 10;
+		var saltWorkFactor = 10,
+			Config = JSON.parse(fs.readFileSync('./server/config/api.json'));
 
 		// private functions
 		var strategy = {
@@ -38,7 +42,28 @@ var authInstance;
 						});
 					 }
 				));
-			}
+			},
+			
+			facebook: function() {
+				Facebook.app = {
+					id: Config.facebook.appId,
+					secret: Config.facebook.appSecret,
+					redirect: Config.facebook.callbackUri
+				};
+
+				return Facebook;
+			},
+			twitter: function() {
+				return new oauth.OAuth(
+				    Config.twitter.requestUrl,
+				    Config.twitter.accessUrl, 
+				    Config.twitter.consumerKey,
+				    Config.twitter.consumerSecret,
+				    Config.twitter.version,
+				    Config.twitter.callbackUri,
+				    Config.twitter.signatureMethod
+				); 			
+			},
 		};
 
 		var session = {
@@ -53,6 +78,24 @@ var authInstance;
 				  });
 				});				
 			}
+		}
+
+		var redirectEndpoint = function(type, parameters) {
+			
+			var redirectParameters = '?'; 
+			for(var index in parameters) {
+				redirectParameters += (index + '=' + parameters[index] + '&'); 
+			}
+
+			switch(type) {
+				case 'facebook':
+					return Config.facebook.redirectEndpoint + redirectParameters + 'client_id=' + Config.facebook.appId + '&redirect_uri=' + Config.facebook.callbackUri + '&scope=' + Config.facebook.scope;
+					break;
+				case 'twitter':
+					return Config.twitter.redirectEndpoint + redirectParameters;
+					break;
+			}
+			
 		}
 
 		function _salt(callback) {
@@ -75,6 +118,10 @@ var authInstance;
 
 		// public members
 		return {
+			// public getter functions
+			load: function(type) {
+				return strategy[type]();
+			},
 			loadStrategy: function(type) {
 				strategy[type]();
 				return this;
@@ -82,6 +129,27 @@ var authInstance;
 			loadSession: function(type) {
 				session[type]();
 				return this;
+			},
+
+			getRedirectEndpoint: function(type, parameters) {
+				return redirectEndpoint(type, parameters);
+			},
+
+			initTwit: function(oauthAccessToken, oauthAccessTokenSecret, callback) {
+		      var Twitter = new Twit({
+		      	consumer_key: Config.twitter.consumerKey,
+		      	consumer_secret: Config.twitter.consumerSecret,
+		      	access_token: oauthAccessToken,
+		      	access_token_secret: oauthAccessTokenSecret
+		      });
+
+		      Twitter.get('account/verify_credentials', {include_entities: false, skip_status: true}, function(err, reply) {
+		      	if(err) {
+		      		callback("Error connecting to Twitter!");
+		      	} else {
+		      		callback(null, Twitter);
+		      	}
+		      });
 			},
 
 			// These are Authentication functions
@@ -103,8 +171,12 @@ var authInstance;
 				if(req.session.passport.user) {
 					next();
 				} else {
+					if(req.url != '/login' && req.url != '/logout' && !~req.url.indexOf('/oauth/'))
+						req.session.returnTo = req.url;
+					if(typeof req.session.returnTo === 'undefined' || !req.session.returnTo) 
+						req.session.returnTo = '/dashboard';
 					req.session.messages = 'please login to continue';
-			    res.redirect('/login');
+			    	res.redirect('/login');
 				}
 			}
 
