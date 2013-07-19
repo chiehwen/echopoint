@@ -19,17 +19,15 @@ var UserModel = {
         facebook: {
           id: {type: String},
           oauthAccessToken: {type: String},
-          //oauthAccessTokenSecret: {type: String},
           expires: {type: Number},
-          created: {type: Date},
-          createdTimestamp: {type: Number, default: Date.now()}
+          created: {type: Number}
         },
         twitter: {
           id: {type: String},
           oauthAccessToken: {type: String},
           oauthAccessTokenSecret: {type: String},
-          created: {type: Date},
-          expires: {type: String}
+          expires: {type: String},
+          created: {type: Number},
         },
         yelp: {
           id: {type: String},

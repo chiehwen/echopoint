@@ -45,11 +45,14 @@ var authInstance;
 			},
 			
 			facebook: function() {
-				Facebook.app = {
-					id: Config.facebook.appId,
-					secret: Config.facebook.appSecret,
-					redirect: Config.facebook.callbackUri
-				};
+
+				if(typeof Facebook.app == 'undefined') {
+					Facebook.app = {
+						id: Config.facebook.appId,
+						secret: Config.facebook.appSecret,
+						redirect: Config.facebook.callbackUri
+					};
+				}
 
 				return Facebook;
 			},
@@ -134,6 +137,18 @@ var authInstance;
 			getRedirectEndpoint: function(type, parameters) {
 				return redirectEndpoint(type, parameters);
 			},
+			setFacebookAccessToken: function(oauthAccessToken) {
+				Facebook.setAccessToken(oauthAccessToken);
+				//return Facebook;
+			},
+			checkFacebook: function(callback) {
+
+				//Facebook.setAccessToken(oauthAccessToken);
+
+				Facebook.get('me', function(err, response) {
+					callback(err, response);
+				})
+			},
 
 			initTwit: function(oauthAccessToken, oauthAccessTokenSecret, callback) {
 		      var Twitter = new Twit({
@@ -145,7 +160,7 @@ var authInstance;
 
 		      Twitter.get('account/verify_credentials', {include_entities: false, skip_status: true}, function(err, reply) {
 		      	if(err) {
-		      		callback("Error connecting to Twitter!");
+		      		callback(err);
 		      	} else {
 		      		callback(null, Twitter);
 		      	}

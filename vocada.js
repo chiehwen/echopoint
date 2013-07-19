@@ -15,7 +15,6 @@ Boot.start(function(app) {
 });
 
 
-
 // TEMP: removes all users from User collection
 var Model = Model || Object;
 //console.log(Model.User.Business);

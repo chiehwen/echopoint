@@ -131,9 +131,9 @@ var UserController = {
 			if(req.session.passport.user) {
 				var id = req.session.passport.user;
 				Model.User.remove({ _id: id }, function (err) {
-				  if (err) throw err;
-				  req.session.destroy(function(){
-					  res.redirect('/user/create');
+					if (err) throw err;
+					req.session.destroy(function(){
+						res.redirect('/user/create');
 					});
 				});
 			}

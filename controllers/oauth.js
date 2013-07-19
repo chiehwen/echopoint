@@ -3,9 +3,9 @@
  */
 
 var Model = Model || Object,
-	Auth = require('../server/auth').getInstance(),
-	Facebook = require('fb'),
-	Twit = require('twit');
+	Auth = require('../server/auth').getInstance();
+	//Facebook = require('fb'),
+	//Twit = require('twit');
 
 var OauthController = {
 
@@ -117,32 +117,24 @@ var OauthController = {
 							}, function (err, result) {
 								if(err) req.session.messages.push(err);
 
-								req.session.facebook = {
+								//var date = new Date(),
+								var timestamp = Math.round(new Date().getTime()/ 1000);
+
+								var credentials = {
 									oauthAccessToken: result.access_token,
 									expires: result.expires,
-									created: Date.now()
+									created: timestamp
 								}
+
+								req.session.facebook = credentials;
+
+								// Put Access token into the database
+								user.Social.facebook = credentials;
+								user.save(function(err) {
+									req.session.messages.push(err);
+								});
+
 								req.session.facebookConnected = true;
-
-									// Put Access token into the database
-									Model.User.update(
-										{_id: id},
-										{$set: {
-											Social: {
-												facebook: {
-													oauthAccessToken: result.access_token,
-													expires: result.expires,
-													created: Date,
-													createdTimestamp: Date.now()
-												}
-											} 
-										}},
-										function(err){
-											if (err) req.session.messages.push(err);
-											req.session.messages.push("Facebook credentials updated");										
-										}
-									);
-
 								req.session.messages.push(result);
 								res.redirect('/social/facebook');
 							});
@@ -174,32 +166,26 @@ var OauthController = {
 							Auth.initTwit(oauthAccessToken, oauthAccessTokenSecret, function(err, Twitter) {
 								if(err) {
 									req.session.messages.push("Error connecting to Twitter!");
+									req.session.messages.push(err);
 									res.redirect('/social/twitter');
 								} else {
-									req.session.twitter = {
+
+									var timestamp = Math.round(new Date().getTime()/ 1000);
+									
+									var credentials = {
 										oauthAccessToken: oauthAccessToken,
-										oauthAccessTokenSecret: oauthAccessTokenSecret
-									}
-									req.session.twitterConnected = true;
+										oauthAccessTokenSecret: oauthAccessTokenSecret,
+										created: timestamp
+									};
+									req.session.twitter = credentials;
 
 									// Put Access tokens into the database
-									Model.User.update(
-										{_id: id},
-										{$set: {
-											Social: {
-												twitter: {
-													oauthAccessToken: oauthAccessToken,
-													oauthAccessTokenSecret: oauthAccessTokenSecret,
-													created: new Date
-												}
-											} 
-										}},
-										function(err){
-											if (err) req.session.messages.push(err);
-											req.session.messages.push("Twitter credentials updated");										
-										}
-									);
-									
+									user.Social.twitter = credentials;
+									user.save(function(err) {
+										req.session.messages.push(err);
+									});
+
+									req.session.twitterConnected = true;
 									req.session.messages.push("Connected to Twitter.");
 									res.redirect('/social/twitter');
 								}

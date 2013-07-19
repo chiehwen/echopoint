@@ -12,6 +12,7 @@ var SocialController = {
 
  	facebook: {
  		get: function(req, res, next) {
+
  			if(req.session.passport.user) {
  				var id = req.session.passport.user;
 
@@ -20,16 +21,27 @@ var SocialController = {
 
  					// process facebook
  					if(req.session.facebookConnected && req.session.facebook.oauthAccessToken) {
+
+Auth.checkFacebook(function(err, response) {
+
+if(err) 
+	var facebookData = err;
+else
+	var facebookData = response;
+
 res.render(
 'social/facebook', 
 {
 title: 'Vocada | Business Facebook Page',
 facebook: {
 connected: true,
-token: req.session.facebook.oauthAccessToken
+data: facebookData
 }
 }
-);
+);	
+
+})
+
  						/*Auth.initTwit(req.session.facebook.oauthAccessToken, req.session.facebook.oauthAccessTokenSecret, function(err, Twitter) {
 							Twitter.get('account/verify_credentials', {include_entities: false, skip_status: true}, function(err, response) {
 								if(err) {
@@ -50,6 +62,22 @@ token: req.session.facebook.oauthAccessToken
 						    });
  						});*/
 
+ 					} else if(
+						typeof user.Social.facebook.oauthAccessToken !== 'undefined'
+						&& typeof user.Social.facebook.expires !== 'undefined'
+						&& typeof user.Social.facebook.created !== 'undefined'
+						&& user.Social.facebook.oauthAccessToken != ''
+						&& user.Social.facebook.expires != '' && user.Social.facebook.expires != 0
+						&& user.Social.facebook.created != '' && user.Social.facebook.created != 0
+						&& user.Social.facebook.oauthAccessToken
+						&& user.Social.facebook.expires
+						&& user.Social.facebook.created
+						&& ((user.Social.facebook.created + user.Social.facebook.expires) * 1000 > Date.now())
+					) {
+						var uniqueState = crypto.randomBytes(10).toString('hex');
+						req.session.facebookState = uniqueState;
+
+ 						res.redirect(Auth.getRedirectEndpoint('facebook', {state: uniqueState, response_type: 'code'}));
  					} else {
 						var facebookEndpoint = false;
 
