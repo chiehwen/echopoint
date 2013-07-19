@@ -137,14 +137,12 @@ var authInstance;
 			getRedirectEndpoint: function(type, parameters) {
 				return redirectEndpoint(type, parameters);
 			},
+
 			setFacebookAccessToken: function(oauthAccessToken) {
 				Facebook.setAccessToken(oauthAccessToken);
-				//return Facebook;
 			},
+
 			checkFacebook: function(callback) {
-
-				//Facebook.setAccessToken(oauthAccessToken);
-
 				Facebook.get('me', function(err, response) {
 					callback(err, response);
 				})

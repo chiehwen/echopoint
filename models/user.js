@@ -26,22 +26,22 @@ var UserModel = {
           id: {type: String},
           oauthAccessToken: {type: String},
           oauthAccessTokenSecret: {type: String},
-          expires: {type: String},
-          created: {type: Number},
+          expires: {type: Number},
+          created: {type: Number}
         },
         yelp: {
           id: {type: String},
           oauthAccessToken: {type: String},
           oauthAccessTokenSecret: {type: String},
-          created: {type: Date},
-          expires: {type: String}
+          expires: {type: Number},
+          created: {type: Number}
         },
         foursquare: {
           id: {type: String},
           oauthAccessToken: {type: String},
           oauthAccessTokenSecret: {type: String},
-          created: {type: Date},
-          expires: {type: String}
+          expires: {type: Number},
+          created: {type: Number}
         }
       },
       meta: {

@@ -4,81 +4,8 @@
 
 var Model = Model || Object,
 	Auth = require('../server/auth').getInstance();
-	//Facebook = require('fb'),
-	//Twit = require('twit');
 
 var OauthController = {
-
-	/*load: {
-		get: function(req, res) {
-			if(req.session.passport.user) {
- 				var id = req.session.passport.user;
-
- 				Model.User.findById(id, function(err, user) {
- 					if (err) return next(err);
-
- 					var redirect = req.session.returnTo;
- 					req.session.socialSessionsLoaded = false;
-
-					// check twitter
-					req.session.twitterConnected = false;
-					if(
-						typeof user.Social.twitter.oauthRequestToken !== 'undefined'
-						&& typeof user.Social.twitter.oauthRequestTokenSecret !== 'undefined'
-						&& user.Social.twitter.oauthRequestToken != ''
-						&& user.Social.twitter.oauthRequestTokenSecret != ''
-						&& user.Social.twitter.oauthRequestToken
-						&& user.Social.twitter.oauthRequestTokenSecret
-					) {
-						var oauthAccessToken = user.Social.twitter.oauthRequestToken,
-							oauthAccessTokenSecret = user.Social.twitter.oauthRequestTokenSecret;
-
-						Auth.initTwit(oauthAccessToken, oauthAccessTokenSecret, function(err, Twitter) {
-					    	if(err) {
-					      		req.session.messages.push("Error connecting to Twitter!");
-					      		
-					      		// lets remove the invalid tokens
-								Model.User.update(
-									{_id: id},
-									{$set: {
-										Social: {
-											twitter: {
-												oauthAccessToken: '',
-												oauthAccessTokenSecret: ''
-											}
-										} 
-									}},
-									function(err){
-										if (err) return next(err);
-										req.session.messages.push("Hooray! New business has been created!");
-										//res.redirect('/dashboard');										
-									}
-								);
-								req.session.socialSessionsLoaded = true;
-								res.redirect(redirect);
-
-					      	} else {
-					      		/*Twitter.get('search/tweets', 
-					      			{ q: 'banana since:2011-11-11', count: 10 }, 
-					      			function(err, reply) {
-										res.send(JSON.stringify(reply))
-									}
-								);*
-					      		req.session.messages.push("Connected to Twitter.");
-					      		req.session.twitterConnected = true;
-								req.session.oauthAccessToken = oauthAccessToken;
-		      					req.session.oauthAccessTokenSecret = oauthAccessTokenSecret;
-		      					req.session.socialSessionsLoaded = true;
-		      					res.redirect(redirect);
-					      	}
-					    });
-
-					}
-					// end twitter check
-				})
-			}
-		} 
-	},*/
 
 	facebook: {
 		get: function(req, res) {
@@ -193,11 +120,9 @@ var OauthController = {
 		    			}
 					});
 				});
-			
 			}
 		}
  	},
-
 }
 
 module.exports = OauthController;
