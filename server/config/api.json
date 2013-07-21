@@ -1,21 +1,28 @@
 {
-	"facebook" : {
-		"baseUri" : "https://www.facebook.com/",
-		"accessTokenPath" : "oauth/access_token",
-		"appId" : "1374604796095373",
-		"appSecret" : "bf2a7c4e182e65a45e69b810c2984450",
+	"facebook": {
+		"baseUri": "https://www.facebook.com/",
+		"accessTokenPath": "oauth/access_token",
+		"appId": "1374604796095373",
+		"appSecret": "bf2a7c4e182e65a45e69b810c2984450",
 		"redirectEndpoint": "https://www.facebook.com/dialog/oauth",
-		"callbackUri" : "http://127.0.0.1:3000/oauth/facebook",
+		"callbackUri": "http://127.0.0.1:3000/oauth/facebook",
 		"scope": "manage_pages,read_stream"
 	},
-	"twitter" : {
+	"twitter": {
 		"consumerKey": "9DFn7r4ir7Z4uPSy7ZEQbA",
-		"consumerSecret" : "W94Yo4iCRvltpktHCvsAUWD3qBNdyD0bBwk9r34",
-		"requestUrl" : "https://twitter.com/oauth/request_token",
-		"accessUrl" : "https://twitter.com/oauth/access_token",
-		"apiVersion": "1.0A",
+		"consumerSecret": "W94Yo4iCRvltpktHCvsAUWD3qBNdyD0bBwk9r34",
+		"requestUrl": "https://twitter.com/oauth/request_token",
+		"accessUrl": "https://twitter.com/oauth/access_token",
+		"version": "1.0A",
 		"signatureMethod": "HMAC-SHA1",
 		"redirectEndpoint": "https://api.twitter.com/oauth/authenticate",
-		"callbackUri" : "http://127.0.0.1:3000/oauth/twitter"
+		"callbackUri": "http://127.0.0.1:3000/oauth/twitter"
+	},
+	"yelp": {
+		"consumerKey": "ZlOg0OA8NlTYHDlmAkJ1Ig",
+		"ConsumerSecret": "1af1FEeJ_QW-ckUlOcxiWsiLWhQ",
+		"token": "RB-wyoQ1qRiK7CXErLs3qpES--HjfqSg",
+		"tokenSecret": "1xf9J8WyMMCDoUIeeB7EAxNi7Qg",
+		"version": "1.0"
 	}
 }

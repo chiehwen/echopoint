@@ -175,13 +175,28 @@ data: facebookData
  				Model.User.findById(id, function(err, user) {
  					if (err) return next(err);	
  					
- 					res.render(
- 						'social/yelp', 
- 						{
- 					  	title: 'Vocada | Business Yelp Page',
- 					  	businesses: user.Business
- 						}
- 					);
+ 					yelp = Auth.load('yelp');
+req.session.messages.push(yelp);
+ 					yelp.business('roll-on-sushi-diner-austin', function(err, response) {
+
+ 						if(err)
+ 							var data = err;
+ 						else 
+ 							var data = response;
+
+						res.render(
+	 						'social/yelp', 
+	 						{
+		 					  	title: 'Vocada | Business Yelp Page',
+		 					  	yelp: {
+		 					  		connected: err ? false : true,
+		 					  		data: data
+		 					  	}
+	 						}
+	 					);
+ 					});
+
+ 					
  				});
  			}
  		}

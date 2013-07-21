@@ -8,7 +8,8 @@ var fs = require('fs'),
 	Model = Model || Object,
 	LocalStrategy = require('passport-local').Strategy,
 	Facebook = require('fbgraph'),
-	Twit = require('twit');
+	Twit = require('twit'),
+	Yelp = require('yelp');
 
 var Auth = (function() {
 
@@ -66,6 +67,16 @@ var authInstance;
 				    Config.twitter.callbackUri,
 				    Config.twitter.signatureMethod
 				); 			
+			},
+			yelp: function() {
+				return Yelp.createClient({
+					consumer_key: Config.yelp.consumerKey,
+					consumer_secret: Config.yelp.consumerSecret,
+					token: Config.yelp.token,
+					token_secret: Config.yelp.tokenSecret,
+					version: Config.yelp.version
+				});
+				//return Yelp;		
 			},
 		};
 

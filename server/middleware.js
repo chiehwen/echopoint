@@ -27,7 +27,7 @@ var Middleware = {
  				if (err) return next(err);
 
 				// check twitter
-				if(typeof req.session.twitterConnected == 'undefined' || !req.session.twitterConnected) {
+				if(!req.session.twitterConnected) {
 					// at anytime you may set req.session.twitterConnected = false to reload twitter
 					if(
 						typeof user.Social.twitter.oauthAccessToken !== 'undefined'
