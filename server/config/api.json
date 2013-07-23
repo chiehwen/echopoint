@@ -1,11 +1,11 @@
 {
 	"facebook": {
-		"baseUri": "https://www.facebook.com/",
+		"root": "https://www.facebook.com/",
 		"accessTokenPath": "oauth/access_token",
-		"appId": "1374604796095373",
-		"appSecret": "bf2a7c4e182e65a45e69b810c2984450",
-		"redirectEndpoint": "https://www.facebook.com/dialog/oauth",
-		"callbackUri": "http://127.0.0.1:3000/oauth/facebook",
+		"id": "1374604796095373",
+		"secret": "bf2a7c4e182e65a45e69b810c2984450",
+		"dialog": "https://www.facebook.com/dialog/oauth",
+		"callback": "http://127.0.0.1:3000/oauth/facebook",
 		"scope": "manage_pages,read_stream"
 	},
 	"twitter": {
@@ -14,9 +14,9 @@
 		"requestUrl": "https://twitter.com/oauth/request_token",
 		"accessUrl": "https://twitter.com/oauth/access_token",
 		"version": "1.0A",
-		"signatureMethod": "HMAC-SHA1",
-		"redirectEndpoint": "https://api.twitter.com/oauth/authenticate",
-		"callbackUri": "http://127.0.0.1:3000/oauth/twitter"
+		"signature": "HMAC-SHA1",
+		"dialog": "https://api.twitter.com/oauth/authenticate",
+		"callback": "http://127.0.0.1:3000/oauth/twitter"
 	},
 	"yelp": {
 		"consumerKey": "ZlOg0OA8NlTYHDlmAkJ1Ig",
@@ -26,14 +26,21 @@
 		"version": "1.0"
 	},
 	"foursquare": {
-		"clientId": "YCWRKYI02XUPMIQBX15H3Z54ARGFOS4ZXHP3CQHZ2KIA3MDA",
-		"clientSecret": "XGW1GAGWL4UC0BV3MU31LRA2P44ENAU3ZYJ5HN5E5UMGS0KT",
-		"callbackUri": "http://127.0.0.1:3000/oauth/foursquare"
+		"id": "YCWRKYI02XUPMIQBX15H3Z54ARGFOS4ZXHP3CQHZ2KIA3MDA",
+		"secret": "XGW1GAGWL4UC0BV3MU31LRA2P44ENAU3ZYJ5HN5E5UMGS0KT",
+		"callback": "http://127.0.0.1:3000/oauth/foursquare"
 	},
 	"bitly": {
-		"clientId": "c4c24048f5a9d4986f3a6ff22f54a2016abc3460",
-		"clientSecret": "8653a06de058b688fb623ca0c9042ace6313ae35",
-		"redirectEndpoint": "https://bitly.com/oauth/authorize",
-		"callbackUri": "http://127.0.0.1:3000/oauth/bitly"
+		"id": "c4c24048f5a9d4986f3a6ff22f54a2016abc3460",
+		"secret": "8653a06de058b688fb623ca0c9042ace6313ae35",
+		"callback": "http://127.0.0.1:3000/oauth/bitly",
+		"dialog": "https://bitly.com/oauth/authorize"
+	},
+	"instagram": {
+		"id": "b7140ad8369d4864810a46a589d80cb9",
+		"secret": "6499ea15c67540dcb0e992ce6ac9ae4e",
+		"callback": "http://127.0.0.1:3000/oauth/instagram",
+		"dialog": "https://api.instagram.com/oauth/authorize/",
+		"scope": "basic comments relationships likes"		
 	}
 }

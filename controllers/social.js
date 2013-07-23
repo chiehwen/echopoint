@@ -29,6 +29,7 @@ var SocialController = {
  					// process facebook
  					if(req.session.facebookConnected && req.session.facebook.oauthAccessToken) {
 
+
 Auth.checkFacebook(function(err, response) {
 
 if(err) 
@@ -81,24 +82,23 @@ data: facebookData
 						&& user.Social.facebook.created
 						&& ((user.Social.facebook.created + user.Social.facebook.expires) * 1000 > Date.now())
 					) {
-						var uniqueState = crypto.randomBytes(10).toString('hex');
-						req.session.facebookState = uniqueState;
+						req.session.facebookState = crypto.randomBytes(10).toString('hex');
+						//req.session.facebookState = uniqueState;
 
- 						res.redirect(Auth.getRedirectEndpoint('facebook', {state: uniqueState, response_type: 'code'}));
+ 						res.redirect(Auth.getOauthDialogUrl('facebook', {state: req.session.facebookState, response_type: 'code'}));
  					} else {
-						var facebookEndpoint = false;
+						//var facebookEndpoint = false;
 
-						var uniqueState = crypto.randomBytes(10).toString('hex');
-						req.session.facebookState = uniqueState;
+						req.session.facebookState = crypto.randomBytes(10).toString('hex');
+						//req.session.facebookState = uniqueState;
 
-						facebookEndpoint = Auth.getRedirectEndpoint('facebook', {state: uniqueState, response_type: 'code'});
 				 		res.render(
 				 			'social/facebook', 
 				 			{
 					 			title: 'Vocada | Business Facebook Page',
 					 			facebook: {
 					 			connected: false,
-					 				url: facebookEndpoint
+					 				url: Auth.getOauthDialogUrl('facebook', {state: req.session.facebookState, response_type: 'code'})
 					 			}
 				 			}
 				 		);
@@ -141,12 +141,20 @@ data: facebookData
 
  					} else {
 
-						var twitter = Auth.load('twitter'),
-							twitterEndpoint = false;
-							
+						var twitter = Auth.load('twitter');
+						
 						twitter.getOAuthRequestToken(function(err, oauthRequestToken, oauthRequestTokenSecret, results) {
+						/*twitter.authorize('post', 'https://api.twitter.com/oauth/request_token?', 
+						{
+							oauth: {
+								consumer_key: twitter.client.key,
+								consumer_secret: twitter.client.secret,
+								callback:  twitter.client.redirect
+							}
+						}, 
+						function(err, response) {*/
 						    if (err) {
-						      console.log("Error getting OAuth request token : " + err);
+						      res.send("Error getting OAuth request token : " + JSON.stringify(err));
 						    } else { 
     	
 								req.session.twitter = {
@@ -154,15 +162,13 @@ data: facebookData
 									oauthRequestTokenSecret: oauthRequestTokenSecret
 								}
 
-								//twitter.url = 'https://api.twitter.com/oauth/authenticate?oauth_token=' + oauthRequestToken;
-				 				twitterEndpoint = Auth.getRedirectEndpoint('twitter', {oauth_token: oauthRequestToken});
 				 				res.render(
 				 					'social/twitter', 
 				 					{
 					 					title: 'Vocada | Business Twitter Page',
-					 					twitter: {
+					 					twitter: {				
 					 						connected: false,
-					 						url: twitterEndpoint
+					 						url: Auth.getOauthDialogUrl('twitter', {oauth_token: oauthRequestToken})
 					 					}
 				 					}
 				 				);
@@ -216,11 +222,10 @@ data: facebookData
 
  				Model.User.findById(id, function(err, user) {
  					if (err) return next(err);	
- 					
- 					foursquare = Auth.load('foursquare');
 
  					if(req.session.foursquareConnected && req.session.foursquare.oauthAccessToken) {
- 						foursquare.Venues.getVenue('4dacc8d40cb63c371ca540d6', req.session.foursquare.oauthAccessToken, function(err, response) {
+ 						foursquare = Auth.load('foursquare');
+ 						foursquare.get('venues/4dacc8d40cb63c371ca540d6', function(err, response) {
  							res.render(
 		 						'social/foursquare', 
 		 						{
@@ -240,7 +245,7 @@ data: facebookData
 		 					  	title: 'Vocada | Business Foursquare Page',
 		 					  	foursquare: {
 		 					  		connected: false,
-		 					  		url: foursquare.getAuthClientRedirectUrl()
+		 					  		url: Auth.getOauthDialogUrl('foursquare', {response_type: 'code'})
 		 						}
 		 					}
 	 					);
@@ -250,7 +255,7 @@ data: facebookData
  		}
  	},
 
- 	pinterest: {
+ 	google: {
  		get: function(req, res) {
  			if(req.session.passport.user) {
  				var id = req.session.passport.user;
@@ -271,6 +276,48 @@ data: facebookData
  	},
 
  	instagram: {
+		get: function(req, res) {
+ 			if(req.session.passport.user) {
+ 				var id = req.session.passport.user;
+
+ 				Model.User.findById(id, function(err, user) {
+ 					if (err) return next(err);	
+
+ 					if(req.session.instagramConnected && req.session.instagram.oauthAccessToken) {
+ 						instagram = Auth.load('instagram');
+ 						instagram.get('users/self/feed', function(err, response) {
+ 							res.render(
+		 						'social/instagram', 
+		 						{
+			 					  	title: 'Vocada | Business Instagram Page',
+			 					  	instagram: {
+			 					  		connected: true,
+			 					  		data: response
+			 						}
+			 					}
+		 					);
+	 					});
+ 					} else {
+
+ 						req.session.instagramState = crypto.randomBytes(10).toString('hex');
+	 					
+	 					res.render(
+	 						'social/instagram', 
+	 						{
+		 					  	title: 'Vocada | Business Instagram Page',
+		 					  	instagram: {
+		 					  		connected: false,
+		 					  		url: Auth.getOauthDialogUrl('instagram', {response_type: 'code', state: req.session.instagramState})
+		 						}
+		 					}
+	 					);
+	 				}
+ 				});
+ 			}
+ 		}
+ 	},
+
+ 	youtube: {
  		get: function(req, res) {
  			if(req.session.passport.user) {
  				var id = req.session.passport.user;
@@ -279,9 +326,9 @@ data: facebookData
  					if (err) return next(err);	
  					
  					res.render(
- 						'social/instagram', 
+ 						'social/pinterest', 
  						{
- 					  	title: 'Vocada | Business Instagram Page',
+ 					  	title: 'Vocada | Business Pinterest Page',
  					  	businesses: user.Business
  						}
  					);

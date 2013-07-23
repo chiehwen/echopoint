@@ -28,16 +28,16 @@ var OauthController = {
 						facebook = Auth.load('facebook');
 
 						facebook.authorize('get', "/oauth/access_token", {
-							client_id: facebook.client.facebook.id,
-							client_secret: facebook.client.facebook.secret,
-							redirect_uri: facebook.client.facebook.redirect,
+							client_id: facebook.client.id,
+							client_secret: facebook.client.secret,
+							redirect_uri: facebook.client.redirect,
 							code: req.query.code
 						}, function(err, result) {
 							if(err) res.redirect('/social/facebook');
 
 							facebook.authorize('get', "/oauth/access_token", {
-								client_id: facebook.client.facebook.id,
-								client_secret: facebook.client.facebook.secret,
+								client_id: facebook.client.id,
+								client_secret: facebook.client.secret,
 								grant_type: 'fb_exchange_token',
 								fb_exchange_token: result.access_token
 							}, function (err, result) {
@@ -138,17 +138,25 @@ var OauthController = {
 					}
 
 					foursquare = Auth.load('foursquare');
-					
-					foursquare.getAccessToken(
-						{code: req.query.code},
-						function (err, oauthAccessToken) {
+			
+					foursquare.authorize('get', 'https://foursquare.com/oauth2/access_token',
+						{
+							client_id: foursquare.client.id,
+							client_secret: foursquare.client.secret,
+							redirect_uri: foursquare.client.redirect,
+							grant_type: 'authorization_code',
+							code: req.query.code
+						},
+						function (err, result) {
 							if(err) {
-								res.send('An error was thrown: ' + err.message);
+								req.session.messages.push(err);
+								//res.send('An error was thrown: ' + err);
+								res.redirect('/social/foursquare');
 							} else {
 								var timestamp = Math.round(new Date().getTime()/ 1000);
 									
 								var credentials = {
-									oauthAccessToken: oauthAccessToken,
+									oauthAccessToken: result.access_token,
 									created: timestamp
 								};
 								req.session.foursquare = credentials;
@@ -160,10 +168,66 @@ var OauthController = {
 								});
 
 								req.session.foursquareConnected = true;
-								req.session.messages.push("Connected to Foursquare.");
 								res.redirect('/social/foursquare');
 							}
 					});
+				});
+			}
+		}
+ 	},
+
+ 	instagram: {
+		get: function(req, res) {
+			if(req.session.passport.user) {
+				var id = req.session.passport.user;
+
+				Model.User.findById(id, function(err, user) {
+					if (err) return next(err);
+
+					if(req.session.instagramState && req.session.instagramState == req.query.state) {
+
+						if(req.query.error) {
+							// user might have disallowed the app
+							res.send('login-error ' + req.query.error_description);
+						} else if(!req.query.code) {
+							res.redirect('/social/instagram');
+						}
+
+						instagram = Auth.load('instagram');
+				
+						instagram.authorize('post', 'https://api.instagram.com/oauth/access_token?',
+							{
+								client_id: instagram.client.id,
+								client_secret: instagram.client.secret,
+								redirect_uri: instagram.client.redirect,
+								grant_type: 'authorization_code',
+								code: req.query.code
+							},
+							function (err, result) {
+								if(err) {
+									req.session.messages.push(err);
+									//res.send('An error was thrown: ' + err);
+									res.redirect('/social/instagram');
+								} else {
+									var timestamp = Math.round(new Date().getTime()/ 1000);
+										
+									var credentials = {
+										oauthAccessToken: result.access_token,
+										created: timestamp
+									};
+									req.session.instagram = credentials;
+
+									// Put Access tokens into the database
+									user.Social.instagram = credentials;
+									user.save(function(err) {
+										req.session.messages.push(err);
+									});
+
+									req.session.instagramConnected = true;
+									res.redirect('/social/instagram');
+								}
+						});
+					}
 				});
 			}
 		}
@@ -189,9 +253,9 @@ var OauthController = {
 						bitly = Auth.load('bitly');
 req.session.messages.push(bitly);
 						bitly.authorize('post', "https://api-ssl.bitly.com/oauth/access_token?", {
-							client_id: bitly.client.bitly.id,
-							client_secret: bitly.client.bitly.secret,
-							redirect_uri: bitly.client.bitly.redirect,
+							client_id: bitly.client.id,
+							client_secret: bitly.client.secret,
+							redirect_uri: bitly.client.redirect,
 							code: req.query.code,
 							state: req.query.state
 						}, function(err, result) {

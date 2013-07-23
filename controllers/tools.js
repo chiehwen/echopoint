@@ -49,14 +49,14 @@ data: bitlyData
 						var uniqueState = crypto.randomBytes(10).toString('hex');
 						req.session.bitlyState = uniqueState;
 
- 						res.redirect(Auth.getRedirectEndpoint('bitly', {state: uniqueState, response_type: 'code'}));
+ 						res.redirect(Auth.getOauthDialogUrl('bitly', {state: uniqueState}));
  					} else {
 						var bitlyEndpoint = false;
 
 						var uniqueState = crypto.randomBytes(10).toString('hex');
 						req.session.bitlyState = uniqueState;
 
-						bitlyEndpoint = Auth.getRedirectEndpoint('bitly', {state: uniqueState});
+						bitlyEndpoint = Auth.getOauthDialogUrl('bitly', {state: uniqueState});
 				 		res.render(
 				 			'tools/bitly', 
 				 			{

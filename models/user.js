@@ -42,6 +42,12 @@ var UserModel = {
           oauthAccessToken: {type: String},
           expires: {type: Number},
           created: {type: Number}
+        },
+        instagram: {
+          id: {type: String},
+          oauthAccessToken: {type: String},
+          expires: {type: Number},
+          created: {type: Number}
         }
       },
       Tools: {
