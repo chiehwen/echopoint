@@ -38,11 +38,20 @@ var UserModel = {
         },
         foursquare: {
           id: {type: String},
+          venueId: {type: String},
           oauthAccessToken: {type: String},
-          oauthAccessTokenSecret: {type: String},
           expires: {type: Number},
           created: {type: Number}
         }
+      },
+      Tools: {
+        bitly: {
+          id: {type: String},
+          username: {type: String},
+          oauthAccessToken: {type: String},
+          expires: {type: Number},
+          created: {type: Number}
+        },
       },
       meta: {
         created: { type: Date, default: Date.now},

@@ -9,7 +9,9 @@ var fs = require('fs'),
 	LocalStrategy = require('passport-local').Strategy,
 	Facebook = require('fbgraph'),
 	Twit = require('twit'),
-	Yelp = require('yelp');
+	Yelp = require('yelp'),
+	Foursquare = require('node-foursquare'),
+	Api = require('socialite');
 
 var Auth = (function() {
 
@@ -47,15 +49,16 @@ var authInstance;
 			
 			facebook: function() {
 
-				if(typeof Facebook.app == 'undefined') {
-					Facebook.app = {
+				Api.load('facebook');
+				if(typeof Api.client.facebook == 'undefined') {
+					Api.client.facebook = {
 						id: Config.facebook.appId,
 						secret: Config.facebook.appSecret,
 						redirect: Config.facebook.callbackUri
 					};
 				}
 
-				return Facebook;
+				return Api;
 			},
 			twitter: function() {
 				return new oauth.OAuth(
@@ -73,11 +76,33 @@ var authInstance;
 					consumer_key: Config.yelp.consumerKey,
 					consumer_secret: Config.yelp.consumerSecret,
 					token: Config.yelp.token,
-					token_secret: Config.yelp.tokenSecret,
-					version: Config.yelp.version
-				});
-				//return Yelp;		
+					token_secret: Config.yelp.tokenSecret
+					//version: Config.yelp.version
+				});	
 			},
+			foursquare: function() {
+				return Foursquare({
+					secrets: {
+						clientId: Config.foursquare.clientId,
+						clientSecret: Config.foursquare.clientSecret,
+						redirectUrl: Config.foursquare.callbackUri
+					}
+				});	
+			},
+			bitly: function() {
+
+				Api.load('bitly');
+
+				if(typeof Api.client.bitly == 'undefined') {
+					Api.client.bitly = {
+						id: Config.bitly.clientId,
+						secret: Config.bitly.clientSecret,
+						redirect: Config.bitly.callbackUri
+					};
+				}
+
+				return Api;
+			}
 		};
 
 		var session = {
@@ -108,6 +133,9 @@ var authInstance;
 				case 'twitter':
 					return Config.twitter.redirectEndpoint + redirectParameters;
 					break;
+				case 'bitly':
+					return Config.bitly.redirectEndpoint + redirectParameters + 'client_id=' + Config.bitly.clientId + '&redirect_uri=' + Config.bitly.callbackUri;
+					break;
 			}
 			
 		}
@@ -134,6 +162,8 @@ var authInstance;
 		return {
 			// public getter functions
 			load: function(type) {
+				if(typeof Api.client == 'undefined')
+					Api.client = {};
 				return strategy[type]();
 			},
 			loadStrategy: function(type) {
@@ -150,11 +180,12 @@ var authInstance;
 			},
 
 			setFacebookAccessToken: function(oauthAccessToken) {
-				Facebook.setAccessToken(oauthAccessToken);
+				Api.setAccessToken(oauthAccessToken);
 			},
 
 			checkFacebook: function(callback) {
-				Facebook.get('me', function(err, response) {
+				this.load('facebook');
+				Api.get('me', function(err, response) {
 					callback(err, response);
 				})
 			},

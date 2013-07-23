@@ -23,6 +23,7 @@
     "twit": "*",
     "passport-google": "*",
     "passport-foursquare": "*",
+    "node-foursquare": "*",
     "passport-instagram": "*",
     "passport-bitly": "*",
     "yelp": "*"

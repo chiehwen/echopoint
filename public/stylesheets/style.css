@@ -470,6 +470,9 @@ li {
 .icon.app-color.instagram {
   background: #3f729b;
 }
+.icon.app-color.bitly {
+  background: #ee6123;
+}
 .close-navigation-menu {
   position: absolute;
   top: 12px;

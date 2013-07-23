@@ -7,17 +7,20 @@ block content
 	div#main
 		mixin topNavigationMenu
 		div.content
-			div.social-login
-				p Please login to Foursquare using your verfied business account.
-				div(class="social-login-button foursquare-login-button")
-					a(href="/social/facebook", class="icon blue border app-color foursquare")
-						i.icon-foursquare
-						span login
+			- if (locals.foursquare.connected == true && locals.foursquare.data) {
+				div
+					!{JSON.stringify(locals.foursquare.data)}
+			- } else {
+				div.social-login
+					p Please login to Foursquare using your verfied business account.
+					div(class="social-login-button foursquare-login-button")
+						a(href="#{locals.foursquare.url}", class="icon blue border app-color foursquare")
+							i.icon-foursquare
+							span login
 
-			div.help-box
-				a(href="#") "My business is a Facebook personal page!" No worries click here for a guide on switching your personal page to a business page. 
+				div.help-box
+					a(href="#") "My business is a Facebook personal page!" No worries click here for a guide on switching your personal page to a business page. 
 
-			div.help-box
-				a(href="#") "I'm not the admin of my Facebook page!" No worries click here to see a guide of having a current admin grant you access. 
-
-
+				div.help-box
+					a(href="#") "I'm not the admin of my Facebook page!" No worries click here to see a guide of having a current admin grant you access. 
+			- }

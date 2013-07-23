@@ -5,8 +5,15 @@
 var crypto = require('crypto'),
 	oauth = require('oauth'),
 	Auth = require('../server/auth').getInstance(),
-	Model = Model || Object,
-	Twit = require('twit');
+	Model = Model || Object;
+
+	/*Twit = require('twit'),
+	Yelp = require('yelp').createClient({
+					consumer_key:'ZlOg0OA8NlTYHDlmAkJ1Ig',
+					consumer_secret: '1af1FEeJ_QW-ckUlOcxiWsiLWhQ',
+					token: 'RB-wyoQ1qRiK7CXErLs3qpES--HjfqSg',
+					token_secret: '1xf9J8WyMMCDoUIeeB7EAxNi7Qg'
+				});*/
 
 var SocialController = {
 
@@ -154,7 +161,7 @@ data: facebookData
 				 					{
 					 					title: 'Vocada | Business Twitter Page',
 					 					twitter: {
-					 					connected: false,
+					 						connected: false,
 					 						url: twitterEndpoint
 					 					}
 				 					}
@@ -176,7 +183,7 @@ data: facebookData
  					if (err) return next(err);	
  					
  					yelp = Auth.load('yelp');
-req.session.messages.push(yelp);
+
  					yelp.business('roll-on-sushi-diner-austin', function(err, response) {
 
  						if(err)
@@ -210,13 +217,34 @@ req.session.messages.push(yelp);
  				Model.User.findById(id, function(err, user) {
  					if (err) return next(err);	
  					
- 					res.render(
- 						'social/foursquare', 
- 						{
- 					  	title: 'Vocada | Business Foursquare Page',
- 					  	businesses: user.Business
- 						}
- 					);
+ 					foursquare = Auth.load('foursquare');
+
+ 					if(req.session.foursquareConnected && req.session.foursquare.oauthAccessToken) {
+ 						foursquare.Venues.getVenue('4dacc8d40cb63c371ca540d6', req.session.foursquare.oauthAccessToken, function(err, response) {
+ 							res.render(
+		 						'social/foursquare', 
+		 						{
+			 					  	title: 'Vocada | Business Foursquare Page',
+			 					  	foursquare: {
+			 					  		connected: true,
+			 					  		data: response
+			 						}
+			 					}
+		 					);
+	 					});
+ 					} else {
+	 					
+	 					res.render(
+	 						'social/foursquare', 
+	 						{
+		 					  	title: 'Vocada | Business Foursquare Page',
+		 					  	foursquare: {
+		 					  		connected: false,
+		 					  		url: foursquare.getAuthClientRedirectUrl()
+		 						}
+		 					}
+	 					);
+	 				}
  				});
  			}
  		}

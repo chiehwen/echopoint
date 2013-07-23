@@ -42,7 +42,7 @@ var Middleware = {
 
 						Auth.initTwit(oauthAccessToken, oauthAccessTokenSecret, function(err, Twitter) {
 						    if(err) {
-						      	req.session.messages.push("Error connecting to Twitter!");
+						      	//req.session.messages.push("Error connecting to Twitter!");
 
 						      	// lets remove the invalid tokens
 								user.Social.twitter = {};
@@ -53,7 +53,7 @@ var Middleware = {
 								req.session.twitterConnected = false;
 
 							} else {
-								req.session.messages.push("Connected to Twitter.");
+								//req.session.messages.push("Connected to Twitter.");
 								
 								req.session.twitter = {
 									oauthAccessToken: oauthAccessToken,

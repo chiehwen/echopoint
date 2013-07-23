@@ -20,9 +20,20 @@
 	},
 	"yelp": {
 		"consumerKey": "ZlOg0OA8NlTYHDlmAkJ1Ig",
-		"ConsumerSecret": "1af1FEeJ_QW-ckUlOcxiWsiLWhQ",
+		"consumerSecret": "1af1FEeJ_QW-ckUlOcxiWsiLWhQ",
 		"token": "RB-wyoQ1qRiK7CXErLs3qpES--HjfqSg",
 		"tokenSecret": "1xf9J8WyMMCDoUIeeB7EAxNi7Qg",
 		"version": "1.0"
+	},
+	"foursquare": {
+		"clientId": "YCWRKYI02XUPMIQBX15H3Z54ARGFOS4ZXHP3CQHZ2KIA3MDA",
+		"clientSecret": "XGW1GAGWL4UC0BV3MU31LRA2P44ENAU3ZYJ5HN5E5UMGS0KT",
+		"callbackUri": "http://127.0.0.1:3000/oauth/foursquare"
+	},
+	"bitly": {
+		"clientId": "c4c24048f5a9d4986f3a6ff22f54a2016abc3460",
+		"clientSecret": "8653a06de058b688fb623ca0c9042ace6313ae35",
+		"redirectEndpoint": "https://bitly.com/oauth/authorize",
+		"callbackUri": "http://127.0.0.1:3000/oauth/bitly"
 	}
 }
