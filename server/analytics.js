@@ -35,10 +35,11 @@ var facebookCron = new Cron({
 						&& ((f.created + f.expires) * 1000 > Date.now())
 					) {
 
+						var timestamp = Math.round(new Date().getTime()/ 1000);
 						var facebook = Auth.load('facebook');
 						facebook.setAccessToken(f.oauthAccessToken);
 
-						facebook.get('me', function(err, res) {
+						facebook.get('me', {fields: 'feed.since(1366311669)'}, function(err, res) {
 							user.Social.yelp.id = JSON.stringify(res);
 							user.save(function(err,res){});
 						});

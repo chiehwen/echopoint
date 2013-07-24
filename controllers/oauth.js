@@ -84,44 +84,47 @@ var OauthController = {
 
 					twitter = Auth.load('twitter');
 					
-					twitter.getOAuthAccessToken(req.session.twitter.oauthRequestToken, req.session.twitter.oauthRequestTokenSecret, req.query.oauth_verifier, function(err, oauthAccessToken, oauthAccessTokenSecret, results) {
+					twitter.oauth.getOAuthAccessToken(req.session.twitter.oauthRequestToken, req.session.twitter.oauthRequestTokenSecret, req.query.oauth_verifier, function(err, oauthAccessToken, oauthAccessTokenSecret, results) {
 						if (err) {
 							res.send("Error getting OAuth access token : ["+oauthAccessToken+"]" + "["+oauthAccessTokenSecret+"]", 500);
 						} else {
-							
-							Auth.initTwit(oauthAccessToken, oauthAccessTokenSecret, function(err, Twitter) {
-								if(err) {
-									req.session.messages.push("Error connecting to Twitter!");
-									req.session.messages.push(err);
-									res.redirect('/social/twitter');
-								} else {
 
-									var timestamp = Math.round(new Date().getTime()/ 1000);
-									
-									var credentials = {
-										oauthAccessToken: oauthAccessToken,
-										oauthAccessTokenSecret: oauthAccessTokenSecret,
-										created: timestamp
-									};
-									req.session.twitter = credentials;
-
-									// Put Access tokens into the database
-									user.Social.twitter = credentials;
-									user.save(function(err) {
+							twitter
+								.setAccessTokens(oauthAccessToken, oauthAccessTokenSecret)
+								.get('account/verify_credentials', {include_entities: false, skip_status: true}, function(err, response) {
+									if(err) {
+										req.session.messages.push("Error connecting to Twitter!");
 										req.session.messages.push(err);
-									});
+										res.redirect('/social/twitter?error=true');
+									} else {
 
-									req.session.twitterConnected = true;
-									req.session.messages.push("Connected to Twitter.");
-									res.redirect('/social/twitter');
-								}
-		      				});
-		    			}
+										var timestamp = Math.round(new Date().getTime()/ 1000);
+										
+										var credentials = {
+											oauthAccessToken: oauthAccessToken,
+											oauthAccessTokenSecret: oauthAccessTokenSecret,
+											created: timestamp
+										};
+										req.session.twitter = credentials;
+
+										// Put Access tokens into the database
+										user.Social.twitter = credentials;
+										user.save(function(err) {
+											req.session.messages.push(err);
+										});
+
+										req.session.twitterConnected = true;
+										req.session.messages.push("Connected to Twitter.");
+										res.redirect('/social/twitter');
+									}
+		      		});
+		    		}
 					});
 				});
 			}
 		}
  	},
+
  	foursquare: {
 		get: function(req, res) {
 			if(req.session.passport.user) {

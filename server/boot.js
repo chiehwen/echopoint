@@ -44,7 +44,7 @@ var AppSetup = (function() {
 
 				// custom middleware
 				.use(Middleware.sessionMessages)
-				.use(Middleware.loadSocialSessions)
+				//.use(Middleware.loadSocialSessions)
 			
 				// route conditions
 				.use(app.router)

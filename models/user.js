@@ -60,7 +60,10 @@ var UserModel = {
         },
       },
       Analytics: {
-        facebook: [],
+        facebook: [{
+          timestamp: {type: Number}, // this is time of last check used with the .since parameter of facebook graph
+          
+        }],
         twitter: [],
         yelp: [{
           id: {type: String}

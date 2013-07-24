@@ -15,6 +15,8 @@ Boot.start(function(app) {
 });
 
 
+
+
 // TEMP: removes all users from User collection
 var Model = Model || Object;
 //console.log(Model.User.Business);
@@ -28,7 +30,8 @@ Model.User.find(function(err, users) {
 Model.User.findOne({email: "123"}, function(err, user) {
 	console.log(user);
 	//console.log(user.Analytics.yelp[0]);
-	//user.Social.foursquare.oauthAccessToken = null;
+	//user.Social.twitter.oauthAccessToken = null;
+	//user.Social.twitter.oauthAccessTokenSecret = null;
 	//user.Analytics.yelp = [];
 	//user.save(function(err,res){});
 	/*Model.User.update({email: '123'}, {$set: {

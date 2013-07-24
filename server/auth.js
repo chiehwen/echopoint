@@ -2,19 +2,21 @@
  * Module dependencies.
  */
 var fs = require('fs'),
+		qs = require('querystring'),
 		bcrypt = require('bcrypt'),
 		passport = require('passport'),
 		oauth = require('oauth'),
 		Model = Model || Object,
 		LocalStrategy = require('passport-local').Strategy,
+		Api = require('socialite'),
 		Facebook = null, //require('fbgraph'),
 		Twitter = null,
-		Bitly = null,
 		Foursquare = null, // require('node-foursquare'),
 		Instagram = null,
+		Yelp = null,
+		Bitly = null,
 		Twit = require('twit'),
-		Yelp = require('yelp'),
-		Api = require('socialite');
+		YelpApi = require('yelp');
 
 var Auth = (function() {
 
@@ -51,7 +53,6 @@ var Auth = (function() {
 			},
 			
 			facebook: function() {
-
 				if(!Facebook) {
 					Facebook = new Api('facebook');
 					Facebook.client = {
@@ -63,44 +64,54 @@ var Auth = (function() {
 
 				return Facebook;
 			},
-			twitter: function() {
-				return new oauth.OAuth(
-				    Config.twitter.requestUrl,
-				    Config.twitter.accessUrl, 
-				    Config.twitter.consumerKey,
-				    Config.twitter.consumerSecret,
-				    Config.twitter.version,
-				    Config.twitter.callback,
-				    Config.twitter.signature
-				);
-				/*if(!Twitter) {
-					Twitter = new Api('twitter');
-					Twitter.client = {
-						key: Config.twitter.consumerKey,
-						secret: Config.twitter.consumerSecret,
-						redirect: Config.twitter.callback
-					};
+
+			twitter: function(oauthAccessToken, oauthAccessTokenSecret) {
+
+				if(!Twitter) {
+
+					var credentials = {
+						consumer_key: Config.twitter.consumerKey,
+						consumer_secret: Config.twitter.consumerSecret,
+						access_token: typeof oauthAccessToken !== 'undefined' ? oauthAccessToken : 'faux',
+						access_token_secret: typeof oauthAccessTokenSecret !== 'undefined' ? oauthAccessTokenSecret : 'faux',
+					}
+
+					Twitter = new Twit(credentials);
+
+					Twitter.oauth = new oauth.OAuth(
+						Config.twitter.requestUrl,
+						Config.twitter.accessUrl, 
+						Config.twitter.consumerKey,
+						Config.twitter.consumerSecret,
+						Config.twitter.version,
+						Config.twitter.callback,
+						Config.twitter.signature
+					);
+
+					Twitter.setAccessTokens = function(oauthAccessToken, oauthAccessTokenSecret) {
+						this.auth.config.access_token = oauthAccessToken;
+						this.auth.config.access_token_secret = oauthAccessTokenSecret;
+						return this;
+					}
 				}
 
-				return Twitter;*/		
+				return Twitter;
 			},
+
 			yelp: function() {
-				return Yelp.createClient({
-					consumer_key: Config.yelp.consumerKey,
-					consumer_secret: Config.yelp.consumerSecret,
-					token: Config.yelp.token,
-					token_secret: Config.yelp.tokenSecret
-					//version: Config.yelp.version
-				});	
+				if(!Yelp) {
+					Yelp = YelpApi.createClient({
+						consumer_key: Config.yelp.consumerKey,
+						consumer_secret: Config.yelp.consumerSecret,
+						token: Config.yelp.token,
+						token_secret: Config.yelp.tokenSecret
+					});
+				}
+
+				return Yelp;
 			},
+
 			foursquare: function() {
-				/*return Foursquare({
-					secrets: {
-						clientId: Config.foursquare.clientId,
-						clientSecret: Config.foursquare.clientSecret,
-						redirectUrl: Config.foursquare.callbackUri
-					}
-				});*/
 				if(!Foursquare) {
 					Foursquare = new Api('foursquare');
 					Foursquare.client = {
@@ -113,8 +124,8 @@ var Auth = (function() {
 
 				return Foursquare;	
 			},
-			instagram: function() {
 
+			instagram: function() {
 				if(!Instagram) {
 					Instagram = new Api('instagram');
 					Instagram.client = {
@@ -126,8 +137,8 @@ var Auth = (function() {
 
 				return Instagram;
 			},
-			bitly: function() {
 
+			bitly: function() {
 				if(!Bitly) {
 					Bitly = new Api('bitly');
 					Bitly.client = {
@@ -157,34 +168,14 @@ var Auth = (function() {
 
 		var oauthDialogUrl = function(type, params) {
 			
-			var redirectParameters = '?'; 
-			for(var index in params) {
-				redirectParameters += (index + '=' + params[index] + '&'); 
-			}
+			if(type == 'twitter')
+					return Config.twitter.dialog + '?' + qs.stringify(params);
 
-			switch(type) {
-				case 'facebook':
-					params.client_id = Config.facebook.id;
-					params.redirect_uri = Config.facebook.callback;
-					params.scope = Config.facebook.scope;
-					break;
-				case 'twitter':
-					return Config.twitter.dialog + redirectParameters;
-					break;
-				case 'bitly':
-					params.client_id = Config.bitly.id;
-					params.redirect_uri = Config.bitly.callback;
-					break;
-				case 'foursquare':
-					params.client_id = Config.foursquare.id;
-					params.redirect_uri = Config.foursquare.callback;
-					break;
-				case 'instagram':
-					params.client_id = Config.instagram.id;
-					params.redirect_uri = Config.instagram.callback;
-					params.scope = Config.instagram.scope;
-					break;
-			}
+			params.client_id = Config[type].id;
+			params.redirect_uri = Config[type].callback;
+
+			if(typeof Config[type].scope !== 'undefined')
+				params.scope = Config[type].scope;
 
 			var api = strategy[type]();
 			return api.getOauthUrl(params);
@@ -192,16 +183,16 @@ var Auth = (function() {
 
 		function _salt(callback) {
 			bcrypt.genSalt(this.saltWorkFactor, function(err, salt) {
-	    	if (err) callback(err);
-	    	callback(null, salt);
-	    });
+				if (err) callback(err);
+				callback(null, salt);
+			});
 		};
 
 		function _hash(password, callback) {
 			_salt(function(err, salt){
 				if (err) callback(err);
 				// hash the password using our salt
-		    bcrypt.hash(password, salt, function(err, hash) {
+				bcrypt.hash(password, salt, function(err, hash) {
 					if (err) callback(err);
 					callback(null, hash);
 				});
@@ -212,14 +203,14 @@ var Auth = (function() {
 		return {
 			// public getter functions
 			load: function(type) {
-				//if(typeof Api.client == 'undefined')
-					//Api.client = {};
 				return strategy[type]();
 			},
+
 			loadStrategy: function(type) {
 				strategy[type]();
 				return this;
 			},
+
 			loadSession: function(type) {
 				session[type]();
 				return this;
@@ -229,40 +220,12 @@ var Auth = (function() {
 				return oauthDialogUrl(type, params);
 			},
 
-			//setFacebookAccessToken: function(oauthAccessToken) {
-			//	Api.setAccessToken(oauthAccessToken);
-			//},
-
-			checkFacebook: function(callback) {
-				//this.load('facebook');
-				Facebook.get('me', function(err, response) {
-					callback(err, response);
-				})
-			},
-
-			initTwit: function(oauthAccessToken, oauthAccessTokenSecret, callback) {
-		      var Twitter = new Twit({
-		      	consumer_key: Config.twitter.consumerKey,
-		      	consumer_secret: Config.twitter.consumerSecret,
-		      	access_token: oauthAccessToken,
-		      	access_token_secret: oauthAccessTokenSecret
-		      });
-
-		      Twitter.get('account/verify_credentials', {include_entities: false, skip_status: true}, function(err, reply) {
-		      	if(err) {
-		      		callback(err);
-		      	} else {
-		      		callback(null, Twitter);
-		      	}
-		      });
-			},
-
 			// These are Authentication functions
 			authenticate: function(unverified, password, callback) {
 				bcrypt.compare(unverified, password, function(err, match) {
-		       if (err) return callback(err);
-		       callback(null, match);
-		    });
+					if (err) return callback(err);
+						callback(null, match);
+				});
 			},
 			encrypt: function(password, callback) {
 				_hash(password, function(err, encrypted){
@@ -281,7 +244,7 @@ var Auth = (function() {
 					if(typeof req.session.returnTo === 'undefined' || !req.session.returnTo) 
 						req.session.returnTo = '/dashboard';
 					req.session.messages = 'please login to continue';
-			    	res.redirect('/login');
+					res.redirect('/login');
 				}
 			}
 

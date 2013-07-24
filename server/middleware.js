@@ -15,6 +15,7 @@ var Middleware = {
 			req.session.messages = [];
 	},
 
+	/*
 	loadSocialSessions: function(req, res, next) {
 
 		if(typeof req.session.twitter == 'undefined')
@@ -71,7 +72,7 @@ var Middleware = {
 		} else {
 			next();
 		}
-	} 
+	} */
 };
 
 module.exports.Middleware = Middleware;

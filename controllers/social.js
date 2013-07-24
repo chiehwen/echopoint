@@ -99,63 +99,69 @@ var SocialController = {
  				Model.User.findById(id, function(err, user) {
  					if (err) return next(err);
 
- 					if(req.session.twitterConnected && req.session.twitter.oauthAccessToken && req.session.twitter.oauthAccessTokenSecret) {
+ 					// process twitter
+ 					var	twitter = Auth.load('twitter'),
+ 							t = user.Social.twitter;
 
- 						Auth.initTwit(req.session.twitter.oauthAccessToken, req.session.twitter.oauthAccessTokenSecret, function(err, Twitter) {
-							Twitter.get('account/verify_credentials', {include_entities: false, skip_status: true}, function(err, response) {
-								if(err) {
-									req.session.messages.push("Error getting twitter screen name : ");
-									res.redirect('/dashboard');
-								} else {
-			 						res.render(
-				 						'social/twitter', 
-				 						{
-					 					  	title: 'Vocada | Business Twitter Page',
-					 					  	twitter: {
-					 					  		connected: true,
-					 					  		data: response
-					 					  	}
-				 						}
-				 					);
-								}
-						    });
- 						});	
+ 					if(req.session.twitterConnected && req.session.twitter.oauthAccessToken && req.session.twitter.oauthAccessTokenSecret && !req.query.login) {
 
+						twitter.get('account/verify_credentials', {include_entities: false, skip_status: true}, function(err, response) {
+							if(err) {
+								req.session.messages.push("Error verifying twitter credentials");
+								res.redirect('/social/twitter?login=true');
+							} 
+			 						
+			 				res.render(
+				 				'social/twitter', 
+				 				{
+					 				title: 'Vocada | Business Twitter Page',
+					 				twitter: {
+					 					connected: true,
+					 					data: response
+					 				 }
+				 				}
+				 			);
+						});
+
+ 					} else if (
+ 						!req.query.login
+						&& typeof t.oauthAccessToken !== 'undefined'
+						&& typeof t.oauthAccessTokenSecret !== 'undefined'
+						&& t.oauthAccessToken != ''
+						&& t.oauthAccessTokenSecret != ''
+						&& t.oauthAccessToken
+						&& t.oauthAccessTokenSecret
+					) {
+						twitter.setAccessTokens(t.oauthAccessToken, t.oauthAccessTokenSecret);
+						req.session.twitter = {
+							oauthAccessToken: t.oauthAccessToken,
+							oauthAccessTokenSecret: t.oauthAccessTokenSecret,
+						}
+						req.session.twitterConnected = true;
+						res.redirect('/social/twitter');
  					} else {
 
-						var twitter = Auth.load('twitter');
-						
-						twitter.getOAuthRequestToken(function(err, oauthRequestToken, oauthRequestTokenSecret, results) {
-						/*twitter.authorize('post', 'https://api.twitter.com/oauth/request_token?', 
-						{
-							oauth: {
-								consumer_key: twitter.client.key,
-								consumer_secret: twitter.client.secret,
-								callback:  twitter.client.redirect
+						twitter.oauth.getOAuthRequestToken(function(err, oauthRequestToken, oauthRequestTokenSecret, results) {
+							if (err) {
+								res.send("Error getting OAuth request token : " + JSON.stringify(err));
 							}
-						}, 
-						function(err, response) {*/
-						    if (err) {
-						      res.send("Error getting OAuth request token : " + JSON.stringify(err));
-						    } else { 
-    	
-								req.session.twitter = {
-									oauthRequestToken: oauthRequestToken,
-									oauthRequestTokenSecret: oauthRequestTokenSecret
-								}
 
-				 				res.render(
-				 					'social/twitter', 
-				 					{
-					 					title: 'Vocada | Business Twitter Page',
-					 					twitter: {				
-					 						connected: false,
-					 						url: Auth.getOauthDialogUrl('twitter', {oauth_token: oauthRequestToken})
-					 					}
-				 					}
-				 				);
-    						}
-    					});
+							req.session.twitter = {
+								oauthRequestToken: oauthRequestToken,
+								oauthRequestTokenSecret: oauthRequestTokenSecret
+							}
+
+				 			res.render(
+				 				'social/twitter', 
+				 				{
+					 				title: 'Vocada | Business Twitter Page',
+					 				twitter: {				
+					 					connected: false,
+					 					url: Auth.getOauthDialogUrl('twitter', {oauth_token: oauthRequestToken})
+					 				}
+				 				}
+				 			);
+    				});
 					} // end twitter processing
  				});
  			}
@@ -173,7 +179,6 @@ var SocialController = {
  					yelp = Auth.load('yelp');
 
  					yelp.business('roll-on-sushi-diner-austin', function(err, response) {
-
  						if(err)
  							var data = err;
  						else 
@@ -190,8 +195,6 @@ var SocialController = {
 	 						}
 	 					);
  					});
-
- 					
  				});
  			}
  		}
