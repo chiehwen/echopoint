@@ -53,11 +53,20 @@ var UserModel = {
       Tools: {
         bitly: {
           id: {type: String},
-          username: {type: String},
+          login: {type: String},
           oauthAccessToken: {type: String},
           expires: {type: Number},
           created: {type: Number}
         },
+      },
+      Analytics: {
+        facebook: [],
+        twitter: [],
+        yelp: [{
+          id: {type: String}
+        }],
+        foursquare: [],
+        instagram: []
       },
       meta: {
         created: { type: Date, default: Date.now},

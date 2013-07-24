@@ -3,7 +3,6 @@
  */
 
 var crypto = require('crypto'),
-	oauth = require('oauth'),
 	Auth = require('../server/auth').getInstance(),
 	Model = Model || Object;
 
@@ -19,7 +18,8 @@ var ToolsController = {
  					if (err) return next(err);
 
  					// process bitly
- 					if(req.session.bitlyConnected && req.session.bitly.oauthAccessToken) {
+ 					var b = user.Tools.bitly;
+ 					if(req.session.bitlyConnected && req.session.bitly.oauthAccessToken && !req.query.login) {
 
 //Auth.checkFacebook(function(err, response) {
 
@@ -42,28 +42,32 @@ data: bitlyData
 //})
 
  					} else if(
-						typeof user.Tools.bitly.oauthAccessToken !== 'undefined'
-						&& user.Tools.bitly.oauthAccessToken != ''
-						&& user.Tools.bitly.oauthAccessToken
+ 						!req.query.login
+						&& typeof b.oauthAccessToken !== 'undefined'
+						&& typeof b.login !== 'undefined'
+						&& b.oauthAccessToken != ''
+						&& b.login != ''
+						&& b.oauthAccessToken
+						&& b.login
 					) {
-						var uniqueState = crypto.randomBytes(10).toString('hex');
-						req.session.bitlyState = uniqueState;
-
- 						res.redirect(Auth.getOauthDialogUrl('bitly', {state: uniqueState}));
+ 						var bitly = Auth.load('bitly');
+						bitly.setAccessToken(b.oauthAccessToken);
+						req.session.bitly = {
+							oauthAccessToken: b.oauthAccessToken,
+							login: b.login
+						}
+						req.session.bitlyConnected = true;
+						res.redirect('/tools/bitly');
  					} else {
-						var bitlyEndpoint = false;
 
-						var uniqueState = crypto.randomBytes(10).toString('hex');
-						req.session.bitlyState = uniqueState;
-
-						bitlyEndpoint = Auth.getOauthDialogUrl('bitly', {state: uniqueState});
+						req.session.bitlyState = crypto.randomBytes(10).toString('hex');
 				 		res.render(
 				 			'tools/bitly', 
 				 			{
 					 			title: 'Vocada | Business Bitly Page',
 					 			bitly: {
 					 				connected: false,
-					 				url: bitlyEndpoint
+					 				url: Auth.getOauthDialogUrl('bitly', {state: req.session.bitlyState})
 					 			}
 				 			}
 				 		);

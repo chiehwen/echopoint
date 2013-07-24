@@ -3,9 +3,9 @@
  */
 
 var crypto = require('crypto'),
-	oauth = require('oauth'),
-	Auth = require('../server/auth').getInstance(),
-	Model = Model || Object;
+		oauth = require('oauth'),
+		Auth = require('../server/auth').getInstance(),
+		Model = Model || Object;
 
 	/*Twit = require('twit'),
 	Yelp = require('yelp').createClient({
@@ -27,77 +27,59 @@ var SocialController = {
  					if (err) return next(err);
 
  					// process facebook
- 					if(req.session.facebookConnected && req.session.facebook.oauthAccessToken) {
+ 					var f = user.Social.facebook;
+ 					if(req.session.facebookConnected && req.session.facebook.oauthAccessToken && !req.query.login) {
 
+						var facebook = Auth.load('facebook');
+						facebook.get('me', function(err, response) {
 
-Auth.checkFacebook(function(err, response) {
+							if(err || typeof response.error !== 'undefined') 
+								res.redirect('/social/facebook?login=true');
 
-if(err) 
-	var facebookData = err;
-else
-	var facebookData = response;
-
-res.render(
-'social/facebook', 
-{
-title: 'Vocada | Business Facebook Page',
-facebook: {
-connected: true,
-data: facebookData
-}
-}
-);	
-
-})
-
- 						/*Auth.initTwit(req.session.facebook.oauthAccessToken, req.session.facebook.oauthAccessTokenSecret, function(err, Twitter) {
-							Twitter.get('account/verify_credentials', {include_entities: false, skip_status: true}, function(err, response) {
-								if(err) {
-									req.session.messages.push("Error getting twitter screen name : ");
-									res.redirect('/dashboard');
-								} else {
-			 						res.render(
-				 						'social/twitter', 
-				 						{
-					 					  	title: 'Vocada | Business Twitter Page',
-					 					  	twitter: {
-					 					  		connected: true,
-					 					  		data: response
-					 					  	}
-				 						}
-				 					);
+							res.render(
+								'social/facebook', 
+								{
+									title: 'Vocada | Business Facebook Page',
+									facebook: {
+										connected: true,
+										data: response
+									}
 								}
-						    });
- 						});*/
+							);	
+						});
 
  					} else if(
-						typeof user.Social.facebook.oauthAccessToken !== 'undefined'
-						&& typeof user.Social.facebook.expires !== 'undefined'
-						&& typeof user.Social.facebook.created !== 'undefined'
-						&& user.Social.facebook.oauthAccessToken != ''
-						&& user.Social.facebook.expires != '' && user.Social.facebook.expires != 0
-						&& user.Social.facebook.created != '' && user.Social.facebook.created != 0
-						&& user.Social.facebook.oauthAccessToken
-						&& user.Social.facebook.expires
-						&& user.Social.facebook.created
-						&& ((user.Social.facebook.created + user.Social.facebook.expires) * 1000 > Date.now())
+ 						!req.query.login
+						&& typeof f.oauthAccessToken !== 'undefined'
+						&& typeof f.expires !== 'undefined'
+						&& typeof f.created !== 'undefined'
+						&& f.oauthAccessToken != ''
+						&& f.expires != 0
+						&& f.created != 0
+						&& f.oauthAccessToken
+						&& f.expires
+						&& f.created
+						&& ((f.created + f.expires) * 1000 > Date.now())
 					) {
-						req.session.facebookState = crypto.randomBytes(10).toString('hex');
-						//req.session.facebookState = uniqueState;
-
- 						res.redirect(Auth.getOauthDialogUrl('facebook', {state: req.session.facebookState, response_type: 'code'}));
+						var facebook = Auth.load('facebook');
+						facebook.setAccessToken(f.oauthAccessToken);
+						req.session.facebook = {
+							oauthAccessToken: f.oauthAccessToken,
+							expires: f.expires,
+							created: f.created
+						}
+						req.session.facebookConnected = true;
+						res.redirect('/social/facebook');
  					} else {
-						//var facebookEndpoint = false;
 
 						req.session.facebookState = crypto.randomBytes(10).toString('hex');
-						//req.session.facebookState = uniqueState;
 
 				 		res.render(
 				 			'social/facebook', 
 				 			{
 					 			title: 'Vocada | Business Facebook Page',
 					 			facebook: {
-					 			connected: false,
+					 				connected: false,
 					 				url: Auth.getOauthDialogUrl('facebook', {state: req.session.facebookState, response_type: 'code'})
 					 			}
 				 			}
@@ -221,12 +203,17 @@ data: facebookData
  				var id = req.session.passport.user;
 
  				Model.User.findById(id, function(err, user) {
- 					if (err) return next(err);	
+ 					if (err) return next(err);
 
- 					if(req.session.foursquareConnected && req.session.foursquare.oauthAccessToken) {
+					// process foursquare
+ 					var f = user.Social.foursquare;
+ 					if(req.session.foursquareConnected && req.session.foursquare.oauthAccessToken && !req.query.login) {
  						foursquare = Auth.load('foursquare');
- 						foursquare.get('venues/4dacc8d40cb63c371ca540d6', function(err, response) {
- 							res.render(
+ 						foursquare.get('venues/4dacc8d40cb63c371ca540d6', {v: foursquare.client.verified}, function(err, response) {
+ 							if(err || response.meta.code != 200) 
+								res.redirect('/social/foursquare?login=true');
+
+							res.render(
 		 						'social/foursquare', 
 		 						{
 			 					  	title: 'Vocada | Business Foursquare Page',
@@ -237,6 +224,20 @@ data: facebookData
 			 					}
 		 					);
 	 					});
+
+	 				} else if(
+	 					!req.query.login
+						&& typeof f.oauthAccessToken !== 'undefined'
+						&& f.oauthAccessToken != ''
+						&& f.oauthAccessToken
+	 				) {
+	 					var foursquare = Auth.load('foursquare');
+						foursquare.setAccessToken(f.oauthAccessToken);
+						req.session.foursquare = {
+							oauthAccessToken: f.oauthAccessToken
+						}
+						req.session.foursquareConnected = true;
+						res.redirect('/social/foursquare');
  					} else {
 	 					
 	 					res.render(
@@ -283,9 +284,14 @@ data: facebookData
  				Model.User.findById(id, function(err, user) {
  					if (err) return next(err);	
 
- 					if(req.session.instagramConnected && req.session.instagram.oauthAccessToken) {
+ 					// process instagram
+ 					var i = user.Social.instagram;
+ 					if(req.session.instagramConnected && req.session.instagram.oauthAccessToken && !req.query.login) {
  						instagram = Auth.load('instagram');
  						instagram.get('users/self/feed', function(err, response) {
+ 							if(err || !response)
+ 								res.redirect('/social/instagram?login=true');
+
  							res.render(
 		 						'social/instagram', 
 		 						{
@@ -297,10 +303,23 @@ data: facebookData
 			 					}
 		 					);
 	 					});
+
+	 				} else if(
+	 					!req.query.login
+						&& typeof i.oauthAccessToken !== 'undefined'
+						&& i.oauthAccessToken != ''
+						&& i.oauthAccessToken
+	 				) {
+	 					var instagram = Auth.load('instagram');
+						instagram.setAccessToken(i.oauthAccessToken);
+						req.session.instagram = {
+							oauthAccessToken: i.oauthAccessToken
+						}
+						req.session.instagramConnected = true;
+						res.redirect('/social/instagram');
  					} else {
 
  						req.session.instagramState = crypto.randomBytes(10).toString('hex');
-	 					
 	 					res.render(
 	 						'social/instagram', 
 	 						{

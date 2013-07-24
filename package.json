@@ -1,9 +1,9 @@
 {
-  "name": "application-name",
+  "name": "vocada",
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node app.js"
+    "start": "node vocada.js"
   },
   "dependencies": {
     "express": "3.2.6",
@@ -12,20 +12,13 @@
     "mongodb": "*",
     "mongoose": "*",
     "oauth": "*",
-    "passport": "*",
-    "connect-ensure-login": "*",
     "bcrypt": "*",
+    "passport": "*",
     "passport-local": "*",
-    "connect-auth": "*",
-    "passport-facebook": "*",
+    "connect-ensure-login": "*",
     "fbgraph": "*",
-    "passport-twitter": "*",
     "twit": "*",
-    "passport-google": "*",
-    "passport-foursquare": "*",
-    "node-foursquare": "*",
-    "passport-instagram": "*",
-    "passport-bitly": "*",
-    "yelp": "*"
+    "yelp": "*",
+    "cron": "*"
   }
 }

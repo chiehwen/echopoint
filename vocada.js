@@ -27,6 +27,10 @@ Model.User.find(function(err, users) {
 });
 Model.User.findOne({email: "123"}, function(err, user) {
 	console.log(user);
+	//console.log(user.Analytics.yelp[0]);
+	//user.Social.foursquare.oauthAccessToken = null;
+	//user.Analytics.yelp = [];
+	//user.save(function(err,res){});
 	/*Model.User.update({email: '123'}, {$set: {
 										Social: {
 											twitter: {
@@ -42,25 +46,8 @@ Model.User.findOne({email: "123"}, function(err, user) {
 									);*/
 });
 
-var sys = require('sys');
-var oauth = require('oauth');
-var _twitterConsumerKey = "9DFn7r4ir7Z4uPSy7ZEQbA";
-var _twitterConsumerSecret = "W94Yo4iCRvltpktHCvsAUWD3qBNdyD0bBwk9r34";
- 
-/*function consumer() {
-  return new oauth.OAuth(
-    "https://twitter.com/oauth/request_token", "https://twitter.com/oauth/access_token", 
-    _twitterConsumerKey, _twitterConsumerSecret, "1.0A", "http://badgestar.com/sessions/callback", "HMAC-SHA1");   
-}
 
-  consumer().getOAuthRequestToken(function(error, oauthToken, oauthTokenSecret, results){
-    if (error) {
-      console.log("Error getting OAuth request token : " + sys.inspect(error), 500);
-    } else {  
-      console.log(oauthToken);
-      console.log(oauthTokenSecret);
-      console.log(oauthToken);      
-    }
-  });*/
+var Cron = require('./server/analytics');
+//Cron.start();
 
 // END TEMP

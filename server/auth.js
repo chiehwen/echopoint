@@ -2,26 +2,24 @@
  * Module dependencies.
  */
 var fs = require('fs'),
-	bcrypt = require('bcrypt'),
-	passport = require('passport'),
-	oauth = require('oauth'),
-	Model = Model || Object,
-	LocalStrategy = require('passport-local').Strategy,
-	Facebook = null, //require('fbgraph'),
-	Twitter = null,
-	Bitly = null,
-	Foursquare = null,
-	Instagram = null,
-	Twit = require('twit'),
-	Yelp = require('yelp'),
-	//Foursquare = require('node-foursquare'),
-	Api = require('socialite');
-	//Api = {};
+		bcrypt = require('bcrypt'),
+		passport = require('passport'),
+		oauth = require('oauth'),
+		Model = Model || Object,
+		LocalStrategy = require('passport-local').Strategy,
+		Facebook = null, //require('fbgraph'),
+		Twitter = null,
+		Bitly = null,
+		Foursquare = null, // require('node-foursquare'),
+		Instagram = null,
+		Twit = require('twit'),
+		Yelp = require('yelp'),
+		Api = require('socialite');
 
 var Auth = (function() {
 
-// Private attribute that holds the single instance
-var authInstance;
+	// Private attribute that holds the single instance
+	var authInstance;
 
 	function constructor() {
 
@@ -108,7 +106,8 @@ var authInstance;
 					Foursquare.client = {
 						id: Config.foursquare.id,
 						secret: Config.foursquare.secret,
-						redirect: Config.foursquare.callback
+						redirect: Config.foursquare.callback,
+						verified: Config.foursquare.verified // this is the foursquare verfied date (https://developer.foursquare.com/overview/versioning)
 					};
 				}
 

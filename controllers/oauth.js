@@ -138,25 +138,24 @@ var OauthController = {
 					}
 
 					foursquare = Auth.load('foursquare');
-			
 					foursquare.authorize('get', 'https://foursquare.com/oauth2/access_token',
 						{
 							client_id: foursquare.client.id,
 							client_secret: foursquare.client.secret,
 							redirect_uri: foursquare.client.redirect,
 							grant_type: 'authorization_code',
-							code: req.query.code
+							code: req.query.code,
+							v: foursquare.client.verified
 						},
-						function (err, result) {
+						function (err, response) {
 							if(err) {
 								req.session.messages.push(err);
-								//res.send('An error was thrown: ' + err);
 								res.redirect('/social/foursquare');
 							} else {
 								var timestamp = Math.round(new Date().getTime()/ 1000);
 									
 								var credentials = {
-									oauthAccessToken: result.access_token,
+									oauthAccessToken: response.access_token,
 									created: timestamp
 								};
 								req.session.foursquare = credentials;
@@ -203,16 +202,15 @@ var OauthController = {
 								grant_type: 'authorization_code',
 								code: req.query.code
 							},
-							function (err, result) {
+							function (err, response) {
 								if(err) {
 									req.session.messages.push(err);
-									//res.send('An error was thrown: ' + err);
 									res.redirect('/social/instagram');
 								} else {
 									var timestamp = Math.round(new Date().getTime()/ 1000);
 										
 									var credentials = {
-										oauthAccessToken: result.access_token,
+										oauthAccessToken: response.access_token,
 										created: timestamp
 									};
 									req.session.instagram = credentials;
@@ -251,7 +249,7 @@ var OauthController = {
 						}
 
 						bitly = Auth.load('bitly');
-req.session.messages.push(bitly);
+
 						bitly.authorize('post', "https://api-ssl.bitly.com/oauth/access_token?", {
 							client_id: bitly.client.id,
 							client_secret: bitly.client.secret,
@@ -260,14 +258,12 @@ req.session.messages.push(bitly);
 							state: req.query.state
 						}, function(err, result) {
 							if(err) res.redirect('/tools/bitly');
-req.session.messages.push(result);
-							//var date = new Date(),
+
 							var timestamp = Math.round(new Date().getTime()/ 1000);
 
 							var credentials = {
 								oauthAccessToken: result.access_token,
-								username: result.login,
-								//expires: result.expires,
+								login: result.login,
 								created: timestamp
 							}
 

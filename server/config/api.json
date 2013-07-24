@@ -28,7 +28,8 @@
 	"foursquare": {
 		"id": "YCWRKYI02XUPMIQBX15H3Z54ARGFOS4ZXHP3CQHZ2KIA3MDA",
 		"secret": "XGW1GAGWL4UC0BV3MU31LRA2P44ENAU3ZYJ5HN5E5UMGS0KT",
-		"callback": "http://127.0.0.1:3000/oauth/foursquare"
+		"callback": "http://127.0.0.1:3000/oauth/foursquare",
+		"verified": "20130723"
 	},
 	"bitly": {
 		"id": "c4c24048f5a9d4986f3a6ff22f54a2016abc3460",
@@ -42,5 +43,11 @@
 		"callback": "http://127.0.0.1:3000/oauth/instagram",
 		"dialog": "https://api.instagram.com/oauth/authorize/",
 		"scope": "basic comments relationships likes"		
+	},
+	"google": {
+		"id": "655772512265.apps.googleusercontent.com",
+		"secret": "764bveaXAiUKD296afTHs7OI",
+		"callback": "http://127.0.0.1:3000/oauth/google",
+		"dialog": "https://api.instagram.com/oauth/authorize/"		
 	}
 }
