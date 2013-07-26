@@ -3,7 +3,8 @@
  */
 
 var Model = Model || Object,
-	Auth = require('../server/auth').getInstance();
+		Auth = require('../server/auth').getInstance(),
+		Helper = require('../server/helpers');
 
 var OauthController = {
 
@@ -33,7 +34,7 @@ var OauthController = {
 							redirect_uri: facebook.client.redirect,
 							code: req.query.code
 						}, function(err, result) {
-							if(err) res.redirect('/social/facebook');
+							if(err) res.send('login-error 2: ' + req.query.error_description); //res.redirect('/social/facebook');
 
 							facebook.authorize('get', "/oauth/access_token", {
 								client_id: facebook.client.id,
@@ -41,20 +42,17 @@ var OauthController = {
 								grant_type: 'fb_exchange_token',
 								fb_exchange_token: result.access_token
 							}, function (err, result) {
-								if(err) req.session.messages.push(err);
-
-								//var date = new Date(),
-								var timestamp = Math.round(new Date().getTime()/ 1000);
+								if(err) res.send('login-error 3: ' + req.query.error_description); //req.session.messages.push(err);
 
 								var credentials = {
 									oauthAccessToken: result.access_token,
 									expires: result.expires,
-									created: timestamp
+									created: Helper.timestamp()
 								}
 
 								req.session.facebook = credentials;
 
-								// Put Access token into the database
+								// Put access token into the database
 								user.Social.facebook = credentials;
 								user.save(function(err) {
 									req.session.messages.push(err);
@@ -98,16 +96,14 @@ var OauthController = {
 										res.redirect('/social/twitter?error=true');
 									} else {
 
-										var timestamp = Math.round(new Date().getTime()/ 1000);
-										
 										var credentials = {
 											oauthAccessToken: oauthAccessToken,
 											oauthAccessTokenSecret: oauthAccessTokenSecret,
-											created: timestamp
+											created: Helper.timestamp()
 										};
 										req.session.twitter = credentials;
 
-										// Put Access tokens into the database
+										// Put access tokens into the database
 										user.Social.twitter = credentials;
 										user.save(function(err) {
 											req.session.messages.push(err);
@@ -155,15 +151,14 @@ var OauthController = {
 								req.session.messages.push(err);
 								res.redirect('/social/foursquare');
 							} else {
-								var timestamp = Math.round(new Date().getTime()/ 1000);
-									
+
 								var credentials = {
 									oauthAccessToken: response.access_token,
-									created: timestamp
+									created: Helper.timestamp()
 								};
 								req.session.foursquare = credentials;
 
-								// Put Access tokens into the database
+								// put access tokens into the database
 								user.Social.foursquare = credentials;
 								user.save(function(err) {
 									req.session.messages.push(err);
@@ -210,15 +205,14 @@ var OauthController = {
 									req.session.messages.push(err);
 									res.redirect('/social/instagram');
 								} else {
-									var timestamp = Math.round(new Date().getTime()/ 1000);
-										
+
 									var credentials = {
 										oauthAccessToken: response.access_token,
-										created: timestamp
+										created: Helper.timestamp()
 									};
 									req.session.instagram = credentials;
 
-									// Put Access tokens into the database
+									// put access tokens into the database
 									user.Social.instagram = credentials;
 									user.save(function(err) {
 										req.session.messages.push(err);
@@ -262,12 +256,10 @@ var OauthController = {
 						}, function(err, result) {
 							if(err) res.redirect('/tools/bitly');
 
-							var timestamp = Math.round(new Date().getTime()/ 1000);
-
 							var credentials = {
 								oauthAccessToken: result.access_token,
 								login: result.login,
-								created: timestamp
+								created: Helper.timestamp()
 							}
 
 							req.session.bitly = credentials;

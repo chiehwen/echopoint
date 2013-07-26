@@ -29,28 +29,29 @@ Model.User.find(function(err, users) {
 });
 Model.User.findOne({email: "123"}, function(err, user) {
 	console.log(user);
-	//console.log(user.Analytics.yelp[0]);
+	console.log(user.Analytics.facebook[0]);
+	console.log(user.Analytics.facebook[1]);
+	console.log(user.Analytics.facebook[2]);
+	//console.log(user.Analytics.facebook[3]);
 	//user.Social.twitter.oauthAccessToken = null;
 	//user.Social.twitter.oauthAccessTokenSecret = null;
-	//user.Analytics.yelp = [];
+	//user.Analytics.facebook = [];
 	//user.save(function(err,res){});
-	/*Model.User.update({email: '123'}, {$set: {
-										Social: {
-											twitter: {
-												oauthAccessToken: null,
-												oauthAccessTokenSecret: null
-											}
-										} 
-									}},
-									function(err){
-										if (err) return next(err);
-
-										}
-									);*/
 });
 
 
-var Cron = require('./server/analytics');
+
+
+	var Cron = require('./server/analytics');
+	// !!!! IMPORTANT: BELOW IS THE TOGGLE FOR 
+	// !!!! CRON TESTING !!!
+	
 //Cron.start();
+
+	// !!!!!
+
+
+
+
 
 // END TEMP

@@ -62,14 +62,25 @@ var UserModel = {
       Analytics: {
         facebook: [{
           timestamp: {type: Number}, // this is time of last check used with the .since parameter of facebook graph
-          
+          posts: {}
         }],
-        twitter: [],
+        twitter: [{
+          timestamp: {type: Number}, // this is time of last check used with the .since parameter of facebook graph
+          tweets: {}
+        }],
+        foursquare: [],
+        instagram: [],
         yelp: [{
           id: {type: String}
         }],
-        foursquare: [],
-        instagram: []
+        meta: {
+          update: {
+            facebook: {
+              count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+              timestamp: {type: Number, default: 0} // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID 
+            }
+          }
+        }
       },
       meta: {
         created: { type: Date, default: Date.now},

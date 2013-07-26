@@ -1,19 +1,11 @@
 /**
  * Social Controller
  */
-
+ 
 var crypto = require('crypto'),
 		oauth = require('oauth'),
 		Auth = require('../server/auth').getInstance(),
 		Model = Model || Object;
-
-	/*Twit = require('twit'),
-	Yelp = require('yelp').createClient({
-					consumer_key:'ZlOg0OA8NlTYHDlmAkJ1Ig',
-					consumer_secret: '1af1FEeJ_QW-ckUlOcxiWsiLWhQ',
-					token: 'RB-wyoQ1qRiK7CXErLs3qpES--HjfqSg',
-					token_secret: '1xf9J8WyMMCDoUIeeB7EAxNi7Qg'
-				});*/
 
 var SocialController = {
 
@@ -73,7 +65,7 @@ var SocialController = {
  					} else {
 
 						req.session.facebookState = crypto.randomBytes(10).toString('hex');
-
+req.session.messages.push(req.session.facebookState);
 				 		res.render(
 				 			'social/facebook', 
 				 			{
@@ -358,7 +350,6 @@ var SocialController = {
  			}
  		}
  	},
-
 }
 
 module.exports = SocialController;
