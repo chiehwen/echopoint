@@ -95,6 +95,7 @@ table td[class*="span"],table th[class*="span"],.row-fluid table td[class*="span
 .modal-footer .btn+.btn{margin-left:5px;margin-bottom:0;}
 .modal-footer .btn-group .btn+.btn{margin-left:-1px;}
 .modal-footer .btn-block+.btn-block{margin-left:0;}
+.nav-header {display:block;padding:3px 15px;font-size:11px;font-weight:bold;line-height:20px;color:#999;text-shadow:0 1px 0 rgba(255,255,255,0.5);text-transform:uppercase;}
 .dropup,.dropdown{position:relative;}
 .dropdown-toggle{*margin-bottom:-3px;}
 .dropdown-toggle:active,.open .dropdown-toggle{outline:0;}

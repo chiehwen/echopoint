@@ -11,9 +11,13 @@ var UserController = {
 		
 		path: '/login',
 		restricted: false,
+		login: true,
 		get: function(req, res){
 			if(req.session.passport.user) {
-				res.redirect('/dashboard');
+				if(typeof req.session.returnTo !== 'undefined' && req.session.returnTo)
+					res.redirect(req.session.returnTo);
+				else
+					res.redirect('/dashboard');
 			} else {
 				res.render(
 					'user/login', 
@@ -24,9 +28,14 @@ var UserController = {
 				);
 			}
 		},
+		TEMP: function(req, res) {
+			// setup analytic notifications
+
+		},
 		post: passport.authenticate('local', 
 			{ 
-				successReturnToOrRedirect: '/dashboard',
+				successRedirect: '/dashboard',
+				//successReturnToOrRedirect: '/dashboard',
 				failureRedirect: '/login',
 				failureMessage: true 
 			}

@@ -3,7 +3,8 @@
  */
 var Boot = require('./server/boot').Bootup,
 		Server = require('./server/load').Server,
-		Auth = require('./server/auth');
+		Auth = require('./server/auth'),
+		Sockets = require('./server/sockets');
 
 Boot.start(function(app) {
 	Server = Server.getInstance(app);
@@ -11,7 +12,7 @@ Boot.start(function(app) {
 	
 	Auth.getInstance().loadStrategy('local').loadSession('local');
 
-	Server.create();
+	Sockets.getInstance(Server.create());
 });
 
 
@@ -29,14 +30,15 @@ Model.User.find(function(err, users) {
 });
 Model.User.findOne({email: "123"}, function(err, user) {
 	console.log(user);
-	console.log(user.Analytics.facebook[0]);
-	console.log(user.Analytics.facebook[1]);
-	console.log(user.Analytics.facebook[2]);
+	console.log(user.Social.twitter.analytics[0]);
+	console.log(user.Social.twitter.analytics[0]['entities']);
+	//console.log(user.Analytics.facebook[2]);
 	//console.log(user.Analytics.facebook[3]);
+	//console.log(user.Analytics.meta.update);
 	//user.Social.twitter.oauthAccessToken = null;
 	//user.Social.twitter.oauthAccessTokenSecret = null;
-	//user.Analytics.facebook = [];
-	//user.save(function(err,res){});
+
+	//user.Analytics.twitter = [];user.save(function(err,res){});
 });
 
 
@@ -46,7 +48,7 @@ Model.User.findOne({email: "123"}, function(err, user) {
 	// !!!! IMPORTANT: BELOW IS THE TOGGLE FOR 
 	// !!!! CRON TESTING !!!
 	
-//Cron.start();
+Cron.start();
 
 	// !!!!!
 

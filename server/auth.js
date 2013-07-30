@@ -236,11 +236,11 @@ var Auth = (function() {
 
 			// These are Authorization functions
 			restrict: function(req, res, next) {
+				if(req.url != '/login' && req.url != '/logout' && req.url != '/business/select' && !~req.url.indexOf('/oauth/'))
+					req.session.returnTo = req.url;
 				if(req.session.passport.user) {
 					next();
 				} else {
-					if(req.url != '/login' && req.url != '/logout' && !~req.url.indexOf('/oauth/'))
-						req.session.returnTo = req.url;
 					if(typeof req.session.returnTo === 'undefined' || !req.session.returnTo) 
 						req.session.returnTo = '/dashboard';
 					req.session.messages = 'please login to continue';

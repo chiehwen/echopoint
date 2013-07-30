@@ -20,14 +20,56 @@ var UserModel = {
           id: {type: String},
           oauthAccessToken: {type: String},
           expires: {type: Number},
-          created: {type: Number}
+          created: {type: Number},
+
+          account: {},
+
+          analytics: {
+            updates: [{
+              timestamp: {type: Number}, // this is time of last check used with the .since parameter of facebook graph
+              posts: {}
+            }],
+            tracking: [{
+              id: {type: String},
+              type: {type: String},
+              timestamp: {type: Number},
+              likes: {
+                total: {type: Number},
+                new: {type: Number},
+                data: {}
+              },
+              comments: {
+                total: {type: Number},
+                new: {type: Number},
+                data: {}
+              },
+              shares: {
+                total: {type: Number},
+                new: {type: Number},
+                data: {}
+              }
+            }]
+          },
+          notifications: {
+            count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+            timestamp: {type: Number, default: 0} // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID 
+          }
         },
         twitter: {
           id: {type: String},
           oauthAccessToken: {type: String},
           oauthAccessTokenSecret: {type: String},
           expires: {type: Number},
-          created: {type: Number}
+          created: {type: Number},
+
+          analytics: [{
+            since_id: {type: String}, // this is time of last check used with the .since parameter of facebook graph
+            tweets: {}
+          }],
+          notifications: {
+            count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+            since_id: {type: String, default: '0'} // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID 
+          }
         },
         yelp: {
           id: {type: String},
@@ -65,7 +107,7 @@ var UserModel = {
           posts: {}
         }],
         twitter: [{
-          timestamp: {type: Number}, // this is time of last check used with the .since parameter of facebook graph
+          since_id: {type: String}, // this is time of last check used with the .since parameter of facebook graph
           tweets: {}
         }],
         foursquare: [],

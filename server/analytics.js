@@ -30,7 +30,7 @@ var facebookCron = new Cron({
 					) {
 
 						var facebook = Auth.load('facebook'),
-								analytics = user.Analytics.facebook.sort(Helper.sortBy('timestamp', false, parseInt)),
+								analytics = f.analytics.updates.sort(Helper.sortBy('timestamp', false, parseInt)),
 								since = analytics.length ? analytics[0].timestamp : 0,
 								data = null;
 
@@ -52,7 +52,7 @@ var facebookCron = new Cron({
 							}
 
 							if(data) {
-								user.Analytics.facebook.push(data);
+								user.Social.facebook.analytics.updates.push(data);
 								user.save(function(err,res){});
 							}
 						});
@@ -67,7 +67,7 @@ var facebookCron = new Cron({
 
 
 var twitterCron = new Cron({
-	cronTime: '0 0 * * * *',
+	cronTime: '0 * * * * *',
 	onTick: function() {
 
 		//console.log('You will see this message every hour');
@@ -85,29 +85,40 @@ var twitterCron = new Cron({
 					) {
 
 						var twitter = Auth.load('twitter'),
-								analytics = user.Analytics.twitter.sort(Helper.sortBy('timestamp', false, parseInt)),
-								since = analytics.length ? analytics[0].timestamp : 0,
+								analytics = t.analytics.sort(Helper.sortBy('since_id', false, parseInt)),
+								since = analytics.length ? analytics[0].since_id : 0,
 								data = null;
 
 						twitter.setAccessTokens(t.oauthAccessToken, t.oauthAccessTokenSecret);
 
-						twitter.get('search/tweets', {q: '@speaksocial'}, function(err, response) {
-							if(err || typeof response.error !== 'undefined')
+						var params = {
+							q: '@speaksocial',
+							count: 100,
+							since_id: since,
+							result_type: 'recent', 
+							include_entities: true
+						};
+
+						//if(analytics.length)
+							//params.since_id = analytics[0].since_id;
+
+						twitter.get('search/tweets', params, function(err, response) {
+							if(err || typeof response.errors !== 'undefined')
 								console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
 							
-							if(typeof response.id !== 'undefined' && response.feed.data.length) {
+							if(typeof response.statuses !== 'undefined' && response.statuses.length) {
 								var data = {
-									timestamp: Helper.timestamp(),
+									since_id: response.statuses[0].id_str,
 									tweets: []
 								}
 
-								//response.feed.data.forEach(function(element, index, array) {
-									//data.posts.push(element);
-								//});
+								response.statuses.forEach(function(element, index, array) {
+									data.tweets.push(element);
+								});
 							}
 
 							if(data) {
-								user.Analytics.twitter.push(data);
+								user.Social.twitter.analytics.push(data);
 								user.save(function(err,res){});
 							}
 						});

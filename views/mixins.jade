@@ -65,10 +65,17 @@ mixin topNavigationMenu
 			- }
 		div#user-navigation
 			div#notification
+				i.icon-exclamation-sign
 				a(href="#", class="dropdown-toggle", data-toggle="dropdown")
 					i.icon-info-sign
 				ul(class="dropdown-menu hide")
 					li.nav-header Notifications
+			script 
+				var socket = io.connect('http://localhost');
+				socket.emit('notifications', function (data) {
+					console.log(data);
+					//socket.emit('my other event', { my: 'data' });
+				});
 			div#user-menu
 				a(href="#", class="dropdown-toggle", data-toggle="dropdown") Hello 
 					b Scott Carlson

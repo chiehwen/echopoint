@@ -15,6 +15,10 @@ var Middleware = {
 			req.session.messages = [];
 	},
 
+	analyticNotifications: function(req, res, next) {
+
+	}
+
 	/*
 	loadSocialSessions: function(req, res, next) {
 

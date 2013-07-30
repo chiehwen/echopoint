@@ -12,8 +12,19 @@ block content
 					i.icon-facebook
 					span facebook
 			- if (locals.facebook.connected == true && locals.facebook.data) {
-				div
-					!{JSON.stringify(locals.facebook.data)}
+					- if(locals.facebook.account == false) {
+						div(class='simple-select-menu open') 
+							ul.dropdown-menu
+								- locals.facebook.data.accounts.data.forEach(function(result) {
+									li
+										a(href="#")
+											i.icon-signin
+											span #{result.name}
+								- })
+					- } else {
+						div
+							!{JSON.stringify(locals.facebook.data)}
+					- }
 			- } else {
 				div.social-login
 					p Please login to Facebook using your admin account.

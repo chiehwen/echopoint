@@ -124,17 +124,19 @@ var LoadServer = (function() {
 					var Route = Controller[route];
 						
 					// if no path is given build default based on controller/route
-					if(typeof Route.path == 'undefined')
+					if(typeof Route.path === 'undefined')
 						Route.path = '/' + name + '/' + route;
 
 					// check if page is restricted
-					if(typeof Route.restricted == 'undefined' || Route.restricted)
+					if(typeof Route.restricted === 'undefined' || Route.restricted)
 						Route.restricted = Auth.restrict;
 
 					for(var verb in Route) {
 						// check if we have an acceptable express HTTP verb
 						if(verbs.indexOf(verb) === -1) continue;
 
+						//if(typeof Route['login'] !== 'undefined' && Route['login'] && typeof Route.auth !== 'undefined')
+							//app[verb](Route.path, Route.auth, Route[verb]);
 						if(!Route.restricted)
 							app[verb](Route.path, Route[verb]);
 						else
@@ -153,9 +155,12 @@ var LoadServer = (function() {
 			},
 			create: function() {
 				// create the http server listener for our express app
-				http.createServer(app).listen(app.get('port'), function(){
+				server = http.createServer(app);
+				io = require('socket.io').listen(server);
+				server.listen(app.get('port'), function(){
 				  console.log('Express server listening on port ' + app.get('port'));
 				});
+				return io;
 			}
 
 		} // end return object

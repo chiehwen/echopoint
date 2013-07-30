@@ -1,7 +1,7 @@
 /**
  * Social Controller
  */
- 
+
 var crypto = require('crypto'),
 		oauth = require('oauth'),
 		Auth = require('../server/auth').getInstance(),
@@ -23,7 +23,7 @@ var SocialController = {
  					if(req.session.facebookConnected && req.session.facebook.oauthAccessToken && !req.query.login) {
 
 						var facebook = Auth.load('facebook');
-						facebook.get('me', function(err, response) {
+						facebook.get('me', {fields: 'id,accounts.fields(name,picture.type(square),access_token,about,id,website,likes)'}, function(err, response) {
 
 							if(err || typeof response.error !== 'undefined') 
 								res.redirect('/social/facebook?login=true');
@@ -34,6 +34,7 @@ var SocialController = {
 									title: 'Vocada | Business Facebook Page',
 									facebook: {
 										connected: true,
+										account: (typeof f.account !== 'undefined' && typeof f.account.id !== 'undefined' && f.account.id != '' && f.account.id != '0' && f.account.id != 0) ? true : false,
 										data: response
 									}
 								}
