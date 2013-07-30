@@ -77,96 +77,101 @@ mixin topNavigationMenu
 					//socket.emit('my other event', { my: 'data' });
 				});
 			div#user-menu
-				a(href="#", class="dropdown-toggle", data-toggle="dropdown") Hello 
-					b Scott Carlson
+				a(href="#", class='dropdown-toggle', data-toggle="dropdown") 
+					span Hello 
+						b Scott Carlson
 					i.icon-caret-down
 				ul(class="dropdown-menu")
 					li
-						a(href="#") 
-							i.icon-edit
-							span Edit Personal Profile
-					li
-						a(href="#") 
+						a(href='#') 
 							i.icon-wrench
 							span Account Settings
+					li
+						a(href='/business/create')
+							i.icon-edit
+							span Create New Business
 					li.sign-out
-						a(href="/logout") 
+						a(href='/logout') 
 							i.icon-off
 							span Sign Out
 
 mixin popupNavigationMenu
 	div(id="popup-navigation", class="hide")
-		div.close-navigation-menu
+		div(class='close-navigation-menu left')
 			i.icon-remove-sign
-		div#navigation-container
-			div(class="menu-block one-row")
-				h1
-					a data
-				div.menu
-					div
-						a(href="/dashboard", class="icon dashboard")
-							i.icon-th
-							span dashboard
-						a(href="#", class="icon notifications")
-							i.icon-bolt
-							span alerts
-						a(href="#", class="icon analytics")
-							i.icon-bar-chart
-							span analytics
+		div(class='close-navigation-menu right')
+			i.icon-remove-sign			
+		div.overlay-navigation
+			div.overlay-background
+			div.overlay-menu
+				div(class="menu-block one-row")
+					h1
+						a data
+					div.menu
+						div
+							a(href="/dashboard", class="icon dashboard")
+								i.icon-th
+								span dashboard
+							a(href="#", class="icon notifications")
+								i.icon-bolt
+								span alerts
+							a(href="#", class="icon analytics")
+								i.icon-bar-chart
+								span analytics
 
-			div(class="menu-block two-row")
-				h1
-					a social
-				div.menu
-					div
-						a(href="/social/facebook", class="icon facebook")
-							i.icon-facebook
-							span facebook
-						a(href="/social/twitter", class="icon twitter")
-							i.icon-twitter
-							span twitter
-						a(href="/social/yelp", class="icon yelp")
-							i.icon-yelp
-							span yelp
-						a(href="/social/foursquare", class="icon foursquare")
-							i.icon-foursquare
-							span foursquare
-						a(href="/social/instagram", class="icon instagram")
-							i.icon-instagram
-							span instagram
-						a(href="/social/google", class="icon google")
-							i.icon-google-plus-sign
-							span google+
-						a(href="/social/youtube", class="icon youtube")
-							i.icon-youtube-play
-							span youtube
-							
-			div(class="menu-block one-row")
-				h1
-					a tools
-				div.menu
-					div
-						a(href="/tools/bitly", class="icon bitly")
-							i .ly
-							span bitly
-						a(href="#", class="icon responders")
-							i.icon-retweet
-							span responders
-						a(href="#", class="icon users")
-							i.icon-user
-							span users
+				div(class="menu-block two-row")
+					h1
+						a social
+					div.menu
+						div
+							a(href="/social/facebook", class="icon facebook")
+								i.icon-facebook
+								span facebook
+							a(href="/social/twitter", class="icon twitter")
+								i.icon-twitter
+								span twitter
+							a(href="/social/yelp", class="icon yelp")
+								i.icon-yelp
+								span yelp
+							a(href="/social/foursquare", class="icon foursquare")
+								i.icon-foursquare
+								span foursquare
+							a(href="/social/instagram", class="icon instagram")
+								i.icon-instagram
+								span instagram
+							a(href="/social/google", class="icon google")
+								i.icon-google-plus-sign
+								span google+
+							a(href="/social/youtube", class="icon youtube")
+								i.icon-youtube-play
+								span youtube
+								
+				div(class="menu-block one-row")
+					h1
+						a tools
+					div.menu
+						div
+							a(href="/tools/bitly", class="icon bitly")
+								i .ly
+								span bitly
+							a(href="#", class="icon responders")
+								i.icon-retweet
+								span responders
+							a(href="#", class="icon users")
+								i.icon-user
+								span users
 
-			div(class="menu-block one-row")
-				h1
-					a help
-				div.menu
-					div
-						a(href="#", class="icon quick-start")
-							i.icon-rocket
-							span quick start
-						a(href="#", class="icon faq")
-							i.icon-question
-							span faq
+				div(class="menu-block one-row")
+					h1
+						a help
+					div.menu
+						div
+							a(href="#", class="icon quick-start")
+								i.icon-rocket
+								span quick start
+							a(href="#", class="icon faq")
+								i.icon-question
+								span faq
 
 //- update the sidebar to look like dev.ss.tv
 	and it must be actived by user in options (not standard)

@@ -38,7 +38,7 @@ Model.User.findOne({email: "123"}, function(err, user) {
 	//user.Social.twitter.oauthAccessToken = null;
 	//user.Social.twitter.oauthAccessTokenSecret = null;
 
-	//user.Analytics.twitter = [];user.save(function(err,res){});
+	//user.Business = [];user.save(function(err,res){});
 });
 
 

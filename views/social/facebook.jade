@@ -13,14 +13,18 @@ block content
 					span facebook
 			- if (locals.facebook.connected == true && locals.facebook.data) {
 					- if(locals.facebook.account == false) {
-						div(class='simple-select-menu open') 
-							ul.dropdown-menu
-								- locals.facebook.data.accounts.data.forEach(function(result) {
+						div.page-notice
+							h1 Please select a Facebook business account page
+							p This needs to match the Vocada business you are currently logged into
+						div(class='simple-select-menu facebook-account-select-menu')
+							ul
+								for account in locals.facebook.data.accounts.data
 									li
-										a(href="#")
-											i.icon-signin
-											span #{result.name}
-								- })
+										div.button
+											a(href="#")
+												i.icon-signin
+												span #{account.name}
+								
 					- } else {
 						div
 							!{JSON.stringify(locals.facebook.data)}

@@ -34,7 +34,7 @@ var UserController = {
 		},
 		post: passport.authenticate('local', 
 			{ 
-				successRedirect: '/dashboard',
+				successRedirect: '/business/select',
 				//successReturnToOrRedirect: '/dashboard',
 				failureRedirect: '/login',
 				failureMessage: true 

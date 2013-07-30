@@ -127,6 +127,7 @@ var UserModel = {
       meta: {
         created: { type: Date, default: Date.now},
         createdTimestamp: { type: Number, default: Date.now() },
+        currentBusiness: { type: String, default: null },
         guide: { type: Boolean, default: 1}
       }   
     },
