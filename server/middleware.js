@@ -1,5 +1,6 @@
 var Auth = require('../server/auth').getInstance(),
-	Model = Model || Object;
+		Helper = require('./helpers'),
+		Model = Model || Object;
 
 var Middleware = {
 	sessionMessages: function(req, res, next){
@@ -15,9 +16,26 @@ var Middleware = {
 			req.session.messages = [];
 	},
 
+	loadBusiness: function(req, res, next) {
+		if(req.session.passport.user && typeof req.session.currentBusiness == 'undefined' && !Helper.isPath(req.url, ['/login', '/logout', '/business/select', '/business/create', '/user/create'], [])) {
+ 			Model.User.findById(req.session.passport.user, function(err, user) {
+ 				if (err || !user) return next(err);
+ 				if(user.meta.Business.current && user.meta.Business.current.id != '') {
+ 					req.session.Business = user.meta.Business.current;
+ 					return next();
+ 				} else {
+ 					res.redirect('/business/select');
+ 				}
+ 			});
+ 		} else {
+ 			next();
+ 		}
+	},
+
 	analyticNotifications: function(req, res, next) {
 
 	}
+
 
 	/*
 	loadSocialSessions: function(req, res, next) {

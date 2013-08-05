@@ -28,10 +28,6 @@ var UserController = {
 				);
 			}
 		},
-		TEMP: function(req, res) {
-			// setup analytic notifications
-
-		},
 		post: passport.authenticate('local', 
 			{ 
 				successRedirect: '/business/select',

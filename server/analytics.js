@@ -53,7 +53,7 @@ var facebookCron = new Cron({
 
 							if(data) {
 								user.Social.facebook.analytics.updates.push(data);
-								user.save(function(err,res){});
+								user.save(function(err,response){});
 							}
 						});
 					}

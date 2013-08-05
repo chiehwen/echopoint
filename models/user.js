@@ -12,9 +12,100 @@ var UserModel = {
       name: {type: String},
       email: {type: String, required: true, index: { unique: true } },
       password: {type: String, required: true},
-      // roles: admin, user
-      role: {type: String, required: true, default: 'user' },
-      Business: [{}],
+      role: {type: String, required: true, default: 'user' }, // current roles: admin, user
+      Business: [{
+        name: { type: String, required: true},
+        meta: {
+          created: { type: Date, default: Date.now},
+          createdTimestamp: { type: Number, default: Date.now() },
+        },
+        Social: {
+          facebook: {
+            id: {type: String},
+            oauthAccessToken: {type: String},
+            expires: {type: Number},
+            created: {type: Number},
+
+            account: {},
+
+            analytics: {
+              updates: [{
+                timestamp: {type: Number}, // this is time of last check used with the .since parameter of facebook graph
+                posts: {}
+              }],
+              tracking: [{
+                id: {type: String},
+                type: {type: String},
+                timestamp: {type: Number},
+                likes: {
+                  total: {type: Number},
+                  new: {type: Number},
+                  data: {}
+                },
+                comments: {
+                  total: {type: Number},
+                  new: {type: Number},
+                  data: {}
+                },
+                shares: {
+                  total: {type: Number},
+                  new: {type: Number},
+                  data: {}
+                }
+              }]
+            },
+            notifications: {
+              count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+              timestamp: {type: Number, default: 0} // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID 
+            }
+          },
+          twitter: {
+            id: {type: String},
+            oauthAccessToken: {type: String},
+            oauthAccessTokenSecret: {type: String},
+            expires: {type: Number},
+            created: {type: Number},
+
+            analytics: [{
+              since_id: {type: String}, // this is time of last check used with the .since parameter of facebook graph
+              tweets: {}
+            }],
+            notifications: {
+              count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+              since_id: {type: String, default: '0'} // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID 
+            }
+          },
+          yelp: {
+            id: {type: String},
+            oauthAccessToken: {type: String},
+            oauthAccessTokenSecret: {type: String},
+            expires: {type: Number},
+            created: {type: Number}
+          },
+          foursquare: {
+            id: {type: String},
+            venueId: {type: String},
+            oauthAccessToken: {type: String},
+            expires: {type: Number},
+            created: {type: Number}
+          },
+          instagram: {
+            id: {type: String},
+            oauthAccessToken: {type: String},
+            expires: {type: Number},
+            created: {type: Number}
+          }
+        },
+        Tools: {
+          bitly: {
+            id: {type: String},
+            login: {type: String},
+            oauthAccessToken: {type: String},
+            expires: {type: Number},
+            created: {type: Number}
+          },
+        }            
+      }],
       Social: {
         facebook: {
           id: {type: String},
@@ -125,9 +216,14 @@ var UserModel = {
         }
       },
       meta: {
-        created: { type: Date, default: Date.now},
-        createdTimestamp: { type: Number, default: Date.now() },
-        currentBusiness: { type: String, default: null },
+        created: { type: Number, default: Date.now() },
+        Business: { 
+          tokens: { type: Number, default: 1 },
+          current: {
+            id: { type: String, default: null },
+            index: { type: Number, default: 0 }
+          }
+        },
         guide: { type: Boolean, default: 1}
       }   
     },

@@ -6,6 +6,7 @@ var fs = require('fs'),
 		bcrypt = require('bcrypt'),
 		passport = require('passport'),
 		oauth = require('oauth'),
+		Helper = require('./helpers'),
 		Model = Model || Object,
 		LocalStrategy = require('passport-local').Strategy,
 		Api = require('socialite'),
@@ -236,7 +237,7 @@ var Auth = (function() {
 
 			// These are Authorization functions
 			restrict: function(req, res, next) {
-				if(req.url != '/login' && req.url != '/logout' && req.url != '/business/select' && req.url != '/business/create' && !~req.url.indexOf('/oauth/'))
+				if(!Helper.isPath(req.url))
 					req.session.returnTo = req.url;
 				if(req.session.passport.user) {
 					next();

@@ -2,7 +2,8 @@
  * Business Controller
  */
 
-var Model = Model || Object;
+var Helper = require('../server/helpers'),
+		Model = Model || Object;
 
 var BusinessController = {
 
@@ -24,23 +25,15 @@ var BusinessController = {
  					if (err) return next(err);	
 
  					if(user) {
- 						var businesses = user.Business;
-
- 						var newBusiness = new Model.Business({
- 							name: req.body.name
- 						});
+ 						var newBusiness = {name: req.body.name};
  						
- 						businesses.push(newBusiness.toObject());
+ 						user.Business.push(newBusiness);
 
- 						Model.User.update(
- 							{_id: id},
- 							{$set: {Business: businesses}},
- 							function(err){
- 								if (err) return next(err);
- 								//req.session.messages.push("Hooray! New business has been created!");
- 								res.redirect('/business/select');								
- 							}
- 						);
+ 						user.save(function(err, response){
+ 							if (err) return next(err);
+ 							res.redirect('/business/select');
+ 						});
+
  					}	else {
  						req.session.messages.push("Error finding user for business");
  						res.redirect('/business/create');
@@ -62,12 +55,27 @@ var BusinessController = {
  						res.redirect('business/create');
 
  					if(typeof user.Business !== 'undefined' && user.Business.length == 1) {
- 						user.meta.currentBusiness = req.session.currentBusiness = user.Business[0]._id;
+ 						user.meta.Business.current = req.session.Business = {
+							id: user.Business[0]._id,
+							index: 0
+						} 
 						user.save(function(err,res){});
- 						if(typeof req.session.returnTo !== 'undefined' && req.session.returnTo)
-							res.redirect(req.session.returnTo);
-						else
-							res.redirect('/dashboard');
+						res.redirect(Helper.redirectToPrevious(req.session));
+					}
+
+					if(typeof req.query.business !== 'undefined') {
+						//user.Business.forEach(function(business) {
+						for (var i = 0, l = user.Business.length; i < l; i++) {
+							var businessId = user.Business[i]._id;
+							if(businessId == req.query.business) {
+								user.meta.Business.current = req.session.Business = {
+									id: businessId,
+									index: i
+								} 
+								user.save(function(err,res){});
+								res.redirect(Helper.redirectToPrevious(req.session));
+							}
+						}
 					}
 
  					res.render(
@@ -80,7 +88,7 @@ var BusinessController = {
  				});
  			}
  		},
-
+/*
  		post: function(req, res, next) {
  			if(req.session.passport.user && typeof req.body.id !== 'undefined') {
  				var id = req.session.passport.user;
@@ -100,7 +108,7 @@ var BusinessController = {
  			} else {
  				res.redirect('/business/create');
  			}
- 		}
+ 		} */
  	},
  	list: {
  		get: function(req, res) {

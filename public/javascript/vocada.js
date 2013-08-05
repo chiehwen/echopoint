@@ -13,14 +13,14 @@ $(document).ready(function() {
 	$('.dropdown-toggle').dropdown()
 
 
-	$('.business-select-menu li').on('click', function() {
+	/*$('.business-select-menu li').on('click', function() {
 		var business = {
 			id: $(this).find('a').attr('id'),
 			name: $(this).find('span').text()
 		}
 		utilities = new Utils;
 		utilities.httpRequest('/business/select', {id: business.id, name: business.name});
-	})
+	})*/
 
 });
 

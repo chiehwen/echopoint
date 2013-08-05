@@ -23,6 +23,9 @@ var SocialController = {
  					if(req.session.facebookConnected && req.session.facebook.oauthAccessToken && !req.query.login) {
 
 						var facebook = Auth.load('facebook');
+
+						//currentBusiness = user.Business 
+
 						facebook.get('me', {fields: 'id,accounts.fields(name,picture.type(square),access_token,about,id,website,likes)'}, function(err, response) {
 
 							if(err || typeof response.error !== 'undefined') 

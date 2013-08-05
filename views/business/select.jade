@@ -19,7 +19,7 @@ block content
 					for business in locals.businesses
 						li
 							div.button
-								a(href='#', id='#{business._id}')
+								a(href='/business/select?business=#{business._id}', id='#{business._id}')
 									i.icon-windows
 									span #{business.name}
 		div#login-powered

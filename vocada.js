@@ -28,6 +28,7 @@ Model.User.find(function(err, users) {
 		//console.log(user.Business);
 	});
 });
+var bizzyId;
 Model.User.findOne({email: "123"}, function(err, user) {
 	console.log(user);
 	console.log(user.Social.twitter.analytics[0]);
@@ -37,7 +38,10 @@ Model.User.findOne({email: "123"}, function(err, user) {
 	//console.log(user.Analytics.meta.update);
 	//user.Social.twitter.oauthAccessToken = null;
 	//user.Social.twitter.oauthAccessTokenSecret = null;
-
+bizzyId = user.Business[3]._id;
+	Model.User.findOne({email: "123", 'Business._id': bizzyId}, {'Business.$': 1}, function(err, biz) {
+		console.log(biz);
+	})
 	//user.Business = [];user.save(function(err,res){});
 });
 
@@ -48,7 +52,7 @@ Model.User.findOne({email: "123"}, function(err, user) {
 	// !!!! IMPORTANT: BELOW IS THE TOGGLE FOR 
 	// !!!! CRON TESTING !!!
 	
-Cron.start();
+//Cron.start();
 
 	// !!!!!
 

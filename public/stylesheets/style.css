@@ -581,10 +581,11 @@ li {
   -webkit-border-radius: 0;
   -moz-border-radius: 0;
   border-radius: 0;
-  -moz-box-shadow: 1px 1px 7px 1px #bbb;
-  -webkit-box-shadow: 1px 1px 7px 1px #bbb;
-  box-shadow: 1px 1px 7px 1px #bbb;
-  border: 1px solid #E5E5E5;
+  /*-moz-box-shadow: 1px 1px 7px 1px #bbb;
+	-webkit-box-shadow: 1px 1px 7px 1px #bbb;
+	box-shadow: 1px 1px 7px 1px #bbb;*/
+
+  border: 1px solid #CCC;
 }
 .simple-select-menu h4 {
   font: 12px 'HelveticaNeue', Arial, sans-serif;
