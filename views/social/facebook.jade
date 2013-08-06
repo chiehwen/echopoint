@@ -12,7 +12,7 @@ block content
 					i.icon-facebook
 					span facebook
 			- if (locals.facebook.connected == true && locals.facebook.data) {
-					- if(locals.facebook.account == false) {
+					- if(locals.facebook.account == false && typeof locals.facebook.data.accounts !== 'undefined') {
 						div.page-notice
 							h1 Please select a Facebook business account page
 							p This needs to match the Vocada business you are currently logged into
@@ -21,10 +21,13 @@ block content
 								for account in locals.facebook.data.accounts.data
 									li
 										div.button
-											a(href="/social/facebook?id=#{account.id}")
+											a(href="/social/facebook?id=#{account.id}&token=#{account.access_token}")
 												i.icon-signin
 												span #{account.name}
-								
+					- } else if (locals.facebook.account == false) {
+						div.page-notice
+							h1 It appears you have no Facebook Business account pages
+							p Please choose a guide below to help you get started 
 					- } else {
 						div
 							!{JSON.stringify(locals.facebook.data)}

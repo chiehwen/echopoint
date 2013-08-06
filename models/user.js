@@ -15,16 +15,19 @@ var UserModel = {
       role: {type: String, required: true, default: 'user' }, // current roles: admin, user
       Business: [{
         name: { type: String, required: true},
+        analyticsId: { type: Number },
         meta: {
           created: { type: Date, default: Date.now},
           createdTimestamp: { type: Number, default: Date.now() },
         },
         Social: {
           facebook: {
-            id: {type: String},
-            oauthAccessToken: {type: String},
-            expires: {type: Number},
-            created: {type: Number},
+            auth: {
+              id: {type: String},
+              oauthAccessToken: {type: String},
+              expires: {type: Number},
+              created: {type: Number}
+            },
 
             account: {},
 
@@ -60,12 +63,11 @@ var UserModel = {
             }
           },
           twitter: {
-            id: {type: String},
-            oauthAccessToken: {type: String},
-            oauthAccessTokenSecret: {type: String},
-            expires: {type: Number},
-            created: {type: Number},
-
+            auth: {
+              oauthAccessToken: {type: String},
+              oauthAccessTokenSecret: {type: String},
+              created: {type: Number}
+            },
             analytics: [{
               since_id: {type: String}, // this is time of last check used with the .since parameter of facebook graph
               tweets: {}
@@ -219,7 +221,7 @@ var UserModel = {
         created: { type: Number, default: Date.now() },
         Business: { 
           tokens: { type: Number, default: 1 },
-          current: {
+          current: { 
             id: { type: String, default: null },
             index: { type: Number, default: 0 }
           }
@@ -233,7 +235,7 @@ var UserModel = {
     },
     associations: {
       hasOne: [],
-      hasMany: ['business'],
+      hasMany: [],
       notNested: {}
     }  
   },

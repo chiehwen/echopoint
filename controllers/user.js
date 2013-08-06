@@ -74,7 +74,7 @@ var UserController = {
 						if (err) return next(err);
 						req.login(newUser, function(err) {
 						  if (err) return next(err);
-						  res.redirect('/dashboard');
+						  res.redirect('/business/select');
 						});
 					});
 				} else {

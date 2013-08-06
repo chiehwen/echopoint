@@ -16,7 +16,7 @@ var SocialController = {
  				var id = req.session.passport.user;
 
  				Model.User.findById(id, function(err, user) {
- 					if (err) return next(err);
+ 					if (err || !user) return next(err);
 
  					// process facebook
  					var f = user.Social.facebook;
@@ -24,25 +24,59 @@ var SocialController = {
 
 						var facebook = Auth.load('facebook');
 
-						//currentBusiness = user.Business 
+						currentBusiness = user.Business[req.session.Business.index];
+						if(typeof req.query.id !== 'undefined' && typeof req.query.token !== 'undefined' && typeof req.query.select === 'undefined') {
+							facebook.get(req.query.id, function(err, response) {
+								if(err || typeof response.error !== 'undefined') 
+									res.redirect('/social/facebook?login=true');
 
-						facebook.get('me', {fields: 'id,accounts.fields(name,picture.type(square),access_token,about,id,website,likes)'}, function(err, response) {
+								user.Business[req.session.Business.index].Social.facebook.auth = {
+			 						id: req.query.id,
+			 						oauthAccessToken: req.query.access_token
+			 					}
+								user.Business[req.session.Business.index].Social.facebook.account = response;
+								user.save(function(err) {
+									req.session.messages.push(err);
+								});
+								res.redirect('/social/facebook');
+							});						
+						} else if(typeof currentBusiness.Social.facebook.auth.id !== 'undefined' && currentBusiness.Social.facebook.auth.id != '' && typeof req.query.select === 'undefined') {
+							facebook.get(currentBusiness.Social.facebook.auth.id, function(err, response) {
 
-							if(err || typeof response.error !== 'undefined') 
-								res.redirect('/social/facebook?login=true');
+								if(err || typeof response.error !== 'undefined') 
+									res.redirect('/social/facebook?login=true');
 
-							res.render(
-								'social/facebook', 
-								{
-									title: 'Vocada | Business Facebook Page',
-									facebook: {
-										connected: true,
-										account: (typeof f.account !== 'undefined' && typeof f.account.id !== 'undefined' && f.account.id != '' && f.account.id != '0' && f.account.id != 0) ? true : false,
-										data: response
+								res.render(
+									'social/facebook', 
+									{
+										title: 'Vocada | Business Facebook Page',
+										facebook: {
+											connected: true,
+											account: true,
+											data: response
+										}
 									}
-								}
-							);	
-						});
+								);	
+							});
+						} else {
+							facebook.get('me', {fields: 'id,accounts.fields(name,picture.type(square),access_token,about,id,website,likes)'}, function(err, response) {
+
+								if(err || typeof response.error !== 'undefined') 
+									res.redirect('/social/facebook?login=true');
+
+								res.render(
+									'social/facebook', 
+									{
+										title: 'Vocada | Business Facebook Page',
+										facebook: {
+											connected: true,
+											account: false,
+											data: response
+										}
+									}
+								);	
+							});
+						}
 
  					} else if(
  						!req.query.login
@@ -69,7 +103,7 @@ var SocialController = {
  					} else {
 
 						req.session.facebookState = crypto.randomBytes(10).toString('hex');
-req.session.messages.push(req.session.facebookState);
+//req.session.messages.push(req.session.facebookState);
 				 		res.render(
 				 			'social/facebook', 
 				 			{
@@ -84,6 +118,16 @@ req.session.messages.push(req.session.facebookState);
 					} // end facebook processing
  				});
  			}
+ 		},
+
+ 		post: function(res, req, next) {
+ 			Helper.getUser(req.session.passport.user, function(err, user) {
+ 				if (err || !user) return next(err);
+ 				if(typeof req.body.id !== 'undefined' && typeof req.body.access_token !== 'undefined') {
+
+
+ 				}
+ 			});
  		}
  	},
 

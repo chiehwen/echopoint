@@ -19,7 +19,7 @@ var BusinessModel = {
     },
     associations: {
       hasOne: ['analytics'],
-      belongsTo : ['user'],
+      belongsTo : [],
       notNested: {}
     }
   },

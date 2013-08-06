@@ -6,7 +6,7 @@
 		"secret": "bf2a7c4e182e65a45e69b810c2984450",
 		"dialog": "https://www.facebook.com/dialog/oauth",
 		"callback": "http://127.0.0.1:3000/oauth/facebook",
-		"scope": "manage_pages,read_stream"
+		"scope": "manage_pages,read_stream,publish_stream,read_insights,read_page_mailboxes"
 	},
 	"twitter": {
 		"consumerKey": "9DFn7r4ir7Z4uPSy7ZEQbA",

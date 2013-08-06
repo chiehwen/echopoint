@@ -23,25 +23,27 @@ var Model = Model || Object;
 //console.log(Model.User.Business);
 //Model.User.remove(function(err){if(err) throw err});
 //console.log(Model.User.schema);`
-Model.User.find(function(err, users) {
-		users.forEach(function(user) {
-		//console.log(user.Business);
+Model.Analytics.find(function(err, users) {
+	users.forEach(function(user) {
+		//console.log(user);
 	});
 });
-var bizzyId;
+
 Model.User.findOne({email: "123"}, function(err, user) {
 	console.log(user);
-	console.log(user.Social.twitter.analytics[0]);
-	console.log(user.Social.twitter.analytics[0]['entities']);
-	//console.log(user.Analytics.facebook[2]);
-	//console.log(user.Analytics.facebook[3]);
+	console.log(user.Social.facebook.analytics.updates[1]);
+	//console.log(user.Social.twitter.analytics[0]['entities']);
+	//console.log(user.Social.facebook.analytics.updates[1]);
+	//console.log(user.Social.facebook.analytics.updates[4]);
 	//console.log(user.Analytics.meta.update);
 	//user.Social.twitter.oauthAccessToken = null;
 	//user.Social.twitter.oauthAccessTokenSecret = null;
-bizzyId = user.Business[3]._id;
-	Model.User.findOne({email: "123", 'Business._id': bizzyId}, {'Business.$': 1}, function(err, biz) {
+
+	/*Model.User.findOne({email: "123", 'Business._id': user.Business[3]._id}, {'Business.$': 1}, {lean: false}, function(err, biz) {
 		console.log(biz);
-	})
+		biz.Business[0].name = 'silly co';
+		biz.save(function(err, res){});
+	})*/
 	//user.Business = [];user.save(function(err,res){});
 });
 
@@ -52,7 +54,7 @@ bizzyId = user.Business[3]._id;
 	// !!!! IMPORTANT: BELOW IS THE TOGGLE FOR 
 	// !!!! CRON TESTING !!!
 	
-//Cron.start();
+Cron.start();
 
 	// !!!!!
 

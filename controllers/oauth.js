@@ -46,7 +46,7 @@ var OauthController = {
 
 								var credentials = {
 									oauthAccessToken: result.access_token,
-									expires: result.expires,
+									expires: 128000,//result.expires, // Seems they removed the expired endpoint, I swear you can never rely facebook
 									created: Helper.timestamp()
 								}
 
@@ -59,8 +59,8 @@ var OauthController = {
 								});
 
 								req.session.facebookConnected = true;
-								req.session.messages.push(result);
 								res.redirect('/social/facebook');
+								//res.send('login-error: ' + JSON.stringify(result));
 							});
 							
 						});
@@ -75,9 +75,8 @@ var OauthController = {
 	twitter: {
 		get: function(req, res) {
 			if(req.session.passport.user) {
-				var id = req.session.passport.user;
 
-				Model.User.findById(id, function(err, user) {
+				Helper.getUser(req.session.passport.user, function(err, user) {
 					if (err) return next(err);
 
 					twitter = Auth.load('twitter');

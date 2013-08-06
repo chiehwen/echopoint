@@ -17,12 +17,12 @@ var Middleware = {
 	},
 
 	loadBusiness: function(req, res, next) {
-		if(req.session.passport.user && typeof req.session.currentBusiness == 'undefined' && !Helper.isPath(req.url, ['/login', '/logout', '/business/select', '/business/create', '/user/create'], [])) {
- 			Model.User.findById(req.session.passport.user, function(err, user) {
+		if(req.session.passport.user && typeof req.session.Business.id == 'undefined' && !Helper.isPath(req.url, ['/login', '/logout', '/business/select', '/business/create', '/user/create'], [])) {
+ 			Helper.getUser(req.session.passport.user, function(err, user) {
  				if (err || !user) return next(err);
  				if(user.meta.Business.current && user.meta.Business.current.id != '') {
  					req.session.Business = user.meta.Business.current;
- 					return next();
+ 					next();
  				} else {
  					res.redirect('/business/select');
  				}

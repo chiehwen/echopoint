@@ -19,18 +19,31 @@ var BusinessController = {
 
  		post: function(req, res, next) {
  			if(req.session.passport.user) {
- 				var id = req.session.passport.user;
-
- 				Model.User.findById(id, function(err, user) {
+ 				Helper.getUser(req.session.passport.user, function(err, user) {
  					if (err) return next(err);	
 
  					if(user) {
- 						var newBusiness = {name: req.body.name};
+
+ 						var timestampId = Helper.timestamp(true);
+
+ 						var newBusiness = {
+ 							name: req.body.name,
+ 							analyticsId: timestampId
+ 						};
+
+ 						var newAnalytics = new Model.Analytics({
+							id: timestampId,
+							name: req.body.name
+						});
  						
  						user.Business.push(newBusiness);
 
  						user.save(function(err, response){
  							if (err) return next(err);
+	 			
+							newAnalytics.save(function(err){
+								//if (err) return next(err);
+							});
  							res.redirect('/business/select');
  						});
 
@@ -46,9 +59,7 @@ var BusinessController = {
  	select: {
  		get: function(req, res) {
  			if(req.session.passport.user) {
- 				var id = req.session.passport.user;
-
- 				Model.User.findById(id, function(err, user) {
+ 				Helper.getUser(req.session.passport.user, function(err, user) {
  					if (err) return next(err);	
  					
  					if(typeof user.Business === 'undefined' || !user.Business.length)

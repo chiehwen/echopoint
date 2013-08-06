@@ -1,5 +1,29 @@
 
-var url = require('url');
+var url = require('url'),
+		Model = Model || Object;
+
+exports.getUser= function(id, callback) {
+	Model.User.findById(id, function(err, user) {
+		callback(err, user);
+	});
+} 		
+
+exports.getBusiness = function(session, lean, callback) {
+	if(typeof lean === 'function') {
+		callback = lean;
+		lean = false;
+	}
+
+	Model.User.findOne({_id: session.passport.user, 'Business._id': session.Business.current}, {'Business.$': 1}, {lean: lean}, function(err, business) {
+		callback(err, business);
+	})
+}
+
+exports.getUserAndBusiness= function(id, callback) {
+	Model.User.findById(id, function(err, user) {
+		callback(err, user);
+	});
+}
 
 // great object sorting function found at http://stackoverflow.com/questions/979256/sorting-an-array-of-javascript-objects#answer-979325
 // working jsfiddle version: http://jsfiddle.net/dFNva/1/
@@ -14,8 +38,12 @@ exports.sortBy = function(field, reverse, primer) {
 	}
 };
 
-exports.timestamp = function() {
-	return Math.round(new Date().getTime()/ 1000);
+exports.timestamp = function(seconds) {
+	var seconds = seconds || false;
+	if(seconds)
+		return new Date().getTime();
+	else
+		return Math.round(new Date().getTime()/ 1000);
 }
 
 exports.redirectToPrevious = function(session) {
