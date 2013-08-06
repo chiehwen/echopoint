@@ -1,5 +1,5 @@
 /**
- * Social Controller
+ * Cron-based Analytics Processing
  */
 
 var Auth = require('./auth').getInstance(),
