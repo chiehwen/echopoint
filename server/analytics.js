@@ -32,11 +32,12 @@ var facebookCron = new Cron({
 						var facebook = Auth.load('facebook'),
 								analytics = f.analytics.updates.sort(Helper.sortBy('timestamp', false, parseInt)),
 								since = analytics.length ? analytics[0].timestamp : 0,
+								tracked = f.analytics.tracking.sort(Helper.sortBy('timestamp', false, parseInt)),
 								data = null;
 
 						facebook.setAccessToken(f.oauthAccessToken);
 
-						facebook.get('me', {fields: 'feed.since(' + since + ').fields(id,message,message_tags,actions,caption,created_time,description,expanded_height,expanded_width,feed_targeting,full_picture,icon,link,is_published,is_hidden,name,object_id,parent_id,picture,privacy,properties,shares,source,status_type,story,story_tags,subscribed,targeting,timeline_visibility,to,type,updated_time,via,with_tags,comments,likes)'}, function(err, response) {
+						facebook.get('me', {fields: 'feed.since(' + since + ').limit(100).fields(id,message,message_tags,actions,caption,created_time,description,expanded_height,expanded_width,feed_targeting,full_picture,icon,link,is_published,is_hidden,name,object_id,parent_id,picture,privacy,properties,shares,source,status_type,story,story_tags,subscribed,targeting,timeline_visibility,to,type,updated_time,via,with_tags,comments,likes)'}, function(err, response) {
 						//facebook.get('me', {fields: 'feed.since(' + since + ')'}, function(err, response) {
 						//facebook.get('127692573953699', {fields: 'feed.since(' + since + ').fields(id,message,message_tags,actions,caption,created_time,description,expanded_height,expanded_width,feed_targeting,full_picture,icon,link,is_published,is_hidden,name,object_id,parent_id,picture,privacy,properties,shares,source,status_type,story,story_tags,subscribed,targeting,timeline_visibility,to,type,updated_time,via,with_tags,comments,likes)'}, function(err, response) {
 							if(err || typeof response.error !== 'undefined')
@@ -50,6 +51,37 @@ var facebookCron = new Cron({
 
 								response.feed.data.forEach(function(element, index, array) {
 									data.posts.push(element);
+
+									var tracking = {
+										id: element.id,
+										timestamp: Helper.timestamp(),
+										likes: {},
+										comments: {},
+										shares: {}
+									};
+
+									if(typeof element.likes !== 'undefined')
+										tracking.likes = {
+											total: parseInt(element.likes.count, 10),
+											new: parseInt(element.likes.count, 10),
+											data: element.likes.data
+										}
+
+									if(typeof element.comments !== 'undefined')
+										tracking.comments = {
+											total: element.comments.data.length,
+											new: element.comments.data.length,
+											data: element.comments.data
+										}
+
+									if(typeof element.shares !== 'undefined')
+										tracking.shares = {
+											total: parseInt(element.shares.count, 10),
+											new: parseInt(element.shares.count, 10)
+										}
+
+									if(typeof tracking.likes.total !== 'undefined' || typeof tracking.comments.total !== 'undefined' || typeof tracking.shares.total !== 'undefined')
+										user.Social.facebook.analytics.tracking.push(tracking);
 								});
 							}
 
@@ -58,6 +90,80 @@ var facebookCron = new Cron({
 								user.save(function(err,response){});
 							}
 						});
+
+						facebook.get('me', {fields: 'feed.until(' + since + ').limit(100).fields(likes,comments,shares,updated_time,created_time,status_type,type)'}, function(err, response) {
+							if(typeof response.feed !== 'undefined' && typeof response.feed.data !== 'undefined' && response.feed.data.length) {
+								response.feed.data.forEach(function(element, index, array) {
+									
+									var found = false,
+									tracking = {
+										id: element.id,
+										timestamp: Helper.timestamp(),
+										likes: {},
+										comments: {},
+										shares: {}
+									};
+
+									for(var i = 0, l = tracked.length; i < l; i++) {
+										
+										if(tracked[i].id == element.id) {
+											found = true;
+
+											if(typeof element.likes !== 'undefined' && element.likes.count != tracked[i].likes.total)
+												tracking.likes = {
+													total: parseInt(element.likes.count, 10),
+													new: (typeof tracked[i].likes.total !== 'undefined') ? parseInt(element.likes.count - tracked[i].likes.total, 10) : parseInt(element.likes.count, 10),
+													data: element.likes.data
+												}
+
+											if(typeof element.comments !== 'undefined' && element.comments.length != tracked[i].comments.total)
+												tracking.comments = {
+													total: element.comments.data.length,
+													new: (typeof tracked[i].comments.total !== 'undefined') ? parseInt(element.comments.data.length - tracked[i].comments.total, 10) : parseInt(element.comments.data.length, 10),
+													data: element.comments.data
+												}
+
+											if(typeof element.shares !== 'undefined' && (element.shares.count != tracked[i].shares.total || typeof tracked[i].shares === 'undefined'))
+												tracking.shares = {
+													total: parseInt(element.shares.count, 10),
+													new: (typeof tracked[i].shares.total !== 'undefined') ? parseInt(element.shares.count - tracked[i].shares.total, 10) : parseInt(element.shares.count, 10)
+												}
+
+											break;
+										}
+									}
+
+									if(!found) {
+
+											if(typeof element.likes !== 'undefined')
+												tracking.likes = {
+													total: parseInt(element.likes.count, 10),
+													new: parseInt(element.likes.count, 10),
+													data: element.likes.data
+												}
+
+											if(typeof element.comments !== 'undefined')
+												tracking.comments = {
+													total: element.comments.length,
+													new: element.comments.length,
+													data: element.comments.data
+												}
+
+											if(typeof element.shares !== 'undefined')
+												tracking.shares = {
+													total: parseInt(element.shares.count, 10),
+													new: parseInt(element.shares.count, 10)
+												}								
+									}
+
+									if(typeof tracking.likes.total !== 'undefined' || typeof tracking.comments.total !== 'undefined' || typeof tracking.shares.total !== 'undefined') {
+										user.Social.facebook.analytics.tracking.push(tracking);
+										user.save(function(err,response){});
+									}
+
+								})
+							}
+						})
 					}
 			});
 		});
