@@ -208,19 +208,29 @@ var twitterCron = new Cron({
 				if (
 						typeof t.oauthAccessToken !== 'undefined'
 						&& typeof t.oauthAccessTokenSecret !== 'undefined'
+						&& typeof t.id !== 'undefined'
 						&& t.oauthAccessToken != ''
 						&& t.oauthAccessTokenSecret != ''
 						&& t.oauthAccessToken
 						&& t.oauthAccessTokenSecret
+						&& t.id
 					) {
 
 						var twitter = Auth.load('twitter'),
-								analytics = t.analytics.sort(Helper.sortBy('since_id', false, parseInt)),
-								since = analytics.length ? analytics[0].since_id : 0,
+								sorted = {
+									updates: t.analytics.updates.sort(Helper.sortBy('since_id', false, parseInt)),
+									mentions: t.analytics.tracking.mentions.sort(Helper.sortBy('since_id', false, parseInt)),
+									messages: t.analytics.tracking.messages.sort(Helper.sortBy('since_id', false, parseInt))
+								},
+								since = {
+									updates: sorted.updates.length ? sorted.updates[0].since_id : 0,
+									mentions: sorted.mentions.length ? sorted.mentions[0].since_id : 0,
+									messages: sorted.messages.length ? sorted.messages[0].since_id : 0
+								},
 								data = null;
 
 						twitter.setAccessTokens(t.oauthAccessToken, t.oauthAccessTokenSecret);
-
+/*
 						var params = {
 							q: '@speaksocial',
 							count: 100,
@@ -228,30 +238,130 @@ var twitterCron = new Cron({
 							result_type: 'recent', 
 							include_entities: true
 						};
-
+*/
 						//if(analytics.length)
 							//params.since_id = analytics[0].since_id;
 
-						twitter.get('search/tweets', params, function(err, response) {
+						//twitter.get('search/tweets', params, function(err, response) {
+						twitter.get('statuses/user_timeline', {user_id: req.session.twitter.id, since_id: since.updates, count: 100, contributor_details: true}, function(err, response) {
 							if(err || typeof response.errors !== 'undefined')
 								console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
 							
-							if(typeof response.statuses !== 'undefined' && response.statuses.length) {
+							//if(typeof response.statuses !== 'undefined' && response.statuses.length) {
+							if(response.length) {
 								var data = {
-									since_id: response.statuses[0].id_str,
+									since_id: response[0].id_str,
+									timestamp: Helper.timestamp(),
 									tweets: []
 								}
 
-								response.statuses.forEach(function(element, index, array) {
+								response.forEach(function(element, index, array) {
 									data.tweets.push(element);
 								});
 							}
 
 							if(data) {
-								user.Social.twitter.analytics.push(data);
+								user.Social.twitter.analytics.updates.push(data);
 								user.save(function(err,res){});
 							}
 						});
+
+						// @ mentions tracking
+						twitter.get('statuses/mentions_timeline', {since_id: since.mentions, count: 200, contributor_details: true, include_rts: true}, function(err, response) {
+							if(err || typeof response.errors !== 'undefined')
+								console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
+							
+							//if(typeof response.statuses !== 'undefined' && response.statuses.length) {
+							if(response.length) {
+								var data = {
+									since_id: response[0].id_str,
+									timestamp: Helper.timestamp(),
+									mentions: []
+								}
+
+								response.forEach(function(element, index, array) {
+									data.mentions.push(element);
+								});
+							}
+
+							if(data) {
+								user.Social.twitter.analytics.tracking.mentions.push(data);
+								user.save(function(err,res){});
+							}
+						});
+
+
+				// Retweets tracking
+						twitter.get('statuses/retweets_of_me', {since_id: since.messages, count: 100, trim_user: true, include_entities: false, include_user_entities: false}, function(err, response) {
+							if(err || typeof response.errors !== 'undefined')
+								console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
+							
+							if(response.length) {
+
+								//response.forEach(function(element, index, array) {
+								for(var x = 0, l = response.length; x < l; x++) {
+									var found = false;
+									for(var y = 0, len = t.analytics.tracking.retweets.length; y < len; y++) {
+										if(t.analytics.tracking.retweets[y].id == response[x].id_str) {
+											found = true;
+											var count = parseInt(response[x].retweet_count, 10);
+											if(t.analytics.tracking.retweets[y].total != count) {
+												user.Social.twitter.analytics.tracking.retweets[y].meta.push({
+													timestamp: Helper.timestamp(),
+													new: (count - t.analytics.tracking.retweets[y].total)
+												});
+												user.Social.twitter.analytics.tracking.retweets[y].total = count;
+											}
+											break;
+										}
+									}
+
+									if(!found) {
+										var count = parseInt(response[x].retweet_count, 10),
+												retweet = {
+													id: response[x].id_str,
+													meta: [{
+														timestamp: Helper.timestamp(),
+														new: count
+													}],
+													timestamp: Helper.timestamp(),
+													total: count,
+													new: count
+												}
+										user.Social.twitter.analytics.tracking.retweets.push(retweet);
+									}
+								};
+
+								user.save(function(err,res){});
+							}
+
+						});
+
+
+						// Direct message tracking
+						twitter.get('direct_messages', {since_id: since.messages, count: 200}, function(err, response) {
+							if(err || typeof response.errors !== 'undefined')
+								console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
+							
+							//if(typeof response.statuses !== 'undefined' && response.statuses.length) {
+							if(response.length) {
+								var data = {
+									since_id: response[0].id_str,
+									timestamp: Helper.timestamp(),
+									messages: []
+								}
+
+								response.forEach(function(element, index, array) {
+									data.messagess.push(element);
+								});
+							}
+
+							if(data) {
+								user.Social.twitter.analytics.tracking.messages.push(data);
+								user.save(function(err,res){});
+							}
+						});
+
 					}
 			});
 		});

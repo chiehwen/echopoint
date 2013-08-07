@@ -55,7 +55,7 @@ Model.User.findOne({email: "123"}, function(err, user) {
 	// !!!! IMPORTANT: BELOW IS THE TOGGLE FOR 
 	// !!!! CRON TESTING !!!
 	
-Cron.start();
+//Cron.start();
 
 	// !!!!!
 

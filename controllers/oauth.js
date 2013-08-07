@@ -96,6 +96,8 @@ var OauthController = {
 									} else {
 
 										var credentials = {
+											id: parseInt(response.id_str, 10),
+											username: response.screen_name,
 											oauthAccessToken: oauthAccessToken,
 											oauthAccessTokenSecret: oauthAccessTokenSecret,
 											created: Helper.timestamp()

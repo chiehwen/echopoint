@@ -148,20 +148,73 @@ var UserModel = {
             timestamp: {type: Number, default: 0} // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID 
           }
         },
+
         twitter: {
-          id: {type: String},
+          id: {type: Number},
+          username: {type: String},
           oauthAccessToken: {type: String},
           oauthAccessTokenSecret: {type: String},
           expires: {type: Number},
           created: {type: Number},
 
-          analytics: [{
-            since_id: {type: String}, // this is time of last check used with the .since parameter of facebook graph
-            tweets: {}
-          }],
+          queries: [],
+
+          analytics: {
+            updates: [{
+              since_id: {type: String}, // this is time of last check used with the .since parameter of facebook graph
+              timestamp: {type: Number},
+              tweets: {}
+            }],
+            search: [{
+              since_id: {type: String}, // this is time of last check used with the .since parameter of facebook graph
+              timestamp: {type: Number},
+              tweets: {}
+            }],
+            tracking: {
+              mentions: [{
+                since_id: {type: String},
+                timestamp: {type: Number},
+                mentions: {}
+              }],
+              retweets: [{
+                id: {type: String},
+                meta: [{
+                  timestamp: {type: Number},
+                  new: {type: Number},
+                }],
+                timestamp: {type: Number},
+                total: {type: Number},
+                //new: {type: Number}
+                //data: {}
+              }],
+              messages: [{
+                since_id: {type: String},
+                timestamp: {type: Number},
+                messages: {}
+              }],
+            }
+          },
           notifications: {
-            count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
-            since_id: {type: String, default: '0'} // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID 
+            mentions: {
+              count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+              since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
+              last_checked: {type: Number} // timestamp
+            },
+            retweets: {
+              count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+              since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
+              last_checked: {type: Number} // timestamp
+            },
+            messages: {
+              count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+              since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
+              last_checked: {type: Number} // timestamp              
+            },
+            search: {
+              count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+              since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
+              last_checked: {type: Number} // timestamp
+            }
           }
         },
         yelp: {

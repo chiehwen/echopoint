@@ -143,9 +143,11 @@ var SocialController = {
  					var	twitter = Auth.load('twitter'),
  							t = user.Social.twitter;
 
- 					if(req.session.twitterConnected && req.session.twitter.oauthAccessToken && req.session.twitter.oauthAccessTokenSecret && !req.query.login) {
+ 					if(req.session.twitterConnected && req.session.twitter.oauthAccessToken && req.session.twitter.oauthAccessTokenSecret && req.session.twitter.id && !req.query.login) {
 
-						twitter.get('account/verify_credentials', {include_entities: false, skip_status: true}, function(err, response) {
+						//twitter.get('account/verify_credentials', {include_entities: false, skip_status: true}, function(err, response) {
+						//twitter.get('statuses/user_timeline', {user_id: req.session.twitter.id, contributor_details: true, include_rts: false}, function(err, response) {
+						twitter.get('statuses/retweets_of_me', {count: 20, trim_user: true, include_entities: false, include_user_entities: false}, function(err, response) {
 							if(err) {
 								req.session.messages.push("Error verifying twitter credentials");
 								res.redirect('/social/twitter?login=true');
@@ -167,13 +169,16 @@ var SocialController = {
  						!req.query.login
 						&& typeof t.oauthAccessToken !== 'undefined'
 						&& typeof t.oauthAccessTokenSecret !== 'undefined'
+						&& typeof t.id !== 'undefined'
 						&& t.oauthAccessToken != ''
 						&& t.oauthAccessTokenSecret != ''
 						&& t.oauthAccessToken
 						&& t.oauthAccessTokenSecret
+						&& t.id
 					) {
 						twitter.setAccessTokens(t.oauthAccessToken, t.oauthAccessTokenSecret);
 						req.session.twitter = {
+							id: t.id,
 							oauthAccessToken: t.oauthAccessToken,
 							oauthAccessTokenSecret: t.oauthAccessTokenSecret,
 						}
