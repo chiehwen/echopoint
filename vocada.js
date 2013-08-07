@@ -31,8 +31,8 @@ Model.Analytics.find(function(err, users) {
 
 Model.User.findOne({email: "123"}, function(err, user) {
 	console.log(user);
-	console.log(user.Social.facebook.analytics.updates[0]);
-	console.log(user.Social.facebook.analytics.tracking[5]);
+//	console.log(user.Social.facebook.analytics.updates[0]);
+//	console.log(user.Social.facebook.analytics.tracking[0]);
 	//console.log(user.Social.twitter.analytics[0]['entities']);
 	//console.log(user.Social.facebook.analytics.updates[1]);
 	//console.log(user.Social.facebook.analytics.updates[4]);
@@ -55,7 +55,7 @@ Model.User.findOne({email: "123"}, function(err, user) {
 	// !!!! IMPORTANT: BELOW IS THE TOGGLE FOR 
 	// !!!! CRON TESTING !!!
 	
-//Cron.start();
+Cron.start();
 
 	// !!!!!
 

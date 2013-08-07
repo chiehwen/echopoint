@@ -42,7 +42,7 @@ var facebookCron = new Cron({
 						//facebook.get('127692573953699', {fields: 'feed.since(' + since + ').fields(id,message,message_tags,actions,caption,created_time,description,expanded_height,expanded_width,feed_targeting,full_picture,icon,link,is_published,is_hidden,name,object_id,parent_id,picture,privacy,properties,shares,source,status_type,story,story_tags,subscribed,targeting,timeline_visibility,to,type,updated_time,via,with_tags,comments,likes)'}, function(err, response) {
 							if(err || typeof response.error !== 'undefined')
 								data = {timestamp: 1, posts: [{id: response.error}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
-//data = {timestamp: 1, posts: [{id: JSON.stringify(response), timestamp: since}]}							
+						
 							if(typeof response.feed !== 'undefined' && typeof response.feed.data !== 'undefined' && response.feed.data.length) {
 								var data = {
 									timestamp: Helper.timestamp(),
@@ -62,8 +62,8 @@ var facebookCron = new Cron({
 
 									if(typeof element.likes !== 'undefined')
 										tracking.likes = {
-											total: parseInt(element.likes.count, 10),
-											new: parseInt(element.likes.count, 10),
+											total: element.likes.data.length,
+											new: element.likes.data.length,
 											data: element.likes.data
 										}
 
@@ -80,6 +80,7 @@ var facebookCron = new Cron({
 											new: parseInt(element.shares.count, 10)
 										}
 
+
 									if(typeof tracking.likes.total !== 'undefined' || typeof tracking.comments.total !== 'undefined' || typeof tracking.shares.total !== 'undefined')
 										user.Social.facebook.analytics.tracking.push(tracking);
 								});
@@ -88,6 +89,7 @@ var facebookCron = new Cron({
 							if(data) {
 								user.Social.facebook.analytics.updates.push(data);
 								user.save(function(err,response){});
+console.log('saved new feed item(s)...');								
 							}
 						});
 
@@ -96,38 +98,58 @@ var facebookCron = new Cron({
 								response.feed.data.forEach(function(element, index, array) {
 									
 									var found = false,
-									tracking = {
-										id: element.id,
-										timestamp: Helper.timestamp(),
-										likes: {},
-										comments: {},
-										shares: {}
-									};
+											update = false,
+											tracking = {
+												id: element.id,
+												timestamp: Helper.timestamp(),
+												likes: {},
+												comments: {},
+												shares: {}
+											};
 
 									for(var i = 0, l = tracked.length; i < l; i++) {
 										
 										if(tracked[i].id == element.id) {
 											found = true;
 
-											if(typeof element.likes !== 'undefined' && element.likes.count != tracked[i].likes.total)
+											if(typeof element.likes !== 'undefined' && element.likes.data.length != tracked[i].likes.total) {
 												tracking.likes = {
-													total: parseInt(element.likes.count, 10),
-													new: (typeof tracked[i].likes.total !== 'undefined') ? parseInt(element.likes.count - tracked[i].likes.total, 10) : parseInt(element.likes.count, 10),
+													total: element.likes.data.length,
+													new: (typeof tracked[i].likes.total !== 'undefined') ? (element.likes.data.length - tracked[i].likes.total) : element.likes.data.length,
 													data: element.likes.data
 												}
+												update = true;
+											} else {
+												tracking.likes.total = tracked[i].likes.total;
+											}
 
-											if(typeof element.comments !== 'undefined' && element.comments.length != tracked[i].comments.total)
+											if(typeof element.comments !== 'undefined' && element.comments.data.length != tracked[i].comments.total) {
 												tracking.comments = {
 													total: element.comments.data.length,
-													new: (typeof tracked[i].comments.total !== 'undefined') ? parseInt(element.comments.data.length - tracked[i].comments.total, 10) : parseInt(element.comments.data.length, 10),
+													new: (typeof tracked[i].comments.total !== 'undefined') ? (element.comments.data.length - tracked[i].comments.total) : element.comments.data.length,
 													data: element.comments.data
 												}
+												update = true;
+											} else {
+												tracking.comments.total = tracked[i].comments.total;
+											}
 
-											if(typeof element.shares !== 'undefined' && (element.shares.count != tracked[i].shares.total || typeof tracked[i].shares === 'undefined'))
+											if(typeof element.shares !== 'undefined' && parseInt(element.shares.count, 10) != tracked[i].shares.total) {
 												tracking.shares = {
 													total: parseInt(element.shares.count, 10),
-													new: (typeof tracked[i].shares.total !== 'undefined') ? parseInt(element.shares.count - tracked[i].shares.total, 10) : parseInt(element.shares.count, 10)
+													new: (typeof tracked[i].shares.total !== 'undefined') ? (parseInt(element.shares.count, 10) - tracked[i].shares.total) : parseInt(element.shares.count, 10)
 												}
+												update = true;
+											} else {
+												tracking.shares.total = tracked[i].shares.total;
+											}
+
+											if(update) {
+
+												user.Social.facebook.analytics.tracking.push(tracking);
+												user.save(function(err,response){});
+console.log('saved updated tracking...');
+											}
 
 											break;
 										}
@@ -137,15 +159,15 @@ var facebookCron = new Cron({
 
 											if(typeof element.likes !== 'undefined')
 												tracking.likes = {
-													total: parseInt(element.likes.count, 10),
-													new: parseInt(element.likes.count, 10),
+													total: element.likes.data.length,
+													new: element.likes.data.length,
 													data: element.likes.data
 												}
 
 											if(typeof element.comments !== 'undefined')
 												tracking.comments = {
-													total: element.comments.length,
-													new: element.comments.length,
+													total: element.comments.data.length,
+													new: element.comments.data.length,
 													data: element.comments.data
 												}
 
@@ -153,14 +175,14 @@ var facebookCron = new Cron({
 												tracking.shares = {
 													total: parseInt(element.shares.count, 10),
 													new: parseInt(element.shares.count, 10)
-												}								
-									}
+												}
 
-									if(typeof tracking.likes.total !== 'undefined' || typeof tracking.comments.total !== 'undefined' || typeof tracking.shares.total !== 'undefined') {
-										user.Social.facebook.analytics.tracking.push(tracking);
-										user.save(function(err,response){});
+											if(typeof tracking.likes.total !== 'undefined' || typeof tracking.comments.total !== 'undefined' || typeof tracking.shares.total !== 'undefined') {
+												user.Social.facebook.analytics.tracking.push(tracking);
+												user.save(function(err,response){});
+		console.log('saved new tracking...');
+											}																		
 									}
-
 								})
 							}
 						})
