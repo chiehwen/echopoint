@@ -21,15 +21,13 @@ Boot.start(function(app) {
 // TEMP: removes all users from User collection
 var Model = Model || Object;
 //console.log(Model.User.Business);
-//Model.User.remove(function(err){if(err) throw err});
+//Model.User.remove(function(err){if(err) throw err});Model.Analytics.remove(function(err){if(err) throw err});
 //console.log(Model.User.schema);`
-Model.Analytics.find(function(err, users) {
-	users.forEach(function(user) {
-		//console.log(user);
+Model.Analytics.find(function(err, analytic) {
+	analytic.forEach(function(user) {
+		console.log(user);
 	});
 });
-
-console.log(Model.Analytics);
 
 Model.User.findOne({email: "123"}, function(err, user) {
 	console.log(user);

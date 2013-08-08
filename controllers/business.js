@@ -24,15 +24,17 @@ var BusinessController = {
 
  					if(user) {
 
- 						var timestampId = Helper.timestamp(true);
+ 						var timestamp = Helper.timestamp(true) + Helper.randomInt(100, 999);
 
  						var newBusiness = {
  							name: req.body.name,
- 							analyticsId: timestampId
+ 							Analytics: { 
+ 								id: timestamp
+ 							}
  						};
 
  						var newAnalytics = new Model.Analytics({
-							id: timestampId,
+							id: timestamp,
 							name: req.body.name
 						});
  						
@@ -60,7 +62,7 @@ var BusinessController = {
  		get: function(req, res) {
  			if(req.session.passport.user) {
  				Helper.getUser(req.session.passport.user, function(err, user) {
- 					if (err) return next(err);	
+ 					if (err || !user) return next(err);	
  					
  					if(typeof user.Business === 'undefined' || !user.Business.length)
  						res.redirect('business/create');
@@ -147,9 +149,8 @@ var BusinessController = {
  		},
  		delete: function(req, res) {
  			if(req.session.passport.user) {
- 				var id = req.session.passport.user;
- 				Model.User.remove({ _id: id }, function (err) {
- 				  if (err) throw err;
+ 				Helper.getUser(req.session.passport.user, function(err, user) {
+ 					if (err || !user) return next(err);	
  				  req.session.destroy(function(){
  					  res.redirect('/dashboard');
  					});

@@ -110,7 +110,7 @@
           }
       },
 
-      
+
           yelp: {
             id: {type: String},
             oauthAccessToken: {type: String},
@@ -130,12 +130,7 @@
             oauthAccessToken: {type: String},
             expires: {type: Number},
             created: {type: Number}
-          },
-
-          meta: {
-            created: { type: Date, default: Date.now},
-            createdTimestamp: { type: Number, default: Date.now() },
-          } 
+          }
         },
         options: {
       // autoIndex should be false in production (http://mongoosejs.com/docs/guide.html#indexes)

@@ -15,272 +15,102 @@ var UserModel = {
       role: {type: String, required: true, default: 'user' }, // current roles: admin, user
       Business: [{
         name: { type: String, required: true},
-        analyticsId: { type: Number },
-        meta: {
-          created: { type: Date, default: Date.now},
-          createdTimestamp: { type: Number, default: Date.now() },
+        Analytics: { 
+          id: {type: Number} 
         },
         Social: {
           facebook: {
+            id: {type: String},
             auth: {
-              id: {type: String},
               oauthAccessToken: {type: String},
               expires: {type: Number},
               created: {type: Number}
             },
 
-            account: {},
-
-            analytics: {
-              updates: [{
-                timestamp: {type: Number}, // this is time of last check used with the .since parameter of facebook graph
-                posts: {}
-              }],
-              tracking: [{
-                id: {type: String},
-                type: {type: String},
-                timestamp: {type: Number},
-                likes: {
-                  total: {type: Number},
-                  new: {type: Number},
-                  data: {}
-                },
-                comments: {
-                  total: {type: Number},
-                  new: {type: Number},
-                  data: {}
-                },
-                shares: {
-                  total: {type: Number},
-                  new: {type: Number},
-                  data: {}
-                }
-              }]
+            account: {
+              id: {type: String},
+              oauthAccessToken: {type: String},
+              data: {}
             },
+
             notifications: {
               count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
               timestamp: {type: Number, default: 0} // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID 
             }
           },
           twitter: {
-            auth: {
+            id: {type: Number},
+            username: {type: String},
+            auth: {  
               oauthAccessToken: {type: String},
               oauthAccessTokenSecret: {type: String},
+              expires: {type: Number},
               created: {type: Number}
             },
-            analytics: [{
-              since_id: {type: String}, // this is time of last check used with the .since parameter of facebook graph
-              tweets: {}
-            }],
+            queries: {},
             notifications: {
-              count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
-              since_id: {type: String, default: '0'} // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID 
+              mentions: {
+                count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+                since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
+                last_checked: {type: Number} // timestamp
+              },
+              retweets: {
+                count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+                since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
+                last_checked: {type: Number} // timestamp
+              },
+              messages: {
+                count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+                since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
+                last_checked: {type: Number} // timestamp              
+              },
+              search: {
+                count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+                since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
+                last_checked: {type: Number} // timestamp
+              }
             }
           },
           yelp: {
             id: {type: String},
-            oauthAccessToken: {type: String},
-            oauthAccessTokenSecret: {type: String},
-            expires: {type: Number},
-            created: {type: Number}
+            auth: {
+              oauthAccessToken: {type: String},
+              oauthAccessTokenSecret: {type: String},
+              expires: {type: Number},
+              created: {type: Number}
+            }
           },
           foursquare: {
             id: {type: String},
-            venueId: {type: String},
-            oauthAccessToken: {type: String},
-            expires: {type: Number},
-            created: {type: Number}
+            auth: {
+              venueId: {type: String},
+              oauthAccessToken: {type: String},
+              expires: {type: Number},
+              created: {type: Number}
+            }
           },
           instagram: {
             id: {type: String},
-            oauthAccessToken: {type: String},
-            expires: {type: Number},
-            created: {type: Number}
+            auth: {
+              oauthAccessToken: {type: String},
+              expires: {type: Number},
+              created: {type: Number}
+            }
           }
         },
         Tools: {
           bitly: {
             id: {type: String},
-            login: {type: String},
-            oauthAccessToken: {type: String},
-            expires: {type: Number},
-            created: {type: Number}
+            auth: {
+              login: {type: String},
+              oauthAccessToken: {type: String},
+              expires: {type: Number},
+              created: {type: Number}
+            }
           },
         }            
       }],
-      Social: {
-        facebook: {
-          id: {type: String},
-          oauthAccessToken: {type: String},
-          expires: {type: Number},
-          created: {type: Number},
-
-          account: {},
-
-          analytics: {
-            updates: [{
-              timestamp: {type: Number}, // this is time of last check used with the .since parameter of facebook graph
-              posts: {}
-            }],
-            tracking: [{
-              id: {type: String},
-              //type: {type: String},
-              timestamp: {type: Number},
-              likes: {
-                meta: [{
-                  timestamp: {type: Number},
-                  new: {type: Number},
-                }],
-                //timestamp: {type: Number},
-                total: {type: Number},
-                data: {}
-              },
-              comments: {
-                meta: [{
-                  timestamp: {type: Number},
-                  new: {type: Number},
-                }],
-                //timestamp: {type: Number},
-                total: {type: Number},
-                data: {}
-              },
-              shares: {
-                meta: [{
-                  timestamp: {type: Number},
-                  new: {type: Number},
-                }],
-                //timestamp: {type: Number},
-                total: {type: Number}
-              }
-            }]
-          },
-          notifications: {
-            count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
-            timestamp: {type: Number, default: 0} // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID 
-          }
-        },
-
-        twitter: {
-          id: {type: Number},
-          username: {type: String},
-          oauthAccessToken: {type: String},
-          oauthAccessTokenSecret: {type: String},
-          expires: {type: Number},
-          created: {type: Number},
-
-          queries: [],
-
-          analytics: {
-            updates: [{
-              since_id: {type: String}, // this is time of last check used with the .since parameter of facebook graph
-              timestamp: {type: Number},
-              tweets: {}
-            }],
-            search: [{
-              since_id: {type: String}, // this is time of last check used with the .since parameter of facebook graph
-              timestamp: {type: Number},
-              tweets: {}
-            }],
-            tracking: {
-              mentions: [{
-                since_id: {type: String},
-                timestamp: {type: Number},
-                mentions: {}
-              }],
-              retweets: [{
-                id: {type: String},
-                meta: [{
-                  timestamp: {type: Number},
-                  new: {type: Number},
-                }],
-                timestamp: {type: Number},
-                total: {type: Number},
-                //new: {type: Number}
-                //data: {}
-              }],
-              messages: [{
-                since_id: {type: String},
-                timestamp: {type: Number},
-                messages: {}
-              }],
-            }
-          },
-          notifications: {
-            mentions: {
-              count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
-              since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
-              last_checked: {type: Number} // timestamp
-            },
-            retweets: {
-              count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
-              since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
-              last_checked: {type: Number} // timestamp
-            },
-            messages: {
-              count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
-              since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
-              last_checked: {type: Number} // timestamp              
-            },
-            search: {
-              count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
-              since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
-              last_checked: {type: Number} // timestamp
-            }
-          }
-        },
-        yelp: {
-          id: {type: String},
-          oauthAccessToken: {type: String},
-          oauthAccessTokenSecret: {type: String},
-          expires: {type: Number},
-          created: {type: Number}
-        },
-        foursquare: {
-          id: {type: String},
-          venueId: {type: String},
-          oauthAccessToken: {type: String},
-          expires: {type: Number},
-          created: {type: Number}
-        },
-        instagram: {
-          id: {type: String},
-          oauthAccessToken: {type: String},
-          expires: {type: Number},
-          created: {type: Number}
-        }
-      },
-      Tools: {
-        bitly: {
-          id: {type: String},
-          login: {type: String},
-          oauthAccessToken: {type: String},
-          expires: {type: Number},
-          created: {type: Number}
-        },
-      },
-      Analytics: {
-        facebook: [{
-          timestamp: {type: Number}, // this is time of last check used with the .since parameter of facebook graph
-          posts: {}
-        }],
-        twitter: [{
-          since_id: {type: String}, // this is time of last check used with the .since parameter of facebook graph
-          tweets: {}
-        }],
-        foursquare: [],
-        instagram: [],
-        yelp: [{
-          id: {type: String}
-        }],
-        meta: {
-          update: {
-            facebook: {
-              count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
-              timestamp: {type: Number, default: 0} // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID 
-            }
-          }
-        }
-      },
+      
       meta: {
         created: { type: Number, default: Date.now() },
         Business: { 
@@ -293,6 +123,7 @@ var UserModel = {
         guide: { type: Boolean, default: 1}
       }   
     },
+
     options: {
       // autoIndex should be false in production (http://mongoosejs.com/docs/guide.html#indexes)
       autoIndex: true

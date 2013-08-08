@@ -21,7 +21,7 @@ block content
 								for account in locals.facebook.data.accounts.data
 									li
 										div.button
-											a(href="/social/facebook?id=#{account.id}&token=#{account.access_token}")
+											a(href="/social/facebook?id=#{account.id}")
 												i.icon-signin
 												span #{account.name}
 					- } else if (locals.facebook.account == false) {

@@ -15,32 +15,35 @@ var facebookCron = new Cron({
 		Model.User.find(function(err, users) {
 			users.forEach(function(user) {
 
-				var f = user.Social.facebook;
+				user.Business.forEach(function(business) {
+
+				var f = business.Social.facebook;
 				if (
-						typeof f.oauthAccessToken !== 'undefined'
-						&& typeof f.expires !== 'undefined'
-						&& typeof f.created !== 'undefined'
-						&& f.oauthAccessToken != ''
-						&& f.expires != 0
-						&& f.created != 0
-						&& f.oauthAccessToken
-						&& f.expires
-						&& f.created
-						&& ((f.created + f.expires) * 1000 > Date.now())
+						typeof f.auth.oauthAccessToken !== 'undefined'
+						&& typeof f.auth.expires !== 'undefined'
+						&& typeof f.auth.created !== 'undefined'
+						&& f.auth.oauthAccessToken != ''
+						&& f.auth.expires != 0
+						&& f.auth.created != 0
+						&& f.auth.oauthAccessToken
+						&& f.auth.expires
+						&& f.auth.created
+						&& ((f.auth.created + f.auth.expires) * 1000 > Date.now())
 					) {
 
-						var facebook = Auth.load('facebook'),
-								analytics = f.analytics.updates.sort(Helper.sortBy('timestamp', false, parseInt)),
-								since = analytics.length ? analytics[0].timestamp : 0;
-								//tracked = f.analytics.tracking.sort(Helper.sortBy('timestamp', false, parseInt));
+						Model.Analytics.findOne({id: business.Analytics.id}, function(err, Analytics) {
 
-						facebook.setAccessToken(f.oauthAccessToken);
+						var facebook = Auth.load('facebook'),
+								updates = Analytics.facebook.updates.sort(Helper.sortBy('timestamp', false, parseInt)),
+								since = updates.length ? updates[0].timestamp : 0;
+								
+						facebook.setAccessToken(f.auth.oauthAccessToken);
 
 						facebook.get('me', {fields: 'feed.since(' + since + ').limit(100).fields(id,message,message_tags,actions,caption,created_time,description,expanded_height,expanded_width,feed_targeting,full_picture,icon,link,is_published,is_hidden,name,object_id,parent_id,picture,privacy,properties,shares,source,status_type,story,story_tags,subscribed,targeting,timeline_visibility,to,type,updated_time,via,with_tags,comments,likes)'}, function(err, response) {
 						//facebook.get('me', {fields: 'feed.since(' + since + ')'}, function(err, response) {
 						//facebook.get('127692573953699', {fields: 'feed.since(' + since + ').fields(id,message,message_tags,actions,caption,created_time,description,expanded_height,expanded_width,feed_targeting,full_picture,icon,link,is_published,is_hidden,name,object_id,parent_id,picture,privacy,properties,shares,source,status_type,story,story_tags,subscribed,targeting,timeline_visibility,to,type,updated_time,via,with_tags,comments,likes)'}, function(err, response) {
 							if(err || typeof response.error !== 'undefined')
-								data = {timestamp: 1, posts: [{id: response.error}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
+								console.log(response.error);// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
 						
 							if(typeof response.feed !== 'undefined' && typeof response.feed.data !== 'undefined' && response.feed.data.length) {
 								var results = response.feed.data,
@@ -94,11 +97,11 @@ var facebookCron = new Cron({
 									if(typeof tracking.likes.total !== 'undefined' || typeof tracking.comments.total !== 'undefined' || typeof tracking.shares.total !== 'undefined')
 										tracking.timestamp = Helper.timestamp();
 
-									user.Social.facebook.analytics.tracking.push(tracking);
+									Analytics.facebook.tracking.push(tracking);
 								}
 
-								user.Social.facebook.analytics.updates.push(data);
-								user.save(function(err,response){});
+								Analytics.facebook.updates.push(data);
+								Analytics.save(function(err,response){});
 console.log('saved new feed item(s) and related tracking...');			
 							}
 						});
@@ -110,36 +113,36 @@ console.log('saved new feed item(s) and related tracking...');
 										results = response.feed.data;
 								//response.feed.data.forEach(function(element, index, array) {
 								for(var x = 0, l = results.length; x < l; x++) {
-									for(var y = 0, len = f.analytics.tracking.length; y < len; y++) {
+									for(var y = 0, len = Analytics.facebook.tracking.length; y < len; y++) {
 										
-										if(f.analytics.tracking[y].id == results[x].id) {
+										if(Analytics.facebook.tracking[y].id == results[x].id) {
 											
-											if(typeof results[x].likes !== 'undefined' && results[x].likes.data.length != f.analytics.tracking[y].likes.total) {
-												user.Social.facebook.analytics.tracking[y].likes.meta.push({
+											if(typeof results[x].likes !== 'undefined' && results[x].likes.data.length != Analytics.facebook.tracking[y].likes.total) {
+												Analytics.facebook.tracking[y].likes.meta.push({
 													timestamp: Helper.timestamp(),
-													new: (typeof f.analytics.tracking[y].likes.total !== 'undefined') ? (results[x].likes.data.length - f.analytics.tracking[y].likes.total) : results[x].likes.data.length
+													new: (typeof Analytics.facebook.tracking[y].likes.total !== 'undefined') ? (results[x].likes.data.length - Analytics.facebook.tracking[y].likes.total) : results[x].likes.data.length
 												});
-												user.Social.facebook.analytics.tracking[y].likes.total = results[x].likes.data.length,
-												user.Social.facebook.analytics.tracking[y].likes.data = results[x].likes.data;
+												Analytics.facebook.tracking[y].likes.total = results[x].likes.data.length,
+												Analytics.facebook.tracking[y].likes.data = results[x].likes.data;
 												update = true;
 											}
 
-											if(typeof results[x].comments !== 'undefined' && results[x].comments.data.length != f.analytics.tracking[y].comments.total) {
-												user.Social.facebook.analytics.tracking[y].comments.meta.push({
+											if(typeof results[x].comments !== 'undefined' && results[x].comments.data.length != Analytics.facebook.tracking[y].comments.total) {
+												Analytics.facebook.tracking[y].comments.meta.push({
 													timestamp: Helper.timestamp(),
-													new: (typeof f.analytics.tracking[y].comments.total !== 'undefined') ? (results[x].comments.data.length - f.analytics.tracking[y].comments.total) : results[x].comments.data.length
+													new: (typeof Analytics.facebook.tracking[y].comments.total !== 'undefined') ? (results[x].comments.data.length - Analytics.facebook.tracking[y].comments.total) : results[x].comments.data.length
 												});
-												user.Social.facebook.analytics.tracking[y].comments.total = results[x].comments.data.length,
-												user.Social.facebook.analytics.tracking[y].comments.data = results[x].comments.data;
+												Analytics.facebook.tracking[y].comments.total = results[x].comments.data.length,
+												Analytics.facebook.tracking[y].comments.data = results[x].comments.data;
 												update = true;
 											}
 
-											if(typeof results[x].shares !== 'undefined' && parseInt(results[x].shares.count, 10) != f.analytics.tracking[y].shares.total) {
-												user.Social.facebook.analytics.tracking[y].shares.meta.push({
+											if(typeof results[x].shares !== 'undefined' && parseInt(results[x].shares.count, 10) != Analytics.facebook.tracking[y].shares.total) {
+												Analytics.facebook.tracking[y].shares.meta.push({
 													timestamp: Helper.timestamp(),
-													new: (typeof f.analytics.tracking[y].shares.total !== 'undefined') ? (parseInt(results[x].shares.count, 10) - f.analytics.tracking[y].shares.total) : parseInt(results[x].shares.count, 10)
+													new: (typeof Analytics.facebook.tracking[y].shares.total !== 'undefined') ? (parseInt(results[x].shares.count, 10) - Analytics.facebook.tracking[y].shares.total) : parseInt(results[x].shares.count, 10)
 												});
-												user.Social.facebook.analytics.tracking[y].shares.total = parseInt(results[x].shares.count, 10);
+												Analytics.facebook.tracking[y].shares.total = parseInt(results[x].shares.count, 10);
 												update = true;
 											}
 
@@ -149,13 +152,17 @@ console.log('saved new feed item(s) and related tracking...');
 								}
 
 								if(update) {
-									user.save(function(err,response){});
+									Analytics.save(function(err,response){});
 console.log('saved updated tracking...');
 								}
 
 							}
 						})
+
+						});
 					}
+
+				});
 			});
 		});
 	},
@@ -173,23 +180,27 @@ var twitterCron = new Cron({
 		Model.User.find(function(err, users) {
 			users.forEach(function(user) {
 
-				var t = user.Social.twitter;
+				user.Business.forEach(function(business) {
+
+				var t = business.Social.twitter;
 				if (
-						typeof t.oauthAccessToken !== 'undefined'
-						&& typeof t.oauthAccessTokenSecret !== 'undefined'
+						typeof t.auth.oauthAccessToken !== 'undefined'
+						&& typeof t.auth.oauthAccessTokenSecret !== 'undefined'
 						&& typeof t.id !== 'undefined'
-						&& t.oauthAccessToken != ''
-						&& t.oauthAccessTokenSecret != ''
-						&& t.oauthAccessToken
-						&& t.oauthAccessTokenSecret
+						&& t.auth.oauthAccessToken != ''
+						&& t.auth.oauthAccessTokenSecret != ''
+						&& t.auth.oauthAccessToken
+						&& t.auth.oauthAccessTokenSecret
 						&& t.id
 					) {
 
+						Model.Analytics.findOne({id: business.Analytics.id}, function(err, Analytics) {
+
 						var twitter = Auth.load('twitter'),
 								sorted = {
-									updates: t.analytics.updates.sort(Helper.sortBy('since_id', false, parseInt)),
-									mentions: t.analytics.tracking.mentions.sort(Helper.sortBy('since_id', false, parseInt)),
-									messages: t.analytics.tracking.messages.sort(Helper.sortBy('since_id', false, parseInt))
+									updates: Analytics.twitter.updates.sort(Helper.sortBy('since_id', false, parseInt)),
+									mentions: Analytics.twitter.tracking.mentions.sort(Helper.sortBy('since_id', false, parseInt)),
+									messages: Analytics.twitter.tracking.messages.sort(Helper.sortBy('since_id', false, parseInt))
 								},
 								since = {
 									updates: sorted.updates.length ? sorted.updates[0].since_id : 1,
@@ -197,7 +208,7 @@ var twitterCron = new Cron({
 									messages: sorted.messages.length ? sorted.messages[0].since_id : 1
 								};
 
-						twitter.setAccessTokens(t.oauthAccessToken, t.oauthAccessTokenSecret);
+						twitter.setAccessTokens(t.auth.oauthAccessToken, t.auth.oauthAccessTokenSecret);
 /*
 						var params = {
 							q: '@speaksocial',
@@ -207,7 +218,7 @@ var twitterCron = new Cron({
 							include_entities: true
 						};
 */
-						//if(analytics.length)
+						//if(Analytics.length)
 							//params.since_id = analytics[0].since_id;
 						//twitter.get('search/tweets', params, function(err, response) {
 
@@ -226,8 +237,8 @@ var twitterCron = new Cron({
 									data.tweets.push(response[i]);
 								}
 console.log('saved twitter user timeline...');
-								user.Social.twitter.analytics.updates.push(data);
-								user.save(function(err,res){});
+								Analytics.twitter.updates.push(data);
+								Analytics.save(function(err,res){});
 							}
 						});
 
@@ -247,8 +258,8 @@ console.log('saved twitter user timeline...');
 									data.mentions.push(response[i]);
 								}
 console.log('saved user @ mentions...');
-								user.Social.twitter.analytics.tracking.mentions.push(data);
-								user.save(function(err,res){});
+								Analytics.twitter.tracking.mentions.push(data);
+								Analytics.save(function(err,res){});
 							}
 						});
 
@@ -262,17 +273,17 @@ console.log('saved user @ mentions...');
 								var update = false;
 								for(var x = 0, l = response.length; x < l; x++) {
 									var found = false;
-									for(var y = 0, len = t.analytics.tracking.retweets.length; y < len; y++) {
-										if(t.analytics.tracking.retweets[y].id == response[x].id_str) {
+									for(var y = 0, len = Analytics.twitter.tracking.retweets.length; y < len; y++) {
+										if(Analytics.twitter.tracking.retweets[y].id == response[x].id_str) {
 											found = true;
 											var count = parseInt(response[x].retweet_count, 10);
-											if(t.analytics.tracking.retweets[y].total != count) {
+											if(Analytics.twitter.tracking.retweets[y].total != count) {
 												update = true;
-												user.Social.twitter.analytics.tracking.retweets[y].meta.push({
+												Analytics.twitter.tracking.retweets[y].meta.push({
 													timestamp: Helper.timestamp(),
-													new: (count - t.analytics.tracking.retweets[y].total)
+													new: (count - Analytics.twitter.tracking.retweets[y].total)
 												});
-												user.Social.twitter.analytics.tracking.retweets[y].total = count;
+												Analytics.twitter.tracking.retweets[y].total = count;
 											}
 											break;
 										}
@@ -291,13 +302,13 @@ console.log('saved user @ mentions...');
 													total: count,
 													new: count
 												}
-										user.Social.twitter.analytics.tracking.retweets.push(retweet);
+										Analytics.twitter.tracking.retweets.push(retweet);
 									}
 								};
 
 								if(update) {
 console.log('saved retweets count...');
-									user.save(function(err,res){});
+									Analytics.save(function(err,res){});
 								}
 							}
 						});
@@ -319,13 +330,16 @@ console.log('saved retweets count...');
 									data.messages.push(response[i]);
 								}
 console.log('saved new DM\'s...');
-								user.Social.twitter.analytics.tracking.messages.push(data);
-								user.save(function(err,res){});
+								Analytics.twitter.tracking.messages.push(data);
+								Analytics.save(function(err,res){});
 							}
 						});
 */
+					
+					}); // End of Analytics model array
 					} // End of twitter credentials if statement
 				
+				}); // End of business forEach
 			}); // End of users forEach
 		}); // End of Model users array
 	}, // End of onTick Cron function

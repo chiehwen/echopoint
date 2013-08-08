@@ -10,11 +10,8 @@ var OauthController = {
 
 	facebook: {
 		get: function(req, res) {
-			if(req.session.passport.user) {
-				var id = req.session.passport.user;
-
-				Model.User.findById(id, function(err, user) {
-					if (err) return next(err);
+			Helper.getUser(req.session.passport.user, function(err, user) {
+ 					if (err || !user) return next(err);	
 
 					if(req.session.facebookState && req.session.facebookState == req.query.state) {
 						
@@ -53,7 +50,15 @@ var OauthController = {
 								req.session.facebook = credentials;
 
 								// Put access token into the database
-								user.Social.facebook = credentials;
+								user.Business[req.session.Business.index].Social.facebook.auth = credentials;
+
+								if(typeof user.Business[req.session.Business.index].Social.facebook.id === 'undefined') {
+									facebook.get('me', {fields: 'id'}, function(err, response_id) {
+										if(err) res.redirect('/social/facebook?login=true');
+										typeof user.Business[req.session.Business.index].Social.facebook.id = response_id.id
+									})
+								}
+
 								user.save(function(err) {
 									req.session.messages.push(err);
 								});
@@ -66,9 +71,9 @@ var OauthController = {
 						});
 					}
 
-				});
+			});
 			
-			}
+
 		}
  	},
 
@@ -105,7 +110,9 @@ var OauthController = {
 										req.session.twitter = credentials;
 
 										// Put access tokens into the database
-										user.Social.twitter = credentials;
+										user.Business[req.session.Business.index].Social.twitter.auth = credentials;
+										user.Business[req.session.Business.index].Social.twitter.id = credentials.id;
+										user.Business[req.session.Business.index].Social.twitter.username = credentials.username;
 										user.save(function(err) {
 											req.session.messages.push(err);
 										});
@@ -160,7 +167,7 @@ var OauthController = {
 								req.session.foursquare = credentials;
 
 								// put access tokens into the database
-								user.Social.foursquare = credentials;
+								user.Business[req.session.Business.index].Social.foursquare.auth  = credentials;
 								user.save(function(err) {
 									req.session.messages.push(err);
 								});
@@ -214,7 +221,7 @@ var OauthController = {
 									req.session.instagram = credentials;
 
 									// put access tokens into the database
-									user.Social.instagram = credentials;
+									user.Business[req.session.Business.index].Social.instagram.auth  = credentials;
 									user.save(function(err) {
 										req.session.messages.push(err);
 									});
@@ -266,7 +273,7 @@ var OauthController = {
 							req.session.bitly = credentials;
 
 							// Put Access token into the database
-							user.Tools.bitly = credentials;
+							user.Business[req.session.Business.index].Tools.bitly.auth = credentials;
 							user.save(function(err) {
 								req.session.messages.push(err);
 							});

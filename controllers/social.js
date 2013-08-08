@@ -11,37 +11,47 @@ var SocialController = {
 
  	facebook: {
  		get: function(req, res, next) {
-
- 			if(req.session.passport.user) {
- 				var id = req.session.passport.user;
-
- 				Model.User.findById(id, function(err, user) {
+			Helper.getUser(req.session.passport.user, function(err, user) {
  					if (err || !user) return next(err);
 
  					// process facebook
- 					var f = user.Social.facebook;
+ 					var indx = req.session.Business.index,
+ 							f = user.Business[indx].Social.facebook;
+
  					if(req.session.facebookConnected && req.session.facebook.oauthAccessToken && !req.query.login) {
 
 						var facebook = Auth.load('facebook');
 
-						currentBusiness = user.Business[req.session.Business.index];
-						if(typeof req.query.id !== 'undefined' && typeof req.query.token !== 'undefined' && typeof req.query.select === 'undefined') {
+						if(typeof req.query.id !== 'undefined' && typeof req.query.select === 'undefined') {
 							facebook.get(req.query.id, function(err, response) {
 								if(err || typeof response.error !== 'undefined') 
 									res.redirect('/social/facebook?login=true');
 
-								user.Business[req.session.Business.index].Social.facebook.auth = {
-			 						id: req.query.id,
-			 						oauthAccessToken: req.query.access_token
-			 					}
-								user.Business[req.session.Business.index].Social.facebook.account = response;
-								user.save(function(err) {
-									req.session.messages.push(err);
-								});
-								res.redirect('/social/facebook');
+			 					facebook.get('me', {fields: 'id,accounts.fields(name,picture.type(square),access_token,about,id,website,likes,perms,category_list,category)'}, function(err, response) {
+			 						if(err) res.redirect('/social/facebook?login=true');
+			 						if(f.id === 'undefined' || f.id == 0)
+			 							user.Business[indx].Social.facebook.id = response.id;
+
+			 						response.accounts.data.forEach(function(account, index) {
+			 							if(account.id == req.query.id) {
+			 								user.Business[indx].Social.facebook.account = {
+												id: req.query.id,
+												oauthAccessToken: account.access_token,
+												data: account
+											}
+
+											user.save(function(err) {
+												req.session.messages.push(err);
+											});
+											res.redirect('/social/facebook');
+			 							}
+			 						});
+			 						res.redirect('/social/facebook?login=true');
+			 					});
+								
 							});						
-						} else if(typeof currentBusiness.Social.facebook.auth.id !== 'undefined' && currentBusiness.Social.facebook.auth.id != '' && typeof req.query.select === 'undefined') {
-							facebook.get(currentBusiness.Social.facebook.auth.id, function(err, response) {
+						} else if(typeof f.account.id !== 'undefined' && f.account.id != '' && typeof req.query.select === 'undefined') {
+							facebook.get(f.account.id, function(err, response) {
 
 								if(err || typeof response.error !== 'undefined') 
 									res.redirect('/social/facebook?login=true');
@@ -59,7 +69,7 @@ var SocialController = {
 								);	
 							});
 						} else {
-							facebook.get('me', {fields: 'id,accounts.fields(name,picture.type(square),access_token,about,id,website,likes)'}, function(err, response) {
+							facebook.get('me', {fields: 'accounts.fields(name,picture.type(square),id)'}, function(err, response) {
 
 								if(err || typeof response.error !== 'undefined') 
 									res.redirect('/social/facebook?login=true');
@@ -80,23 +90,24 @@ var SocialController = {
 
  					} else if(
  						!req.query.login
-						&& typeof f.oauthAccessToken !== 'undefined'
-						&& typeof f.expires !== 'undefined'
-						&& typeof f.created !== 'undefined'
-						&& f.oauthAccessToken != ''
-						&& f.expires != 0
-						&& f.created != 0
-						&& f.oauthAccessToken
-						&& f.expires
-						&& f.created
-						&& ((f.created + f.expires) * 1000 > Date.now())
+						&& typeof f.auth.oauthAccessToken !== 'undefined'
+						&& typeof f.auth.expires !== 'undefined'
+						&& typeof f.auth.created !== 'undefined'
+						&& f.auth.oauthAccessToken != ''
+						&& f.auth.expires != 0
+						&& f.auth.created != 0
+						&& f.auth.oauthAccessToken
+						&& f.auth.expires
+						&& f.auth.created
+						&& ((f.auth.created + f.auth.expires) * 1000 > Date.now())
 					) {
 						var facebook = Auth.load('facebook');
 						facebook.setAccessToken(f.oauthAccessToken);
 						req.session.facebook = {
-							oauthAccessToken: f.oauthAccessToken,
-							expires: f.expires,
-							created: f.created
+							id: f.id,
+							oauthAccessToken: f.auth.oauthAccessToken,
+							expires: f.auth.expires,
+							created: f.auth.created
 						}
 						req.session.facebookConnected = true;
 						res.redirect('/social/facebook');
@@ -116,32 +127,19 @@ var SocialController = {
 				 		);
 
 					} // end facebook processing
- 				});
- 			}
- 		},
-
- 		post: function(res, req, next) {
- 			Helper.getUser(req.session.passport.user, function(err, user) {
- 				if (err || !user) return next(err);
- 				if(typeof req.body.id !== 'undefined' && typeof req.body.access_token !== 'undefined') {
-
-
- 				}
  			});
- 		}
+
+ 		},
  	},
 
  	twitter: {
  		get: function(req, res, next) {
- 			if(req.session.passport.user) {
- 				var id = req.session.passport.user;
-
- 				Model.User.findById(id, function(err, user) {
- 					if (err) return next(err);
+			Helper.getUser(req.session.passport.user, function(err, user) {
+ 					if (err || !user) return next(err);
 
  					// process twitter
  					var	twitter = Auth.load('twitter'),
- 							t = user.Social.twitter;
+ 							t = user.Business[req.session.Business.index].Social.twitter;
 
  					if(req.session.twitterConnected && req.session.twitter.oauthAccessToken && req.session.twitter.oauthAccessTokenSecret && req.session.twitter.id && !req.query.login) {
 
@@ -167,20 +165,20 @@ var SocialController = {
 
  					} else if (
  						!req.query.login
-						&& typeof t.oauthAccessToken !== 'undefined'
-						&& typeof t.oauthAccessTokenSecret !== 'undefined'
+						&& typeof t.auth.oauthAccessToken !== 'undefined'
+						&& typeof t.auth.oauthAccessTokenSecret !== 'undefined'
 						&& typeof t.id !== 'undefined'
-						&& t.oauthAccessToken != ''
-						&& t.oauthAccessTokenSecret != ''
-						&& t.oauthAccessToken
-						&& t.oauthAccessTokenSecret
+						&& t.auth.oauthAccessToken != ''
+						&& t.auth.oauthAccessTokenSecret != ''
+						&& t.auth.oauthAccessToken
+						&& t.auth.oauthAccessTokenSecret
 						&& t.id
 					) {
-						twitter.setAccessTokens(t.oauthAccessToken, t.oauthAccessTokenSecret);
+						twitter.setAccessTokens(t.auth.oauthAccessToken, t.auth.oauthAccessTokenSecret);
 						req.session.twitter = {
 							id: t.id,
-							oauthAccessToken: t.oauthAccessToken,
-							oauthAccessTokenSecret: t.oauthAccessTokenSecret,
+							oauthAccessToken: t.auth.oauthAccessToken,
+							oauthAccessTokenSecret: t.auth.oauthAccessTokenSecret,
 						}
 						req.session.twitterConnected = true;
 						res.redirect('/social/twitter');
@@ -208,18 +206,14 @@ var SocialController = {
 				 			);
     				});
 					} // end twitter processing
- 				});
- 			}
+ 			});
  		}
  	},
 
  	yelp: {
  		get: function(req, res) {
- 			if(req.session.passport.user) {
- 				var id = req.session.passport.user;
-
- 				Model.User.findById(id, function(err, user) {
- 					if (err) return next(err);	
+ 			Helper.getUser(req.session.passport.user, function(err, user) {
+ 					if (err || !user) return next(err);	
  					
  					yelp = Auth.load('yelp');
 
@@ -240,21 +234,17 @@ var SocialController = {
 	 						}
 	 					);
  					});
- 				});
- 			}
+ 			});
  		}
  	},
 
  	foursquare: {
  		get: function(req, res) {
- 			if(req.session.passport.user) {
- 				var id = req.session.passport.user;
-
- 				Model.User.findById(id, function(err, user) {
- 					if (err) return next(err);
+ 			Helper.getUser(req.session.passport.user, function(err, user) {
+ 					if (err || !user) return next(err);
 
 					// process foursquare
- 					var f = user.Social.foursquare;
+ 					var f = user.Business[req.session.Business.index].Social.foursquare;
  					if(req.session.foursquareConnected && req.session.foursquare.oauthAccessToken && !req.query.login) {
  						foursquare = Auth.load('foursquare');
  						foursquare.get('venues/4dacc8d40cb63c371ca540d6', {v: foursquare.client.verified}, function(err, response) {
@@ -275,14 +265,14 @@ var SocialController = {
 
 	 				} else if(
 	 					!req.query.login
-						&& typeof f.oauthAccessToken !== 'undefined'
-						&& f.oauthAccessToken != ''
-						&& f.oauthAccessToken
+						&& typeof f.auth.oauthAccessToken !== 'undefined'
+						&& f.auth.oauthAccessToken != ''
+						&& f.auth.oauthAccessToken
 	 				) {
 	 					var foursquare = Auth.load('foursquare');
-						foursquare.setAccessToken(f.oauthAccessToken);
+						foursquare.setAccessToken(f.auth.oauthAccessToken);
 						req.session.foursquare = {
-							oauthAccessToken: f.oauthAccessToken
+							oauthAccessToken: f.auth.oauthAccessToken
 						}
 						req.session.foursquareConnected = true;
 						res.redirect('/social/foursquare');
@@ -299,18 +289,14 @@ var SocialController = {
 		 					}
 	 					);
 	 				}
- 				});
- 			}
+ 			});
  		}
  	},
 
  	google: {
  		get: function(req, res) {
- 			if(req.session.passport.user) {
- 				var id = req.session.passport.user;
-
- 				Model.User.findById(id, function(err, user) {
- 					if (err) return next(err);	
+ 			Helper.getUser(req.session.passport.user, function(err, user) {
+ 					if (err || !user) return next(err);;	
  					
  					res.render(
  						'social/pinterest', 
@@ -319,21 +305,17 @@ var SocialController = {
  					  	businesses: user.Business
  						}
  					);
- 				});
- 			}
+ 			});
  		}
  	},
 
  	instagram: {
 		get: function(req, res) {
- 			if(req.session.passport.user) {
- 				var id = req.session.passport.user;
-
- 				Model.User.findById(id, function(err, user) {
- 					if (err) return next(err);	
+ 			Helper.getUser(req.session.passport.user, function(err, user) {
+ 					if (err || !user) return next(err);	
 
  					// process instagram
- 					var i = user.Social.instagram;
+ 					var i = user.Business[req.session.Business.index].Social.instagram;
  					if(req.session.instagramConnected && req.session.instagram.oauthAccessToken && !req.query.login) {
  						instagram = Auth.load('instagram');
  						instagram.get('users/self/feed', function(err, response) {
@@ -354,14 +336,14 @@ var SocialController = {
 
 	 				} else if(
 	 					!req.query.login
-						&& typeof i.oauthAccessToken !== 'undefined'
-						&& i.oauthAccessToken != ''
-						&& i.oauthAccessToken
+						&& typeof i.auth.oauthAccessToken !== 'undefined'
+						&& i.auth.oauthAccessToken != ''
+						&& i.auth.oauthAccessToken
 	 				) {
 	 					var instagram = Auth.load('instagram');
-						instagram.setAccessToken(i.oauthAccessToken);
+						instagram.setAccessToken(i.auth.oauthAccessToken);
 						req.session.instagram = {
-							oauthAccessToken: i.oauthAccessToken
+							oauthAccessToken: i.auth.oauthAccessToken
 						}
 						req.session.instagramConnected = true;
 						res.redirect('/social/instagram');
@@ -379,18 +361,14 @@ var SocialController = {
 		 					}
 	 					);
 	 				}
- 				});
- 			}
+ 			});
  		}
  	},
 
  	youtube: {
  		get: function(req, res) {
- 			if(req.session.passport.user) {
- 				var id = req.session.passport.user;
-
- 				Model.User.findById(id, function(err, user) {
- 					if (err) return next(err);	
+ 			Helper.getUser(req.session.passport.user, function(err, user) {
+ 					if (err || !user) return next(err);		
  					
  					res.render(
  						'social/pinterest', 
@@ -399,8 +377,7 @@ var SocialController = {
  					  	businesses: user.Business
  						}
  					);
- 				});
- 			}
+ 			});
  		}
  	},
 }
