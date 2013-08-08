@@ -83,10 +83,13 @@ var UserModel = {
           foursquare: {
             id: {type: String},
             auth: {
-              venueId: {type: String},
               oauthAccessToken: {type: String},
-              expires: {type: Number},
               created: {type: Number}
+            },
+            venue: {
+              id: {type: String},
+              name: {type: String},
+              data: {}
             }
           },
           instagram: {

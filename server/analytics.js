@@ -243,7 +243,7 @@ console.log('saved twitter user timeline...');
 						});
 
 						// @ mentions tracking
-						twitter.get('statuses/mentions_timeline', {since_id: since.mentions, count: 200, contributor_details: true, include_rts: true}, function(err, response) {
+						twitter.get('statuses/mentions_timeline', {since_id: since.mentions, count: (since.updates === 1 ? 1 : 200), contributor_details: true, include_rts: true}, function(err, response) {
 							if(err || typeof response.errors !== 'undefined')
 								console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
 							
@@ -315,7 +315,7 @@ console.log('saved retweets count...');
 
 /*
 						// Direct message tracking
-						twitter.get('direct_messages', {since_id: since.messages, count: 200}, function(err, response) {
+						twitter.get('direct_messages', {since_id: since.messages, count: (since.updates === 1 ? 1 : 200)}, function(err, response) {
 							if(err || typeof response.errors !== 'undefined')
 								console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
 

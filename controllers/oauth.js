@@ -52,12 +52,13 @@ var OauthController = {
 								// Put access token into the database
 								user.Business[req.session.Business.index].Social.facebook.auth = credentials;
 
-								if(typeof user.Business[req.session.Business.index].Social.facebook.id === 'undefined') {
+								// This is now done after business selection in the social controller
+								/*if(typeof user.Business[req.session.Business.index].Social.facebook.id === 'undefined') {
 									facebook.get('me', {fields: 'id'}, function(err, response_id) {
 										if(err) res.redirect('/social/facebook?login=true');
-										typeof user.Business[req.session.Business.index].Social.facebook.id = response_id.id
+										user.Business[req.session.Business.index].Social.facebook.id = response_id.id
 									})
-								}
+								}*/
 
 								user.save(function(err) {
 									req.session.messages.push(err);

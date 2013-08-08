@@ -25,7 +25,9 @@ var Model = Model || Object;
 //console.log(Model.User.schema);`
 Model.Analytics.find(function(err, analytic) {
 	analytic.forEach(function(user) {
-		console.log(user);
+		//console.log(user);
+
+		//console.log(user.twitter.tracking.mentions.length);
 	});
 });
 
@@ -35,6 +37,8 @@ Model.User.findOne({email: "123"}, function(err, user) {
 //	console.log(user.Social.facebook.analytics.tracking[21]);
 //	console.log(user.Social.twitter.analytics.updates[0]);
 //	console.log(user.Social.twitter.analytics.tracking.retweets[0]);
+
+//console.log(user.Business[0]);
 
 	//console.log(user.Social.twitter.analytics[0]['entities']);
 	//console.log(user.Social.facebook.analytics.updates[1]);

@@ -8,8 +8,26 @@ block content
 		mixin topNavigationMenu
 		div.content
 			- if (locals.foursquare.connected == true && locals.foursquare.data) {
-				div
-					!{JSON.stringify(locals.foursquare.data)}
+				- if(locals.foursquare.venue == false && typeof locals.foursquare.data.response.venues !== 'undefined') {
+						div.page-notice
+							h1 Please select a Foursquare Business venue
+							p This needs to match the Vocada business you are currently logged into
+						div(class='simple-select-menu foursquare-venue-select-menu')
+							ul
+								for venue in locals.foursquare.data.response.venues.items
+									li
+										div.button
+											a(href="/social/foursquare?venue=#{venue.id}")
+												i.icon-signin
+												span #{venue.name}
+					- } else if (locals.foursquare.venue == false) {
+						div.page-notice
+							h1 It appears you have no Foursquare Business venues
+							p Please choose a guide below to help you get started 
+					- } else {
+						div
+							!{JSON.stringify(locals.foursquare.data)}
+					- }
 			- } else {
 				div.social-login
 					p Please login to Foursquare using your verfied business account.

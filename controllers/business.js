@@ -24,7 +24,7 @@ var BusinessController = {
 
  					if(user) {
 
- 						var timestamp = Helper.timestamp(true) + Helper.randomInt(100, 999);
+ 						var timestamp = Helper.timestamp(true) + Helper.randomInt(10000, 99999);
 
  						var newBusiness = {
  							name: req.body.name,

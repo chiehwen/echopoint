@@ -5,6 +5,7 @@
 var crypto = require('crypto'),
 		oauth = require('oauth'),
 		Auth = require('../server/auth').getInstance(),
+		Helper = require('../server/helpers'),
 		Model = Model || Object;
 
 var SocialController = {
@@ -23,33 +24,35 @@ var SocialController = {
 						var facebook = Auth.load('facebook');
 
 						if(typeof req.query.id !== 'undefined' && typeof req.query.select === 'undefined') {
-							facebook.get(req.query.id, function(err, response) {
-								if(err || typeof response.error !== 'undefined') 
-									res.redirect('/social/facebook?login=true');
 
-			 					facebook.get('me', {fields: 'id,accounts.fields(name,picture.type(square),access_token,about,id,website,likes,perms,category_list,category)'}, function(err, response) {
-			 						if(err) res.redirect('/social/facebook?login=true');
-			 						if(f.id === 'undefined' || f.id == 0)
-			 							user.Business[indx].Social.facebook.id = response.id;
+			 				facebook.get('me', {fields: 'id,accounts.fields(name,picture.type(square),access_token,about,id,website,likes,perms,category_list,category)'}, function(err, response) {
+			 					if(err) res.redirect('/social/facebook?login=true');
+			 					if(f.id === 'undefined' || f.id == 0)
+			 						user.Business[indx].Social.facebook.id = response.id;
 
-			 						response.accounts.data.forEach(function(account, index) {
-			 							if(account.id == req.query.id) {
-			 								user.Business[indx].Social.facebook.account = {
-												id: req.query.id,
-												oauthAccessToken: account.access_token,
-												data: account
-											}
+			 					var accounts = response.accounts.data,
+			 							found = false;
+			 					//response.accounts.data.forEach(function(account, index) {
+			 					for(var i = 0, l = accounts.length; i < l; i++) {
+			 						if(accounts[i].id == req.query.id) {
+			 							user.Business[indx].Social.facebook.account = {
+											id: req.query.id,
+											oauthAccessToken: accounts[i].access_token,
+											data: accounts[i]
+										}
 
-											user.save(function(err) {
-												req.session.messages.push(err);
-											});
-											res.redirect('/social/facebook');
-			 							}
-			 						});
-			 						res.redirect('/social/facebook?login=true');
-			 					});
-								
-							});						
+										user.save(function(err) {
+											req.session.messages.push(err);
+										});
+										found = true;
+										break;
+			 						}
+			 					}
+
+			 					res.redirect('/social/facebook' + (found ? '' : '?login=true'));
+
+			 				});
+												
 						} else if(typeof f.account.id !== 'undefined' && f.account.id != '' && typeof req.query.select === 'undefined') {
 							facebook.get(f.account.id, function(err, response) {
 
@@ -210,34 +213,6 @@ var SocialController = {
  		}
  	},
 
- 	yelp: {
- 		get: function(req, res) {
- 			Helper.getUser(req.session.passport.user, function(err, user) {
- 					if (err || !user) return next(err);	
- 					
- 					yelp = Auth.load('yelp');
-
- 					yelp.business('roll-on-sushi-diner-austin', function(err, response) {
- 						if(err)
- 							var data = err;
- 						else 
- 							var data = response;
-
-						res.render(
-	 						'social/yelp', 
-	 						{
-		 					  	title: 'Vocada | Business Yelp Page',
-		 					  	yelp: {
-		 					  		connected: err ? false : true,
-		 					  		data: data
-		 					  	}
-	 						}
-	 					);
- 					});
- 			});
- 		}
- 	},
-
  	foursquare: {
  		get: function(req, res) {
  			Helper.getUser(req.session.passport.user, function(err, user) {
@@ -247,21 +222,71 @@ var SocialController = {
  					var f = user.Business[req.session.Business.index].Social.foursquare;
  					if(req.session.foursquareConnected && req.session.foursquare.oauthAccessToken && !req.query.login) {
  						foursquare = Auth.load('foursquare');
- 						foursquare.get('venues/4dacc8d40cb63c371ca540d6', {v: foursquare.client.verified}, function(err, response) {
- 							if(err || response.meta.code != 200) 
-								res.redirect('/social/foursquare?login=true');
 
-							res.render(
-		 						'social/foursquare', 
-		 						{
-			 					  	title: 'Vocada | Business Foursquare Page',
-			 					  	foursquare: {
-			 					  		connected: true,
-			 					  		data: response
+						if(typeof req.query.venue !== 'undefined' && typeof req.query.select === 'undefined') {
+
+							foursquare.get('venues/managed', {v: foursquare.client.verified}, function(err, response) {
+			 					if(err || response.meta.code != 200) res.redirect('/social/foursquare?login=true');
+			 					//if(f.id === 'undefined' || f.id == 0)
+			 						//user.Business[indx].Social.foursquare.id = response.id;
+
+			 					var venues = response.response.venues.items,
+			 							found = false;
+
+			 					for(var i = 0, l = venues.length; i < l; i++) {
+			 						if(venues[i].id == req.query.venue) {
+			 							user.Business[req.session.Business.index].Social.foursquare.venue = {
+											id: req.query.venue,
+											name: venues[i].name,
+											data: venues[i]
+										}
+
+										user.save(function(err) {
+											req.session.messages.push(err);
+										});
+										found = true;
+										break;
 			 						}
 			 					}
-		 					);
-	 					});
+
+			 					res.redirect('/social/foursquare' + (found ? '' : '?login=true'));
+			 				});
+												
+						} else if(typeof f.venue.id !== 'undefined' && f.venue.id != '' && typeof req.query.select === 'undefined') {
+							foursquare.get(('venues/' + f.venue.id), {v: foursquare.client.verified}, function(err, response) {
+	 							if(err || response.meta.code != 200) 
+									res.redirect('/social/foursquare?login=true');
+
+								res.render(
+			 						'social/foursquare', 
+			 						{
+				 					  	title: 'Vocada | Business Foursquare Page',
+				 					  	foursquare: {
+				 					  		connected: true,
+				 					  		venue: true,
+				 					  		data: response
+				 						}
+				 					}
+			 					);
+		 					});
+						} else {
+							foursquare.get('venues/managed', {v: foursquare.client.verified}, function(err, response) {
+								if(err || response.meta.code != 200) 
+									res.redirect('/social/foursquare?login=true');
+
+									res.render(
+				 						'social/foursquare', 
+				 						{
+					 					  	title: 'Vocada | Business Foursquare Page',
+					 					  	foursquare: {
+					 					  		connected: true,
+					 					  		venue: false,
+					 					  		data: response
+					 						}
+					 					}
+				 					);
+							})
+						}
 
 	 				} else if(
 	 					!req.query.login
@@ -289,6 +314,34 @@ var SocialController = {
 		 					}
 	 					);
 	 				}
+ 			});
+ 		}
+ 	},
+
+ 	yelp: {
+ 		get: function(req, res) {
+ 			Helper.getUser(req.session.passport.user, function(err, user) {
+ 					if (err || !user) return next(err);	
+ 					
+ 					yelp = Auth.load('yelp');
+
+ 					yelp.business('roll-on-sushi-diner-austin', function(err, response) {
+ 						if(err)
+ 							var data = err;
+ 						else 
+ 							var data = response;
+
+						res.render(
+	 						'social/yelp', 
+	 						{
+		 					  	title: 'Vocada | Business Yelp Page',
+		 					  	yelp: {
+		 					  		connected: err ? false : true,
+		 					  		data: data
+		 					  	}
+	 						}
+	 					);
+ 					});
  			});
  		}
  	},
