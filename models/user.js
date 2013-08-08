@@ -124,22 +124,33 @@ var UserModel = {
             }],
             tracking: [{
               id: {type: String},
-              type: {type: String},
+              //type: {type: String},
               timestamp: {type: Number},
               likes: {
+                meta: [{
+                  timestamp: {type: Number},
+                  new: {type: Number},
+                }],
+                //timestamp: {type: Number},
                 total: {type: Number},
-                new: {type: Number},
                 data: {}
               },
               comments: {
+                meta: [{
+                  timestamp: {type: Number},
+                  new: {type: Number},
+                }],
+                //timestamp: {type: Number},
                 total: {type: Number},
-                new: {type: Number},
                 data: {}
               },
               shares: {
-                total: {type: Number},
-                new: {type: Number},
-                data: {}
+                meta: [{
+                  timestamp: {type: Number},
+                  new: {type: Number},
+                }],
+                //timestamp: {type: Number},
+                total: {type: Number}
               }
             }]
           },

@@ -31,9 +31,8 @@ var facebookCron = new Cron({
 
 						var facebook = Auth.load('facebook'),
 								analytics = f.analytics.updates.sort(Helper.sortBy('timestamp', false, parseInt)),
-								since = analytics.length ? analytics[0].timestamp : 0,
-								tracked = f.analytics.tracking.sort(Helper.sortBy('timestamp', false, parseInt)),
-								data = null;
+								since = analytics.length ? analytics[0].timestamp : 0;
+								//tracked = f.analytics.tracking.sort(Helper.sortBy('timestamp', false, parseInt));
 
 						facebook.setAccessToken(f.oauthAccessToken);
 
@@ -44,146 +43,116 @@ var facebookCron = new Cron({
 								data = {timestamp: 1, posts: [{id: response.error}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
 						
 							if(typeof response.feed !== 'undefined' && typeof response.feed.data !== 'undefined' && response.feed.data.length) {
-								var data = {
-									timestamp: Helper.timestamp(),
-									posts: []
-								}
+								var results = response.feed.data,
+										data = {
+											timestamp: Helper.timestamp(),
+											posts: []
+										}
 
-								response.feed.data.forEach(function(element, index, array) {
-									data.posts.push(element);
+								//response.feed.data.forEach(function(element, index, array) {
+								for(var i = 0, l = results.length; i < l; i++) {
+									data.posts.push(results[i]);
 
 									var tracking = {
-										id: element.id,
-										timestamp: Helper.timestamp(),
+										id: results[i].id,
+										timestamp: 0,//Helper.timestamp(),
 										likes: {},
 										comments: {},
 										shares: {}
 									};
 
-									if(typeof element.likes !== 'undefined')
+									if(typeof results[i].likes !== 'undefined')
 										tracking.likes = {
-											total: element.likes.data.length,
-											new: element.likes.data.length,
-											data: element.likes.data
+											meta: [{
+												timestamp: Helper.timestamp(),
+												new: results[i].likes.data.length,
+											}],
+											total: results[i].likes.data.length,
+											data: results[i].likes.data
 										}
 
-									if(typeof element.comments !== 'undefined')
+									if(typeof results[i].comments !== 'undefined')
 										tracking.comments = {
-											total: element.comments.data.length,
-											new: element.comments.data.length,
-											data: element.comments.data
+											meta: [{
+												timestamp: Helper.timestamp(),
+												new: results[i].comments.data.length
+											}],
+											total: results[i].comments.data.length,
+											data: results[i].comments.data
 										}
 
-									if(typeof element.shares !== 'undefined')
+									if(typeof results[i].shares !== 'undefined')
 										tracking.shares = {
-											total: parseInt(element.shares.count, 10),
-											new: parseInt(element.shares.count, 10)
+											meta: [{
+												timestamp: Helper.timestamp(),
+												new: parseInt(results[i].shares.count, 10)
+											}],
+											total: parseInt(results[i].shares.count, 10)
 										}
 
 
 									if(typeof tracking.likes.total !== 'undefined' || typeof tracking.comments.total !== 'undefined' || typeof tracking.shares.total !== 'undefined')
-										user.Social.facebook.analytics.tracking.push(tracking);
-								});
-							}
+										tracking.timestamp = Helper.timestamp();
 
-							if(data) {
+									user.Social.facebook.analytics.tracking.push(tracking);
+								}
+
 								user.Social.facebook.analytics.updates.push(data);
 								user.save(function(err,response){});
-console.log('saved new feed item(s)...');								
+console.log('saved new feed item(s) and related tracking...');			
 							}
 						});
 
 						facebook.get('me', {fields: 'feed.until(' + since + ').limit(100).fields(likes,comments,shares,updated_time,created_time,status_type,type)'}, function(err, response) {
 							if(typeof response.feed !== 'undefined' && typeof response.feed.data !== 'undefined' && response.feed.data.length) {
-								response.feed.data.forEach(function(element, index, array) {
-									
-									var found = false,
-											update = false,
-											tracking = {
-												id: element.id,
-												timestamp: Helper.timestamp(),
-												likes: {},
-												comments: {},
-												shares: {}
-											};
-
-									for(var i = 0, l = tracked.length; i < l; i++) {
+								
+								var update = false,
+										results = response.feed.data;
+								//response.feed.data.forEach(function(element, index, array) {
+								for(var x = 0, l = results.length; x < l; x++) {
+									for(var y = 0, len = f.analytics.tracking.length; y < len; y++) {
 										
-										if(tracked[i].id == element.id) {
-											found = true;
-
-											if(typeof element.likes !== 'undefined' && element.likes.data.length != tracked[i].likes.total) {
-												tracking.likes = {
-													total: element.likes.data.length,
-													new: (typeof tracked[i].likes.total !== 'undefined') ? (element.likes.data.length - tracked[i].likes.total) : element.likes.data.length,
-													data: element.likes.data
-												}
+										if(f.analytics.tracking[y].id == results[x].id) {
+											
+											if(typeof results[x].likes !== 'undefined' && results[x].likes.data.length != f.analytics.tracking[y].likes.total) {
+												user.Social.facebook.analytics.tracking[y].likes.meta.push({
+													timestamp: Helper.timestamp(),
+													new: (typeof f.analytics.tracking[y].likes.total !== 'undefined') ? (results[x].likes.data.length - f.analytics.tracking[y].likes.total) : results[x].likes.data.length
+												});
+												user.Social.facebook.analytics.tracking[y].likes.total = results[x].likes.data.length,
+												user.Social.facebook.analytics.tracking[y].likes.data = results[x].likes.data;
 												update = true;
-											} else {
-												tracking.likes.total = tracked[i].likes.total;
 											}
 
-											if(typeof element.comments !== 'undefined' && element.comments.data.length != tracked[i].comments.total) {
-												tracking.comments = {
-													total: element.comments.data.length,
-													new: (typeof tracked[i].comments.total !== 'undefined') ? (element.comments.data.length - tracked[i].comments.total) : element.comments.data.length,
-													data: element.comments.data
-												}
+											if(typeof results[x].comments !== 'undefined' && results[x].comments.data.length != f.analytics.tracking[y].comments.total) {
+												user.Social.facebook.analytics.tracking[y].comments.meta.push({
+													timestamp: Helper.timestamp(),
+													new: (typeof f.analytics.tracking[y].comments.total !== 'undefined') ? (results[x].comments.data.length - f.analytics.tracking[y].comments.total) : results[x].comments.data.length
+												});
+												user.Social.facebook.analytics.tracking[y].comments.total = results[x].comments.data.length,
+												user.Social.facebook.analytics.tracking[y].comments.data = results[x].comments.data;
 												update = true;
-											} else {
-												tracking.comments.total = tracked[i].comments.total;
 											}
 
-											if(typeof element.shares !== 'undefined' && parseInt(element.shares.count, 10) != tracked[i].shares.total) {
-												tracking.shares = {
-													total: parseInt(element.shares.count, 10),
-													new: (typeof tracked[i].shares.total !== 'undefined') ? (parseInt(element.shares.count, 10) - tracked[i].shares.total) : parseInt(element.shares.count, 10)
-												}
+											if(typeof results[x].shares !== 'undefined' && parseInt(results[x].shares.count, 10) != f.analytics.tracking[y].shares.total) {
+												user.Social.facebook.analytics.tracking[y].shares.meta.push({
+													timestamp: Helper.timestamp(),
+													new: (typeof f.analytics.tracking[y].shares.total !== 'undefined') ? (parseInt(results[x].shares.count, 10) - f.analytics.tracking[y].shares.total) : parseInt(results[x].shares.count, 10)
+												});
+												user.Social.facebook.analytics.tracking[y].shares.total = parseInt(results[x].shares.count, 10);
 												update = true;
-											} else {
-												tracking.shares.total = tracked[i].shares.total;
-											}
-
-											if(update) {
-
-												user.Social.facebook.analytics.tracking.push(tracking);
-												user.save(function(err,response){});
-console.log('saved updated tracking...');
 											}
 
 											break;
 										}
 									}
+								}
 
-									if(!found) {
+								if(update) {
+									user.save(function(err,response){});
+console.log('saved updated tracking...');
+								}
 
-											if(typeof element.likes !== 'undefined')
-												tracking.likes = {
-													total: element.likes.data.length,
-													new: element.likes.data.length,
-													data: element.likes.data
-												}
-
-											if(typeof element.comments !== 'undefined')
-												tracking.comments = {
-													total: element.comments.data.length,
-													new: element.comments.data.length,
-													data: element.comments.data
-												}
-
-											if(typeof element.shares !== 'undefined')
-												tracking.shares = {
-													total: parseInt(element.shares.count, 10),
-													new: parseInt(element.shares.count, 10)
-												}
-
-											if(typeof tracking.likes.total !== 'undefined' || typeof tracking.comments.total !== 'undefined' || typeof tracking.shares.total !== 'undefined') {
-												user.Social.facebook.analytics.tracking.push(tracking);
-												user.save(function(err,response){});
-		console.log('saved new tracking...');
-											}																		
-									}
-								})
 							}
 						})
 					}
@@ -223,11 +192,10 @@ var twitterCron = new Cron({
 									messages: t.analytics.tracking.messages.sort(Helper.sortBy('since_id', false, parseInt))
 								},
 								since = {
-									updates: sorted.updates.length ? sorted.updates[0].since_id : 0,
-									mentions: sorted.mentions.length ? sorted.mentions[0].since_id : 0,
-									messages: sorted.messages.length ? sorted.messages[0].since_id : 0
-								},
-								data = null;
+									updates: sorted.updates.length ? sorted.updates[0].since_id : 1,
+									mentions: sorted.mentions.length ? sorted.mentions[0].since_id : 1,
+									messages: sorted.messages.length ? sorted.messages[0].since_id : 1
+								};
 
 						twitter.setAccessTokens(t.oauthAccessToken, t.oauthAccessTokenSecret);
 /*
@@ -241,13 +209,12 @@ var twitterCron = new Cron({
 */
 						//if(analytics.length)
 							//params.since_id = analytics[0].since_id;
-
 						//twitter.get('search/tweets', params, function(err, response) {
-						twitter.get('statuses/user_timeline', {user_id: req.session.twitter.id, since_id: since.updates, count: 100, contributor_details: true}, function(err, response) {
+
+						twitter.get('statuses/user_timeline', {user_id: t.id, since_id: since.updates, count: 100, contributor_details: true}, function(err, response) {
 							if(err || typeof response.errors !== 'undefined')
 								console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
 							
-							//if(typeof response.statuses !== 'undefined' && response.statuses.length) {
 							if(response.length) {
 								var data = {
 									since_id: response[0].id_str,
@@ -255,12 +222,10 @@ var twitterCron = new Cron({
 									tweets: []
 								}
 
-								response.forEach(function(element, index, array) {
-									data.tweets.push(element);
-								});
-							}
-
-							if(data) {
+								for(var i = 0, l = response.length; i < l; i++) {
+									data.tweets.push(response[i]);
+								}
+console.log('saved twitter user timeline...');
 								user.Social.twitter.analytics.updates.push(data);
 								user.save(function(err,res){});
 							}
@@ -271,7 +236,6 @@ var twitterCron = new Cron({
 							if(err || typeof response.errors !== 'undefined')
 								console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
 							
-							//if(typeof response.statuses !== 'undefined' && response.statuses.length) {
 							if(response.length) {
 								var data = {
 									since_id: response[0].id_str,
@@ -279,26 +243,23 @@ var twitterCron = new Cron({
 									mentions: []
 								}
 
-								response.forEach(function(element, index, array) {
-									data.mentions.push(element);
-								});
-							}
-
-							if(data) {
+								for(var i = 0, l = response.length; i < l; i++) {
+									data.mentions.push(response[i]);
+								}
+console.log('saved user @ mentions...');
 								user.Social.twitter.analytics.tracking.mentions.push(data);
 								user.save(function(err,res){});
 							}
 						});
 
 
-				// Retweets tracking
-						twitter.get('statuses/retweets_of_me', {since_id: since.messages, count: 100, trim_user: true, include_entities: false, include_user_entities: false}, function(err, response) {
+						// Retweets tracking
+						twitter.get('statuses/retweets_of_me', {count: 100, trim_user: true, include_entities: false, include_user_entities: false}, function(err, response) {
 							if(err || typeof response.errors !== 'undefined')
 								console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
 							
 							if(response.length) {
-
-								//response.forEach(function(element, index, array) {
+								var update = false;
 								for(var x = 0, l = response.length; x < l; x++) {
 									var found = false;
 									for(var y = 0, len = t.analytics.tracking.retweets.length; y < len; y++) {
@@ -306,6 +267,7 @@ var twitterCron = new Cron({
 											found = true;
 											var count = parseInt(response[x].retweet_count, 10);
 											if(t.analytics.tracking.retweets[y].total != count) {
+												update = true;
 												user.Social.twitter.analytics.tracking.retweets[y].meta.push({
 													timestamp: Helper.timestamp(),
 													new: (count - t.analytics.tracking.retweets[y].total)
@@ -317,6 +279,7 @@ var twitterCron = new Cron({
 									}
 
 									if(!found) {
+										update = true;
 										var count = parseInt(response[x].retweet_count, 10),
 												retweet = {
 													id: response[x].id_str,
@@ -332,18 +295,19 @@ var twitterCron = new Cron({
 									}
 								};
 
-								user.save(function(err,res){});
+								if(update) {
+console.log('saved retweets count...');
+									user.save(function(err,res){});
+								}
 							}
-
 						});
 
-
+/*
 						// Direct message tracking
 						twitter.get('direct_messages', {since_id: since.messages, count: 200}, function(err, response) {
 							if(err || typeof response.errors !== 'undefined')
 								console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
-							
-							//if(typeof response.statuses !== 'undefined' && response.statuses.length) {
+
 							if(response.length) {
 								var data = {
 									since_id: response[0].id_str,
@@ -351,24 +315,23 @@ var twitterCron = new Cron({
 									messages: []
 								}
 
-								response.forEach(function(element, index, array) {
-									data.messagess.push(element);
-								});
-							}
-
-							if(data) {
+								for(var i = 0, l = response.length; i < l; i++) {
+									data.messages.push(response[i]);
+								}
+console.log('saved new DM\'s...');
 								user.Social.twitter.analytics.tracking.messages.push(data);
 								user.save(function(err,res){});
 							}
 						});
-
-					}
-			});
-		});
-	},
+*/
+					} // End of twitter credentials if statement
+				
+			}); // End of users forEach
+		}); // End of Model users array
+	}, // End of onTick Cron function
 
 	start: false
 });
 
 
-module.exports = facebookCron;
+module.exports = twitterCron;

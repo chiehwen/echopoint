@@ -29,10 +29,15 @@ Model.Analytics.find(function(err, users) {
 	});
 });
 
+console.log(Model.Analytics);
+
 Model.User.findOne({email: "123"}, function(err, user) {
 	console.log(user);
 //	console.log(user.Social.facebook.analytics.updates[0]);
-//	console.log(user.Social.facebook.analytics.tracking[0]);
+//	console.log(user.Social.facebook.analytics.tracking[21]);
+//	console.log(user.Social.twitter.analytics.updates[0]);
+//	console.log(user.Social.twitter.analytics.tracking.retweets[0]);
+
 	//console.log(user.Social.twitter.analytics[0]['entities']);
 	//console.log(user.Social.facebook.analytics.updates[1]);
 	//console.log(user.Social.facebook.analytics.updates[4]);
