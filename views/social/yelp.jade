@@ -7,14 +7,22 @@ block content
 	div#main
 		mixin topNavigationMenu
 		div.content
-			- if (locals.yelp.connected == true && locals.yelp.data) {
+			- if (!locals.yelp.connected && locals.yelp.setup) {
+				form(action="/social/yelp", method="GET", id="yelp-business-id-form", accept-charset="utf-8")
+					fieldset
+						div(class="input text required")
+							label business url
+							input(type="text", name="id", id="yelp-business-id", required)
+					div.submit
+						input(type="submit", value="Submit") 
+			- } else if (locals.yelp.connected && locals.yelp.data) {
 				div
 					!{JSON.stringify(locals.yelp.data)}
 			- } else {
 				div.social-login
 					p Please login to Yelp using your claimed business account.
 					div(class="social-login-button yelp-login-button")
-						a(href="/social/facebook", class="icon blue border app-color yelp")
+						a(href="/social/yelp?setup=true", class="icon blue border app-color yelp")
 							i.icon-yelp
 							span login
 

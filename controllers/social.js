@@ -333,27 +333,49 @@ var SocialController = {
  	yelp: {
  		get: function(req, res) {
  			Helper.getUser(req.session.passport.user, function(err, user) {
- 					if (err || !user) return next(err);	
+ 					if (err || !user) return next(err);
+
+ 					var y = user.Business[req.session.Business.index].Social.yelp;
+ 					if (typeof req.query.id !== 'undefined') {
+						user.Business[req.session.Business.index].Social.yelp = {
+							id: req.query.id
+						}
+
+						user.save(function(err) {
+							req.session.messages.push(err);
+						});
+						res.redirect('/social/yelp');
+
+ 					} else if (typeof y.id !== 'undefined' && y.id != '' && y.id && typeof req.query.setup === 'undefined')	{
  					
- 					yelp = Auth.load('yelp');
+	 					yelp = Auth.load('yelp');
+	 					yelp.business(y.id, function(err, response) {
+	 						if(err) console.log(err);
 
- 					yelp.business('roll-on-sushi-diner-austin', function(err, response) {
- 						if(err)
- 							var data = err;
- 						else 
- 							var data = response;
-
+							res.render(
+		 						'social/yelp', 
+		 						{
+			 					  	title: 'Vocada | Business Yelp Page',
+			 					  	yelp: {
+			 					  		connected: true,
+			 					  		data: response
+			 					  	}
+		 						}
+		 					);
+	 					});
+	 				} else {
 						res.render(
-	 						'social/yelp', 
-	 						{
-		 					  	title: 'Vocada | Business Yelp Page',
-		 					  	yelp: {
-		 					  		connected: err ? false : true,
-		 					  		data: data
-		 					  	}
-	 						}
-	 					);
- 					});
+		 					'social/yelp', 
+		 					{
+			 					 	title: 'Vocada | Business Yelp Page',
+			 					 	yelp: {
+			 					 		connected: false,
+			 					 		setup: typeof req.query.setup !== 'undefined' ? true : false,
+			 					 		data: false
+			 					  }
+		 					}
+		 				);
+	 				}
  			});
  		}
  	},

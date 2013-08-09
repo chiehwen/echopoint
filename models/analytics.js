@@ -120,23 +120,34 @@
               checkins: {
                 meta: [{
                   timestamp: {type: Number},
-                  total: {type: Number},
-                  new: {type: Number},
-                  foursquare_new: {type: Number},
-                  unique_visitors: {type: Number},
+                  total: {type: Number}
+                  //new: {type: Number},
+                  //foursquare_new: {type: Number},
+                  //unique_visitors: {type: Number},
+                }],
+                total: {type: Number},
+                // This stats is added because foursquare reports different total checkin numbers  (I can't explain why) and the stats data is not updated as often as venue data.
+                // We therefore use this variable to determine when stats has updated and then populate new stats data
+                stats: {
+                  total: {type: Number}
+                },
+                timestamp: {type: Number}
+              },
+              unique: { // this is the number of unique checkins
+                meta: [{
+                  timestamp: {type: Number},
+                  total: {type: Number}
                 }],
                 total: {type: Number},
                 timestamp: {type: Number}
               },
-              // Remember all stats are only updated is a new checkin occures!
               mayor: {
                 meta: [{
                   timestamp: {type: Number},
-                  total: {type: Number},
-                  new: {type: Number},
+                  count: {type: Number}, // I think this is the number of times the mayor has checked in since becoming mayor. Not 100% sure
                   user: {}
                 }],
-                total: {type: Number},
+                //total: {type: Number},
                 user_id: {type: String},
                 timestamp: {type: Number}
               },
@@ -146,11 +157,11 @@
                   total: {
                     facebook: {type: Number},
                     twitter: {type: Number}
-                  },
-                  new: {
-                    facebook: {type: Number},
-                    twitter: {type: Number}
                   }
+                  //new: {
+                  //  facebook: {type: Number},
+                  //  twitter: {type: Number}
+                  //}
                 }],
                 // Instead use meta.length - 1 to get last in array
                 // * actually that may be less efficient since its an array look up 
@@ -165,11 +176,11 @@
                   total: {
                     male: {type: Number},
                     female: {type: Number}
-                  },
-                  new: {
-                    male: {type: Number},
-                    female: {type: Number}
                   }
+                  //new: {
+                  //  male: {type: Number},
+                  //  female: {type: Number}
+                  //}
                 }],
                 male: {type: Number},
                 female: {type: Number},
@@ -192,7 +203,7 @@
                 timestamp: {type: Number}
               },
 
-              visitorHistogram: {
+              visitsHistogram: {
                 meta: [{
                   timestamp: {type: Number},
                   data: {}
@@ -209,8 +220,8 @@
               likes: {
                 meta: [{
                   timestamp: {type: Number},
-                  total: {type: Number},
-                  new: {type: Number}
+                  total: {type: Number}
+                  //new: {type: Number}
                 }],
                 total: {type: Number},
                 timestamp: {type: Number}
@@ -219,8 +230,8 @@
               tips: {
                 meta: [{
                   timestamp: {type: Number},
-                  total: {type: Number},
-                  new: {type: Number}
+                  total: {type: Number}
+                  //new: {type: Number}
                 }],
                 total: {type: Number},
                 timestamp: {type: Number}
@@ -229,8 +240,8 @@
               photos: {
                 meta: [{
                   timestamp: {type: Number},
-                  total: {type: Number},
-                  new: {type: Number}
+                  total: {type: Number}
+                  //new: {type: Number}
                 }],
                 total: {type: Number},
                 timestamp: {type: Number}
@@ -239,11 +250,51 @@
           },
 
           yelp: {
-            id: {type: String},
-            oauthAccessToken: {type: String},
-            oauthAccessTokenSecret: {type: String},
-            expires: {type: Number},
-            created: {type: Number}
+            update: {
+              timestamp: {type: Number},
+              changes: {
+                id: {type: String},
+                name: {type: String},
+                is_claimed: {type: Boolean},
+                is_closed: {type: Boolean},
+                image_url: {type: String},
+                url: {type: String},
+                phone: {type: String},
+                snippet: {type: String},
+                location: {
+                  address: {type: String},
+                  city: {type: String},
+                  state: {type: String},
+                  postal: {type: String}
+                }
+              }
+            },
+            tracking: {
+              reviews: {
+                meta: [{
+                  timestamp: {type: Number},
+                  total: {type: Number}:
+                  data: {}
+                }],
+                total: {type: Number},
+                timestamp: {type: Number}
+              },
+              ratings: {
+                meta: [{
+                  timestamp: {type: Number},
+                  rating: {type: Number},
+                  data: {
+                    image: {
+                      small: {type: String},
+                      medium: {type: String},
+                      large: {type: String}
+                    }
+                  }
+                }],
+                rating: {type: Number},
+                timestamp: {type: Number}
+              }
+            }
           },
 
           instagram: {

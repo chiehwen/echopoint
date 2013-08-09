@@ -27,7 +27,7 @@ Model.Analytics.find(function(err, analytic) {
 	analytic.forEach(function(user) {
 		//console.log(user);
 
-		console.log(user.foursquare.tracking);
+		//console.log(user.foursquare.tracking);
 	});
 });
 
@@ -36,8 +36,9 @@ Model.User.findOne({email: "123"}, function(err, user) {
 //	console.log(user.Social.facebook.analytics.updates[0]);
 //	console.log(user.Social.facebook.analytics.tracking[21]);
 //	console.log(user.Social.twitter.analytics.updates[0]);
-//	console.log(user.Social.twitter.analytics.tracking.retweets[0]);
-
+//	console.log(user.Business[0].Social.yelp.id);
+//user.Business[0].Social.yelp.id = '';
+//user.save(function(err,res){});
 //console.log(user.Business[0]);
 
 	//console.log(user.Social.twitter.analytics[0]['entities']);
@@ -62,7 +63,7 @@ Model.User.findOne({email: "123"}, function(err, user) {
 	// !!!! IMPORTANT: BELOW IS THE TOGGLE FOR 
 	// !!!! CRON TESTING !!!
 	
-//Cron.start();
+Cron.start();
 
 	// !!!!!
 

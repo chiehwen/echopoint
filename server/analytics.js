@@ -152,7 +152,7 @@ console.log('saved new feed item(s) and related tracking...');
 								}
 
 								if(update) {
-									Analytics.save(function(err,response){});
+									Analytics.save(function(err){});
 console.log('saved updated tracking...');
 								}
 
@@ -308,7 +308,7 @@ console.log('saved user @ mentions...');
 
 								if(update) {
 console.log('saved retweets count...');
-									Analytics.save(function(err,res){});
+									Analytics.save(function(err){});
 								}
 							}
 						});
@@ -350,7 +350,7 @@ console.log('saved new DM\'s...');
 
 
 var foursquareCron = new Cron({
-	cronTime: '0 * * * * *',
+	cronTime: '0 */15 * * * *',
 	onTick: function() {
 
 		//console.log('You will see this message every hour');
@@ -430,20 +430,20 @@ var foursquareCron = new Cron({
 											user.Business[indx].Social.foursquare.venue.data = venue;
 											user.save(function(err) {console.log(err)});
 										}
-
-										// if we have no new checkins we don't need to process the stats and mayor 
+										
+										// if we have no new checkins we don't need to process the checkins and mayor 
 										if(venue.stats.checkinsCount != Analytics.foursquare.tracking.checkins.total) {
 											update = true;
-
+										
 											// Lets update basic checkin stats
 											Analytics.foursquare.tracking.checkins.meta.push({
 												timestamp: Helper.timestamp(),
-												total: parseInt(stats.totalCheckins, 10),
-												new: parseInt(stats.totalCheckins, 10) - Analytics.foursquare.tracking.checkins.total,
-												foursquare_new: parseInt(stats.newCheckins, 10), // This is from last login to foursquare (I think)
-												unique_visitors: parseInt(stats.uniqueVisitors, 10)
+												total: parseInt(venue.stats.checkinsCount, 10),
+												//new: (typeof Analytics.foursquare.tracking.checkins.total !== 'undefined') ? parseInt(stats.totalCheckins, 10) - Analytics.foursquare.tracking.checkins.total : parseInt(stats.totalCheckins, 10),
+												//foursquare_new: parseInt(venue.stats.checkinsCount, 10), // This is from last login to foursquare (I think)
+												//unique_visitors: parseInt(stats.uniqueVisitors, 10)
 											})
-											Analytics.foursquare.tracking.checkins.total = parseInt(stats.totalCheckins, 10);
+											Analytics.foursquare.tracking.checkins.total = parseInt(venue.stats.checkinsCount, 10);
 											Analytics.foursquare.tracking.checkins.timestamp = Helper.timestamp();
 
 
@@ -452,12 +452,28 @@ var foursquareCron = new Cron({
 												Analytics.foursquare.tracking.mayor.meta.push({
 													timestamp: Helper.timestamp(),
 													total: parseInt(venue.mayor.count, 10),
-													new: parseInt(venue.mayor.count, 10) - Analytics.foursquare.tracking.mayor.total,
+													//new: parseInt(venue.mayor.count, 10) - Analytics.foursquare.tracking.mayor.total,
 													user: venue.mayor.user
 												});
 												Analytics.foursquare.tracking.mayor.total = parseInt(venue.mayor.count, 10);
 												Analytics.foursquare.tracking.mayor.user_id = venue.mayor.user.id;
 												Analytics.foursquare.tracking.mayor.timestamp = Helper.timestamp();
+
+											}
+										}
+
+										// If it seems odd that we are comparing two different stat fields it's because foursquare doesn't report the checkins in the venue call the same as the checkins count in the stats call.
+										// Further more, the stats section gets updated far less often it seems while the venue call is nearly instant. I have no idea why this is
+										if(stats.totalCheckins != Analytics.foursquare.tracking.checkins.stats.total) {
+											update = true;
+
+											// Update unique visitors
+											if(stats.uniqueVisitors != stats.Analytics.foursquare.tracking.unique.total) {
+												Analytics.foursquare.tracking.unique.meta.push({
+													timestamp: Helper.timestamp(),
+													total: parseInt(stats.uniqueVisitors, 10)
+												});
+												Analytics.foursquare.tracking.unique.total = parseInt(stats.uniqueVisitors, 10);
 											}
 
 											// Update social sharing stats
@@ -468,10 +484,10 @@ var foursquareCron = new Cron({
 														facebook: parseInt(stats.sharing.facebook, 10),
 														twitter: parseInt(stats.sharing.twitter, 10)
 													},
-													new: {
-														facebook: parseInt(stats.sharing.facebook, 10) - Analytics.foursquare.tracking.shares.facebook,
-														twitter: parseInt(stats.sharing.twitter, 10) - Analytics.foursquare.tracking.shares.twitter
-													}
+													//new: {
+													//	facebook: parseInt(stats.sharing.facebook, 10) - Analytics.foursquare.tracking.shares.facebook,
+													//	twitter: parseInt(stats.sharing.twitter, 10) - Analytics.foursquare.tracking.shares.twitter
+													//}
 												})
 												Analytics.foursquare.tracking.shares.facebook = parseInt(stats.sharing.facebook, 10);
 												Analytics.foursquare.tracking.shares.twitter =parseInt(stats.sharing.twitter, 10);
@@ -487,10 +503,10 @@ var foursquareCron = new Cron({
 														male: parseInt(stats.genderBreakdown.male, 10),
 														female: parseInt(stats.genderBreakdown.female, 10)
 													},
-													new: {
-														male: parseInt(stats.genderBreakdown.male, 10) - Analytics.foursquare.tracking.gender.male,
-														female: parseInt(stats.genderBreakdown.female, 10) - Analytics.foursquare.tracking.gender.female
-													}
+													//new: {
+													//	male: parseInt(stats.genderBreakdown.male, 10) - Analytics.foursquare.tracking.gender.male,
+													//	female: parseInt(stats.genderBreakdown.female, 10) - Analytics.foursquare.tracking.gender.female
+													//}
 												})
 												Analytics.foursquare.tracking.gender.male = parseInt(stats.genderBreakdown.male, 10);
 												Analytics.foursquare.tracking.gender.female =parseInt(stats.genderBreakdown.female, 10);
@@ -511,12 +527,12 @@ var foursquareCron = new Cron({
 											});
 											Analytics.foursquare.tracking.hourBreakdown.timestamp = Helper.timestamp();
 
-											// Update visitor checkin counts histogram
-											Analytics.foursquare.tracking.visitorHistogram.meta.push({
+											// Update visit counts histogram
+											Analytics.foursquare.tracking.visitsHistogram.meta.push({
 												timestamp: Helper.timestamp(),
-												data: stats.visitorCountHistogram
+												data: stats.visitCountHistogram
 											});
-											Analytics.foursquare.tracking.visitorHistogram.timestamp = Helper.timestamp();
+											Analytics.foursquare.tracking.visitsHistogram.timestamp = Helper.timestamp();
 
 											// Update top visitors list
 											Analytics.foursquare.tracking.topVisitors = stats.topVisitors;
@@ -526,14 +542,14 @@ var foursquareCron = new Cron({
 
 										}
 
-										// These can be unrelated to an actual checkin
+										// These can be unrelated to any actual checkin
 										if(parseInt(venue.likes.count, 10) != Analytics.foursquare.tracking.likes.total) {
 											// Lets update tips left for the venue
 											var likesCount = parseInt(venue.likes.count, 10);
 											Analytics.foursquare.tracking.likes.meta.push({
 												timestamp: Helper.timestamp(),
 												total: likesCount,
-												new: likesCount - Analytics.foursquare.tracking.likes.total
+												//new: likesCount - Analytics.foursquare.tracking.likes.total
 											})
 											Analytics.foursquare.tracking.likes.total = likesCount;
 											Analytics.foursquare.tracking.likes.timestamp = Helper.timestamp();
@@ -547,7 +563,7 @@ var foursquareCron = new Cron({
 											Analytics.foursquare.tracking.tips.meta.push({
 												timestamp: Helper.timestamp(),
 												total: tipsCount,
-												new: tipsCount - Analytics.foursquare.tracking.tips.total
+												//new: tipsCount - Analytics.foursquare.tracking.tips.total
 											})
 											Analytics.foursquare.tracking.tips.total = tipsCount;
 											Analytics.foursquare.tracking.tips.timestamp = Helper.timestamp();
@@ -561,7 +577,7 @@ var foursquareCron = new Cron({
 											Analytics.foursquare.tracking.photos.meta.push({
 												timestamp: Helper.timestamp(),
 												total: photosCount,
-												new: photosCount - Analytics.foursquare.tracking.photos.total
+												//new: photosCount - Analytics.foursquare.tracking.photos.total
 											})
 											Analytics.foursquare.tracking.photos.total = photosCount;
 											Analytics.foursquare.tracking.photos.timestamp = Helper.timestamp();
@@ -574,8 +590,10 @@ var foursquareCron = new Cron({
 									}
 
 									if(update) {
-										Analytics.save(function(err,response){});
-console.log('saved updated tracking...');
+										Analytics.save(function(err, res){
+											if(err) console.log(err);
+console.log('saved updated tracking...');									
+										});
 									}
 
 								});
@@ -590,6 +608,106 @@ console.log('saved updated tracking...');
 
 	start: false
 });
+
+
+
+
+
+var yelpCron = new Cron({
+	cronTime: '0 */15 * * * *',
+	onTick: function() {
+
+		//console.log('You will see this message every hour');
+		Model.User.find(function(err, users) {
+			users.forEach(function(user) {
+
+				user.Business.forEach(function(business, indx) {
+
+					var y = business.Social.yelp;
+					if (typeof y.id !== 'undefined' && y.id != '' && y.id) {
+
+							Model.Analytics.findOne({id: business.Analytics.id}, function(err, Analytics) {
+
+			 					yelp = Auth.load('yelp');
+			 					yelp.business(y.id, function(err, response) {
+			 						if(err) console.log(err);
+
+			 							cached = Analytics.yelp.update.changes;
+
+										if(response.id != cached.id || response.name != cached.name || response.is_claimed != cached.is_claimed || response.is_closed != cached.is_closed || response.image_url != cached.image_url || response.url != cached.url || response.phone != cached.phone || response.snippet != cached.snippet || response.location.address != cached.location.address || response.location.city != cached.location.city || response.location.state != cached.location.state || response.location.postal != cached.location.postal) {
+											update = true;
+											Analytics.yelp.update = {
+												timestamp: Helper.timestamp(),
+												changes: {
+													id: (response.id != cached.id) ? response.id : null,
+													name: (response.name != cached.name) ? response.name : null,
+													is_claimed: (response.is_claimed != cached.is_claimed) ? response.is_claimed : null,
+													is_closed: (response.is_closed != cached.is_closed) ? response.is_closed : null,
+													image_url: (response.image_url != cached.image_url) ? response.image_url : null,
+													url: (response.url != cached.url) ? response.url : null,
+													phone: (response.phone != cached.phone) ? response.phone : null,
+													snippet: (response.snippet != cached.snippet) ? response.snippet : null,
+													location: {
+														address: (response.location.address != cached.location.address) ? response.location.address : null,
+														city: (response.location.city != cached.location.city) ? response.location.city : null,
+														state: (response.location.state != cached.location.state) ? response.location.state : null,
+														postal: (response.location.postal != cached.location.) ? response.location.postal : null
+													}
+												}
+											}
+
+											user.Business[indx].Social.yelp.business = response;
+											user.save(function(err) {console.log(err)});
+										}
+
+										if(response.reviews_count != Analytics.yelp.tracking.reviews.total) {
+											update = true;
+											Analytics.yelp.tracking.reviews.meta.push({
+												timestamp: Helper.timestamp(),
+												total: parseInt(response.reviews_count, 10),
+												data: response.reviews
+											})
+											Analytics.foursquare.tracking.reviews.total = parseInt(response.reviews_count, 10);
+											Analytics.foursquare.tracking.reviews.timestamp = Helper.timestamp();
+										}
+
+										if(response.rating != Analytics.yelp.tracking.ratings.total) {
+											update = true;
+											Analytics.yelp.tracking.ratings.meta.push({
+												timestamp: Helper.timestamp(),
+												rating: parseInt(response.rating, 10),
+												data: {
+													image: {
+														small: response.rating_img_url_small,
+														medium: response.rating_img_url,
+														large: response.rating_img_url_large,
+													}
+												}
+											})
+											Analytics.foursquare.tracking.ratings.rating = parseInt(response.rating, 10);
+											Analytics.foursquare.tracking.ratings.timestamp = Helper.timestamp();
+										}
+
+										if(update) {
+											Analytics.save(function(err, res){
+												if(err) console.log(err);
+console.log('saved updated tracking...');									
+											});
+										}
+
+			 					});
+
+							}); // end Analytics model
+					} // End of foursquare credentials if statement
+
+				});
+			});
+		});
+	},
+
+	start: false
+});
+
 
 
 

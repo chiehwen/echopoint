@@ -74,11 +74,12 @@ var UserModel = {
           yelp: {
             id: {type: String},
             auth: {
+              consumerKey: {type: String},
+              consumerSecret: {type: String},
               oauthAccessToken: {type: String},
-              oauthAccessTokenSecret: {type: String},
-              expires: {type: Number},
-              created: {type: Number}
-            }
+              oauthAccessTokenSecret: {type: String}
+            },
+            business: {}
           },
           foursquare: {
             id: {type: String},
