@@ -253,9 +253,21 @@ var SocialController = {
 			 				});
 												
 						} else if(typeof f.venue.id !== 'undefined' && f.venue.id != '' && typeof req.query.select === 'undefined') {
-							foursquare.get(('venues/' + f.venue.id), {v: foursquare.client.verified}, function(err, response) {
+							//foursquare.get(('venues/' + f.venue.id), {v: foursquare.client.verified}, function(err, response) {
+	 						//foursquare.get(('multi?requests=' + encodeURIComponent('/venues/' + f.venue.id + '/herenow,/venues/' + f.venue.id + '/hours,/venues/' + f.venue.id + '/likes,/venues/' + f.venue.id + '/stats')), {v: foursquare.client.verified}, function(err, response) {
+	 												var multi =		'/venues/' + f.venue.id +
+													',/venues/' + f.venue.id + '/stats' +
+													',/venues/' + f.venue.id + '/likes' +
+													',/venues/' + f.venue.id + '/tips?limit=25' +
+													',/venues/' + f.venue.id + '/photos?group=checkin&limit=20',
+								params = {
+									v: foursquare.client.verified,
+									requests: multi
+								}
+
+						foursquare.post('multi', params, function(err, response) {
 	 							if(err || response.meta.code != 200) 
-									res.redirect('/social/foursquare?login=true');
+									console.log(response.meta.code);//res.redirect('/social/foursquare?login=true');
 
 								res.render(
 			 						'social/foursquare', 

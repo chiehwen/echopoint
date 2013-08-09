@@ -27,12 +27,12 @@ Model.Analytics.find(function(err, analytic) {
 	analytic.forEach(function(user) {
 		//console.log(user);
 
-		//console.log(user.twitter.tracking.mentions.length);
+		console.log(user.foursquare.tracking);
 	});
 });
 
 Model.User.findOne({email: "123"}, function(err, user) {
-	console.log(user);
+//	console.log(user);
 //	console.log(user.Social.facebook.analytics.updates[0]);
 //	console.log(user.Social.facebook.analytics.tracking[21]);
 //	console.log(user.Social.twitter.analytics.updates[0]);
@@ -65,9 +65,5 @@ Model.User.findOne({email: "123"}, function(err, user) {
 //Cron.start();
 
 	// !!!!!
-
-
-
-
 
 // END TEMP
