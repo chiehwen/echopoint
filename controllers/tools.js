@@ -4,21 +4,18 @@
 
 var crypto = require('crypto'),
 	Auth = require('../server/auth').getInstance(),
+	Helper = require('../server/helpers'),
 	Model = Model || Object;
 
 var ToolsController = {
 
  	bitly: {
  		get: function(req, res, next) {
-
- 			if(req.session.passport.user) {
- 				var id = req.session.passport.user;
-
- 				Model.User.findById(id, function(err, user) {
- 					if (err) return next(err);
+			Helper.getUser(req.session.passport.user, function(err, user) {
+ 					if (err || !user) return next(err);
 
  					// process bitly
- 					var b = user.Tools.bitly;
+ 					var b = user.Business[req.session.Business.index].Tools.bitly;
  					if(req.session.bitlyConnected && req.session.bitly.oauthAccessToken && !req.query.login) {
 
 //Auth.checkFacebook(function(err, response) {
@@ -43,18 +40,18 @@ data: bitlyData
 
  					} else if(
  						!req.query.login
-						&& typeof b.oauthAccessToken !== 'undefined'
-						&& typeof b.login !== 'undefined'
-						&& b.oauthAccessToken != ''
-						&& b.login != ''
-						&& b.oauthAccessToken
-						&& b.login
+						&& typeof b.auth.oauthAccessToken !== 'undefined'
+						&& typeof b.auth.login !== 'undefined'
+						&& b.auth.oauthAccessToken != ''
+						&& b.auth.login != ''
+						&& b.auth.oauthAccessToken
+						&& b.auth.login
 					) {
  						var bitly = Auth.load('bitly');
-						bitly.setAccessToken(b.oauthAccessToken);
+						bitly.setAccessToken(b.auth.oauthAccessToken);
 						req.session.bitly = {
-							oauthAccessToken: b.oauthAccessToken,
-							login: b.login
+							oauthAccessToken: b.auth.oauthAccessToken,
+							login: b.auth.login
 						}
 						req.session.bitlyConnected = true;
 						res.redirect('/tools/bitly');
@@ -73,8 +70,8 @@ data: bitlyData
 				 		);
 
 					} // end bitly processing
- 				});
- 			}
+ 			});
+ 			
  		}
  	},
 }

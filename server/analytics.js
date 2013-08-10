@@ -614,7 +614,7 @@ console.log('saved updated tracking...');
 
 
 var yelpCron = new Cron({
-	cronTime: '0 */15 * * * *',
+	cronTime: '0 * * * * *',
 	onTick: function() {
 
 		//console.log('You will see this message every hour');
@@ -632,9 +632,10 @@ var yelpCron = new Cron({
 			 					yelp.business(y.id, function(err, response) {
 			 						if(err) console.log(err);
 
-			 							cached = Analytics.yelp.update.changes;
+			 							var cached = Analytics.yelp.update.changes,
+			 									update = false;
 
-										if(response.id != cached.id || response.name != cached.name || response.is_claimed != cached.is_claimed || response.is_closed != cached.is_closed || response.image_url != cached.image_url || response.url != cached.url || response.phone != cached.phone || response.snippet != cached.snippet || response.location.address != cached.location.address || response.location.city != cached.location.city || response.location.state != cached.location.state || response.location.postal != cached.location.postal) {
+										if(response.id != cached.id || response.name != cached.name || response.is_claimed != cached.is_claimed || response.is_closed != cached.is_closed || response.image_url != cached.image_url || response.url != cached.url || response.phone != cached.phone || response.snippet_text != cached.snippet || response.location.address != cached.location.address || response.location.city != cached.location.city || response.location.state_code != cached.location.state || response.location.postal_code != cached.location.postal) {
 											update = true;
 											Analytics.yelp.update = {
 												timestamp: Helper.timestamp(),
@@ -646,12 +647,12 @@ var yelpCron = new Cron({
 													image_url: (response.image_url != cached.image_url) ? response.image_url : null,
 													url: (response.url != cached.url) ? response.url : null,
 													phone: (response.phone != cached.phone) ? response.phone : null,
-													snippet: (response.snippet != cached.snippet) ? response.snippet : null,
+													snippet: (response.snippet_text != cached.snippet) ? response.snippet_text : null,
 													location: {
 														address: (response.location.address != cached.location.address) ? response.location.address : null,
 														city: (response.location.city != cached.location.city) ? response.location.city : null,
-														state: (response.location.state != cached.location.state) ? response.location.state : null,
-														postal: (response.location.postal != cached.location.) ? response.location.postal : null
+														state: (response.location.state_code != cached.location.state) ? response.location.state_code : null,
+														postal: (response.location.postal_code != cached.location.postal) ? response.location.postal_code : null
 													}
 												}
 											}
@@ -660,22 +661,22 @@ var yelpCron = new Cron({
 											user.save(function(err) {console.log(err)});
 										}
 
-										if(response.reviews_count != Analytics.yelp.tracking.reviews.total) {
+										if(response.review_count != Analytics.yelp.tracking.reviews.total) {
 											update = true;
 											Analytics.yelp.tracking.reviews.meta.push({
 												timestamp: Helper.timestamp(),
-												total: parseInt(response.reviews_count, 10),
+												total: parseInt(response.review_count, 10),
 												data: response.reviews
 											})
-											Analytics.foursquare.tracking.reviews.total = parseInt(response.reviews_count, 10);
-											Analytics.foursquare.tracking.reviews.timestamp = Helper.timestamp();
+											Analytics.yelp.tracking.reviews.total = parseInt(response.review_count, 10);
+											Analytics.yelp.tracking.reviews.timestamp = Helper.timestamp();
 										}
 
-										if(response.rating != Analytics.yelp.tracking.ratings.total) {
+										if(response.rating != Analytics.yelp.tracking.ratings.rating) {
 											update = true;
 											Analytics.yelp.tracking.ratings.meta.push({
 												timestamp: Helper.timestamp(),
-												rating: parseInt(response.rating, 10),
+												rating: parseFloat(response.rating),
 												data: {
 													image: {
 														small: response.rating_img_url_small,
@@ -684,13 +685,15 @@ var yelpCron = new Cron({
 													}
 												}
 											})
-											Analytics.foursquare.tracking.ratings.rating = parseInt(response.rating, 10);
-											Analytics.foursquare.tracking.ratings.timestamp = Helper.timestamp();
+											Analytics.yelp.tracking.ratings.rating = parseFloat(response.rating);
+											Analytics.yelp.tracking.ratings.timestamp = Helper.timestamp();
 										}
 
 										if(update) {
+//console.log(Analytics.yelp.update);	
+//console.log(Analytics.yelp.tracking);	
 											Analytics.save(function(err, res){
-												if(err) console.log(err);
+												if(err) console.log('error: ', err);
 console.log('saved updated tracking...');									
 											});
 										}
@@ -698,7 +701,7 @@ console.log('saved updated tracking...');
 			 					});
 
 							}); // end Analytics model
-					} // End of foursquare credentials if statement
+					} // End of Yelp credentials if statement
 
 				});
 			});
@@ -711,4 +714,4 @@ console.log('saved updated tracking...');
 
 
 
-module.exports = foursquareCron;
+module.exports = yelpCron;

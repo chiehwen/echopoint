@@ -239,55 +239,50 @@ var OauthController = {
 
  	bitly: {
 		get: function(req, res) {
-			if(req.session.passport.user) {
-				var id = req.session.passport.user;
+			Helper.getUser(req.session.passport.user, function(err, user) {
+ 				if (err || !user) return next(err);
 
-				Model.User.findById(id, function(err, user) {
-					if (err) return next(err);
+				if(req.session.bitlyState && req.session.bitlyState == req.query.state) {
 
-					if(req.session.bitlyState && req.session.bitlyState == req.query.state) {
+					if(req.query.error) {
+						// user might have disallowed the app
+						res.send('login-error ' + req.query.error_description);
+					} else if(!req.query.code) {
+						res.redirect('/tools/bitly');
+					}
 
-						if(req.query.error) {
-							// user might have disallowed the app
-							res.send('login-error ' + req.query.error_description);
-						} else if(!req.query.code) {
-							res.redirect('/tools/bitly');
+					bitly = Auth.load('bitly');
+
+					bitly.authorize('post', "https://api-ssl.bitly.com/oauth/access_token?", {
+						client_id: bitly.client.id,
+						client_secret: bitly.client.secret,
+						redirect_uri: bitly.client.redirect,
+						code: req.query.code,
+						state: req.query.state
+					}, function(err, result) {
+						if(err) res.redirect('/tools/bitly');
+
+						var credentials = {
+							oauthAccessToken: result.access_token,
+							login: result.login,
+							created: Helper.timestamp()
 						}
 
-						bitly = Auth.load('bitly');
+						req.session.bitly = credentials;
 
-						bitly.authorize('post', "https://api-ssl.bitly.com/oauth/access_token?", {
-							client_id: bitly.client.id,
-							client_secret: bitly.client.secret,
-							redirect_uri: bitly.client.redirect,
-							code: req.query.code,
-							state: req.query.state
-						}, function(err, result) {
-							if(err) res.redirect('/tools/bitly');
-
-							var credentials = {
-								oauthAccessToken: result.access_token,
-								login: result.login,
-								created: Helper.timestamp()
-							}
-
-							req.session.bitly = credentials;
-
-							// Put Access token into the database
-							user.Business[req.session.Business.index].Tools.bitly.auth = credentials;
-							user.save(function(err) {
-								req.session.messages.push(err);
-							});
-
-							req.session.bitlyConnected = true;
-							req.session.messages.push(result);
-							res.redirect('/tools/bitly');
-							
-							
+						// Put Access token into the database
+						user.Business[req.session.Business.index].Tools.bitly.auth = credentials;
+						user.save(function(err) {
+							req.session.messages.push(err);
 						});
-					}
-				});
-			}
+
+						req.session.bitlyConnected = true;
+						req.session.messages.push(result);
+						res.redirect('/tools/bitly');
+		
+					});
+				}
+			});
 		}
  	},
 }

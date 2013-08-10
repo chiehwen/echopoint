@@ -27,7 +27,7 @@ Model.Analytics.find(function(err, analytic) {
 	analytic.forEach(function(user) {
 		//console.log(user);
 
-		//console.log(user.foursquare.tracking);
+		//console.log(user.yelp.update);
 	});
 });
 

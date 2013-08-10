@@ -273,7 +273,7 @@
               reviews: {
                 meta: [{
                   timestamp: {type: Number},
-                  total: {type: Number}:
+                  total: {type: Number},
                   data: {}
                 }],
                 total: {type: Number},

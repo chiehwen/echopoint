@@ -4,6 +4,7 @@
 
 var crypto = require('crypto'),
 		oauth = require('oauth'),
+		url = require('url'),
 		Auth = require('../server/auth').getInstance(),
 		Helper = require('../server/helpers'),
 		Model = Model || Object;
@@ -336,15 +337,29 @@ var SocialController = {
  					if (err || !user) return next(err);
 
  					var y = user.Business[req.session.Business.index].Social.yelp;
- 					if (typeof req.query.id !== 'undefined') {
-						user.Business[req.session.Business.index].Social.yelp = {
-							id: req.query.id
-						}
+ 					if (typeof req.query.url !== 'undefined') {
 
-						user.save(function(err) {
-							req.session.messages.push(err);
-						});
-						res.redirect('/social/yelp');
+ 						var page = decodeURIComponent(req.query.url);
+
+ 						if (page.indexOf('yelp.com/') != -1) {
+ 							if (page.indexOf('http://') != -1 || page.indexOf('https://') != -1)
+ 								page = 'http://' + page;
+
+ 							var path = url.parse(page).pathname;
+
+							user.Business[req.session.Business.index].Social.yelp = {
+								id: path.substring(path.lastIndexOf('/'))
+							}
+
+							user.save(function(err) {
+								req.session.messages.push(err);
+							});
+							res.redirect('/social/yelp');	
+ 						} else {
+ 							// not a proper yelp url
+ 							req.session.messages.push('invalid url');
+ 							res.redirect('/social/yelp?setup=true');
+ 						}
 
  					} else if (typeof y.id !== 'undefined' && y.id != '' && y.id && typeof req.query.setup === 'undefined')	{
  					
