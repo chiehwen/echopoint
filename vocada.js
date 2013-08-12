@@ -27,7 +27,7 @@ Model.Analytics.find(function(err, analytic) {
 	analytic.forEach(function(user) {
 		//console.log(user);
 
-		//console.log(user.yelp.update);
+		//console.log(user.facebook.tracking);
 	});
 });
 
@@ -59,11 +59,11 @@ Model.User.findOne({email: "123"}, function(err, user) {
 
 
 
-	var Cron = require('./server/analytics');
+	var Cron = require('./server/cron');
 	// !!!! IMPORTANT: BELOW IS THE TOGGLE FOR 
 	// !!!! CRON TESTING !!!
 	
-Cron.start();
+//Cron.facebook.start();
 
 	// !!!!!
 

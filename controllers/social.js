@@ -28,6 +28,7 @@ var SocialController = {
 
 			 				facebook.get('me', {fields: 'id,accounts.fields(name,picture.type(square),access_token,about,id,website,likes,perms,category_list,category)'}, function(err, response) {
 			 					if(err) res.redirect('/social/facebook?login=true');
+			 					
 			 					if(f.id === 'undefined' || f.id == 0)
 			 						user.Business[indx].Social.facebook.id = response.id;
 
@@ -59,6 +60,8 @@ var SocialController = {
 
 								if(err || typeof response.error !== 'undefined') 
 									res.redirect('/social/facebook?login=true');
+
+//								Analytics.getGraphData('facebook', 'days', 30);
 
 								res.render(
 									'social/facebook', 

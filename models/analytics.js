@@ -10,46 +10,86 @@
       name: { type: String, required: true},
 
       facebook: {
-            updates: [{
-              timestamp: {type: Number}, // this is time of last check used with the .since parameter of facebook graph
-              posts: {}
-            }],
-            tracking: [{
-              id: {type: String},
-              //type: {type: String},
-              timestamp: {type: Number},
-              likes: {
-                meta: [{
-                  timestamp: {type: Number},
-                  new: {type: Number},
-                }],
-                //timestamp: {type: Number},
-                total: {type: Number},
-                data: {}
-              },
-              comments: {
-                meta: [{
-                  timestamp: {type: Number},
-                  new: {type: Number},
-                }],
-                //timestamp: {type: Number},
-                total: {type: Number},
-                data: {}
-              },
-              shares: {
-                meta: [{
-                  timestamp: {type: Number},
-                  new: {type: Number},
-                }],
-                //timestamp: {type: Number},
-                total: {type: Number}
-              }
-            }],
-          notifications: {
-            count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
-            timestamp: {type: Number, default: 0} // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID 
-          }
+        updates: {
+          timestamp: {type: Number}, // this is time of last check used with the .since parameter of facebook graph
+          changes: {}
         },
+        tracking: {
+          likes: {
+            meta: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+            }],
+            total: {type: Number},
+            timestamp: {type: Number}
+          },
+          talking: {
+            meta: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+            }],
+            total: {type: Number},
+            timestamp: {type: Number}
+          },
+          checkins: {
+            meta: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+            }],
+            total: {type: Number},
+            timestamp: {type: Number}
+          },
+          were_here: {
+            meta: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+            }],
+            total: {type: Number},
+            timestamp: {type: Number}
+          },
+
+          posts: [{
+            id: {type: String},
+            //type: {type: String},
+            timestamp: {type: Number},
+            data: {},
+
+            likes: {
+              meta: [{
+                timestamp: {type: Number},
+                total: {type: Number},
+                //new: {type: Number},
+              }],
+              timestamp: {type: Number},
+              total: {type: Number},
+              data: {}
+            },
+            comments: {
+              meta: [{
+                timestamp: {type: Number},
+                total: {type: Number},
+                //new: {type: Number},
+              }],
+              timestamp: {type: Number},
+              total: {type: Number},
+              data: {}
+            },
+            shares: {
+              meta: [{
+                timestamp: {type: Number},
+                total: {type: Number}
+                //new: {type: Number},
+              }],
+              timestamp: {type: Number},
+              total: {type: Number}
+            }
+          }]
+        },
+        notifications: {
+          count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+          timestamp: {type: Number, default: 0} // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID 
+        }
+      },
 
 
       twitter: {
