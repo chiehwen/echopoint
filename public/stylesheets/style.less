@@ -46,6 +46,14 @@ li {
 	clear: both;
 }
 
+.clear-left {
+	clear: left;
+}
+
+.clear-right {
+	clear: right;
+}
+
 .show {
 	display: block;
 }
@@ -104,7 +112,8 @@ li {
 	padding: 0;
 }
 
-#login-form-container fieldset {
+#login-form-container fieldset,
+.data-container > div {
 	margin: 0 auto;
 	padding: 20px 16px 0 16px;
 	width: 320px;
@@ -294,7 +303,8 @@ li {
 }
 
 #open-popup-menu a,
-#user-navigation > div > a {
+#user-navigation > div > a,
+.data-container h2 > a  {
 	display: inline-block;
 	background: @current-blue; //#333;
 	padding: 7px 10px;
@@ -331,7 +341,7 @@ li {
 	left: -7px;
 	top: -5px;
 	position: absolute;
-	color: red;	
+	color: #DC6F52;	
 }
 
 #user-menu > a i {
@@ -369,6 +379,7 @@ li {
 
 .dropdown-menu li a {
 	font-size: 11px;
+	letter-spacing: 1px;
 	-moz-transition: all 0.2s ease-out 0s;
 	-webkit-transition: all 0.2s ease-out 0s;
 	transition: all 0.2s ease-out 0s;
@@ -383,7 +394,7 @@ li {
 	margin-right: 10px;
 }
 
-.dropdown-menu li.sign-out {
+li.top-divider {
 	padding-top: 5px;
 	margin-top: 4px;
 	border-top:1px solid #e5e5e5;
@@ -812,6 +823,140 @@ li {
 	line-height: 20px;
 	float: left;
 	color: #444;	
+}
+
+.data-wrapper {
+	width: 100%;
+	max-width: 960px;
+	margin: 0 auto;
+}
+
+.data-container {
+	width: 480px;
+	margin: 0 auto 28px;
+	float: left;
+}
+
+.data-container.large {
+	width: 960px;
+}
+
+.data-container h2 {
+	color: #FFF;
+	background: #546f8e;
+	margin: -20px 0 12px -16px;
+	padding: 4px 10px;
+	width: 423px;
+	font-size: 24px;
+	font-weight: normal;
+	letter-spacing: 2px;
+	position: relative;
+}
+
+.data-container.large h2 {
+	width: 902px;
+}
+.data-container h2 span {
+	font-size: 11px;
+}
+
+.data-container h2 > i {
+	line-height: 26px;
+	font-size: 20px;
+}
+
+.data-container h2 > a {
+	margin-top: 3px;
+	height: 22px;
+	line-height: 17px;
+	padding: 0px 3px 0 5px;
+	background: #444;
+	float: right;
+}
+
+.data-container h2 > a i {
+	line-height: 14px;
+	font-size: 14px;
+} 
+
+.data-container > div {
+	width: 410px;
+	padding-bottom: 12px;
+	moz-box-shadow: none;
+	-webkit-box-shadow: none;
+	box-shadow: none;
+	border: 1px solid #BBB;
+}
+
+.data-container.large > div {
+	width: 890px;
+}
+
+#wall-post-chart {
+	width: 410px;
+	height: 180px;
+}
+
+.daily-tip p {
+	font-size: 14px;
+	font-weight: bold;
+	line-height: 19px;
+	letter-spacing: 1px;
+}
+
+.daily-tip h2 i {
+	float: right;
+	cursor: pointer;
+	cursor: hand;
+}
+
+.page-notifications-list li {
+	font-size: 14px;
+	line-height: 24px;
+}
+
+.page-notifications-list li i {
+	margin-right: 10px;
+}
+
+.stats li {
+	font-size: 18px;
+	line-height: 26px;
+	margin-bottom: 5px;
+}
+
+.stats .green {
+	color: #5A7747;
+}
+
+.stats .red {
+	color: #DC6F52;
+}
+
+.stats .unchanged {
+	font-size: 10px;
+	color: #666;
+}
+
+.data-container.users-list div > ul li {
+	height: 38px;
+}
+
+.data-container.users-list div > ul li a {
+	font-size: 14px;
+	font-weight: bold;
+	color: #333;
+	width: 100%;
+	padding: 3px 2px;
+	float: left;
+}
+
+.data-container.users-list div > ul li a:hover {
+	background: #EEE;
+}
+
+.data-container.users-list div > ul li a img {
+	margin-right: 8px;
 }
 
 // Media width overrides for responsive layout

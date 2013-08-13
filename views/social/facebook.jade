@@ -29,8 +29,131 @@ block content
 							h1 It appears you have no Facebook Business account pages
 							p Please choose a guide below to help you get started 
 					- } else {
-						div
-							!{JSON.stringify(locals.facebook.data)}
+						div.data-wrapper
+							div(class='data-container large daily-tip')
+								div
+									h2 daily tip
+										i.icon-remove-sign
+									p Use the provided statistics below and your <a href='#'>Facebook Insights</a> page to determine your most successful post times. Posting when your users are most active can greatly increase the number of eyes that see your message!
+							div.data-container
+								div
+									h2 <i class='icon-globe'></i> notifications
+										a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+											i.icon-cog
+										ul(class='dropdown-menu hide')
+											li: a(href='#')
+												i.icon-wrench
+												span manage notifications
+									ul.page-notifications-list
+										li 
+											i.icon-check
+											span you have added <b>2</b> new posts to your wall
+										li 
+											i.icon-check
+											span you have <b>1</b> new wall post from another user!
+										li 
+											i.icon-check
+											span <b>22</b> new page likes
+										li 
+											i.icon-check
+											span <b>3</b> new comments
+										li 
+											i.icon-check
+											span <b>2</b> new shares 
+										li 
+											i.icon-check
+											span you have a <b>new top commenter</b>!
+										li 
+											i.icon-check
+											span you have a <b>new top liking user</b>!
+										li 
+											i.icon-check
+											span you have a <b>new top sharing user</b>!
+										li 
+											i.icon-check
+											span you have updated your business information
+							div(class='data-container stats-data')
+								div
+									h2 quick stats
+										a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+											i.icon-cog
+										ul(class='dropdown-menu hide')
+											li: a(href='#')
+												i.icon-wrench
+												span manage quick stats
+									//-!{JSON.stringify(locals.facebook.data)}
+									ul.stats
+										li wall posts this month: 
+											b 14 
+												span.green [+11%]
+										li total page likes: 
+											b 3576 
+												span.green [+2%]
+										li page visitors this month: 
+											b 325 
+												span.red [-4%]
+										li page visitors this month: 
+											b 86 
+												span.green [+14%]
+										li total checkins: <b>2</b> <span class='unchanged'>[no change]</span> 
+							div(class='data-container clear-left')
+								div
+									h2 wall posts 
+										span [15 days]
+										a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+											i.icon-cog
+										ul(class='dropdown-menu hide')
+											li: a(href='#')
+												i.icon-wrench
+												span display 30 days
+											li: a(href='#')
+												i.icon-wrench
+												span display 90 days
+											li.top-divider: a(href='#')
+												i.icon-wrench
+												span larger graph
+									div#wall-posts-chart
+							div.data-container
+								div
+									h2 page likes 
+										span [90 days]
+										a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+											i.icon-cog
+										ul(class='dropdown-menu hide')
+											li: a(href='#')
+												i.icon-wrench
+												span display 30 days
+											li: a(href='#')
+												i.icon-wrench
+												span display 60 days
+											li.top-divider: a(href='#')
+												i.icon-wrench
+												span show individual likes per day
+											li.top-divider: a(href='#')
+												i.icon-wrench
+												span larger graph
+									div#page-likes-chart
+							div(class='data-container users-list')
+								div
+									h2 top 5 active users on your wall 
+										a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+											i.icon-cog
+										ul(class='dropdown-menu hide')
+											li: a(href='#')
+												i.icon-wrench
+												span display top liking users
+											li: a(href='#')
+												i.icon-wrench
+												span display top sharing users
+											li: a(href='#')
+												i.icon-wrench
+												span display top commenting users
+									ul
+										li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-ash2/c9.5.57.57/s32x32/228973_10200937536347296_820313631_t.jpg' /> Andy Gonzalez
+										li: a(href='#') <img src='https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c5.5.65.65/s32x32/995037_10201379987161566_1563880293_t.jpg' /> Stephanie Bogus
+										li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-prn1/c7.5.62.62/s32x32/31458_10200424974740320_1404269548_t.jpg' /> Brad Bogus
+										li: a(href='#') <img src='https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c0.10.66.66/s32x32/936958_522530857784897_905958233_t.jpg' /> Rob Contreras
+										li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-ash3/c2.1.65.65/s32x32/563015_10201152918479075_1124709741_t.jpg' /> Elijah May
 					- }
 			- } else {
 				div.social-login
@@ -46,4 +169,3 @@ block content
 				div.help-box
 					a(href="#") "I'm not the admin of my Facebook page!" No worries click here to see a guide of having a current admin grant you access. 
 			- }
-
