@@ -886,6 +886,16 @@ li.top-divider {
   font-size: 14px;
   line-height: 26px;
 }
+i.google-places-icon {
+  margin: 2px 0 0 30px;
+  height: 39px;
+  width: 39px;
+  float: left;
+  background: url(../images/google-places-icon-sprite.png);
+}
+.icon:hover i.google-places-icon {
+  background-position: -39px 0;
+}
 /* Large desktop */
 @media (min-width: 1200px) {
   
