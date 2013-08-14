@@ -31,7 +31,7 @@ var OauthController = {
 							redirect_uri: facebook.client.redirect,
 							code: req.query.code
 						}, function(err, result) {
-							if(err) res.send('login-error 2: ' + req.query.error_description); //res.redirect('/social/facebook');
+							if(err || !result.access_token) res.send('login-error 2: ' + req.query.error_description); //res.redirect('/social/facebook');
 
 							facebook.authorize('get', "/oauth/access_token", {
 								client_id: facebook.client.id,

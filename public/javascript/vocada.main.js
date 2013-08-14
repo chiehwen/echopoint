@@ -17,6 +17,22 @@ $(document).ready(function() {
 		$(this).parents('.daily-tip').addClass('hide');
 	});
 
+	// lets setup our draggable data boxes
+	var container = document.querySelector('.data-wrapper');
+  var pckry = new Packery( container, {
+    columnWidth: 480,
+    rowHeight: 100
+  });
+  var itemElems = pckry.getItemElements();
+  // for each item element
+  for ( var i=0, l = itemElems.length; i < l; i++) {
+    var elem = itemElems[i];
+    // make element draggable with Draggabilly
+    var drag = new Draggabilly( elem, {handle: '.header'});
+    // bind Draggabilly events to Packery
+    pckry.bindDraggabillyEvents( drag );
+  }
+
 	/*$('.business-select-menu li').on('click', function() {
 		var business = {
 			id: $(this).find('a').attr('id'),

@@ -2,7 +2,7 @@
 @light-blue: #3399cc;
 @dark-blue: #546f8e;
 
-@current-blue: #546f8e;
+@blue: #546f8e;
 
 // social media colors
 @facebook: #3b5998;
@@ -22,6 +22,7 @@
 
 body {
   font: @primary-font;
+  color: #2A2A29;
   background: #F5F5F5;
 }
 
@@ -304,9 +305,10 @@ li {
 
 #open-popup-menu a,
 #user-navigation > div > a,
-.data-container h2 > a  {
+.data-container .header > a,
+.social-footer .page-options > a  {
 	display: inline-block;
-	background: @current-blue; //#333;
+	background: @blue; //#333;
 	padding: 7px 10px;
 	//line-height: 31px;
 	color: #eee;
@@ -323,7 +325,7 @@ li {
 
 #user-navigation > div#notification > a {
 	padding: 6px 9px; // 3px 14px 2px;
-	background: #666;
+	background: #555;//#2A2A29;//#666;
 }
 
 #open-popup-menu a:hover, 
@@ -350,7 +352,7 @@ li {
 }
 
 #top-navigation-bar.blue {
-	background: @current-blue;
+	background: @blue;
 }
 
 #top-navigation-bar.dark {
@@ -386,7 +388,7 @@ li {
 }
 
 .dropdown-menu li a:hover {
-	background: #546f8e;
+	background: @blue;
 	color: #fff;
 }
 
@@ -449,7 +451,7 @@ li.top-divider {
 	height: 100%;
 	float: left;
 	width: 100%;
-	background: @current-blue;
+	background: @blue;
 }
 
 /*
@@ -501,7 +503,7 @@ li.top-divider {
 	font-size: 60px;
 	font-weight: lighter;
 	letter-spacing: 2px;
-	background: @current-blue;
+	background: @blue;
 	color: #fff;
 	margin-top: 0;
 	float: left;
@@ -575,7 +577,7 @@ li.top-divider {
 .icon-mini {
 	width: 37px;
 	height: 37px;
-	background: @current-blue;
+	background: @blue;
 }
 
 .icon-mini i {
@@ -585,7 +587,7 @@ li.top-divider {
 }
 
 .blue {
-	background: @current-blue;
+	background: @blue;
 	color: #eee;
 }
 
@@ -595,44 +597,47 @@ li.top-divider {
 }
 
 .icon.border {
-	border: 3px solid #999;
+	border: 3px solid #d1d1d1;
+	moz-box-shadow: inset 1px 1px 6px rgba(0, 0, 0, 0.3), 1px 1px 0 rgba(255, 255, 255, 0.3);
+	-webkit-box-shadow: inset 1px 1px 6px rgba(0, 0, 0, 0.3), 1px 1px 0 rgba(255, 255, 255, 0.3);
+	box-shadow: inset 1px 1px 6px rgba(0, 0, 0, 0.3), 1px 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .icon.border:hover {
-	border-color: #333;
-	background: @current-blue;
+	border: 3px solid #c1c1c1;
+	//background: @blue;
 }
 
-.icon.app-color.facebook {
+.app-color.facebook {
 	background: @facebook;
 }
 
-.icon.app-color.twitter {
+.app-color.twitter {
 	background: @twitter;
 }
 
-.icon.app-color.yelp {
+.app-color.yelp {
 	background: @yelp;
 }
 
-.icon.app-color.foursquare {
+.app-color.foursquare {
 	background: @foursquare;
 }
 
-.icon.app-color.pinterest {
+.app-color.pinterest {
 	background: @pinterest;
 }
 
-.icon.app-color.instagram {
+.app-color.instagram {
 	background: @instagram;
 }
 
-.icon.app-color.bitly {
+.app-color.bitly {
 	background: @bitly;
 }
 
 .close-navigation-menu {
-	position: absolute;
+	position: fixed;
 	top: 12px;
 	left: 10px;
 	z-index: 9999;
@@ -684,7 +689,7 @@ li.top-divider {
 }
 
 .help-box a:hover {
-	color: @current-blue;	
+	color: @blue;	
 }
 
 /*
@@ -811,7 +816,7 @@ li.top-divider {
 	font-size: 10px;
 	line-height: 20px;
 	font-weight: bold;
-	color: #546f8e;
+	color: @blue;
 	width: 303px;
 	float: left;
 	text-decoration: none;
@@ -833,7 +838,7 @@ li.top-divider {
 
 .data-container {
 	width: 480px;
-	margin: 0 auto 28px;
+	margin: 0 auto 30px;
 	float: left;
 }
 
@@ -841,44 +846,65 @@ li.top-divider {
 	width: 960px;
 }
 
-.data-container h2 {
-	color: #FFF;
-	background: #546f8e;
+.data-container div.header {
+	color: #EEE;
+	background: @blue;
+	height: 28px;
 	margin: -20px 0 12px -16px;
 	padding: 4px 10px;
 	width: 423px;
-	font-size: 24px;
-	font-weight: normal;
 	letter-spacing: 2px;
 	position: relative;
+	cursor: move;
 }
 
-.data-container.large h2 {
+.data-container.large div.header {
 	width: 902px;
 }
+
+.data-container h2 {
+	font-size: 24px;
+	line-height: 26px;
+	font-weight: normal;
+	float: left;
+}
+
+.data-container h2.small {
+	font-size: 18px;
+	line-height: 28px;
+}
+
 .data-container h2 span {
 	font-size: 11px;
 }
 
-.data-container h2 > i {
-	line-height: 26px;
-	font-size: 20px;
-}
-
-.data-container h2 > a {
+.data-container .header > a {
 	margin-top: 3px;
 	height: 22px;
 	line-height: 17px;
-	padding: 0px 3px 0 5px;
+	padding: 0px 0px 0 0px;
 	background: #444;
 	float: right;
+	width: 22px;
+	text-align: center;
+	letter-spacing: 0px;
 }
 
-.data-container h2 > a i {
-	line-height: 14px;
-	font-size: 14px;
-} 
+.data-container .header > a.help {
+	margin-right: 4px;
+}
 
+.data-container .header i {
+	line-height: 22px;
+	font-size: 14px;
+}
+
+.data-container .header h2 i,
+.data-container.daily-tip .header i {
+	line-height: 26px;
+	font-size: 20px;
+}
+ 
 .data-container > div {
 	width: 410px;
 	padding-bottom: 12px;
@@ -904,7 +930,7 @@ li.top-divider {
 	letter-spacing: 1px;
 }
 
-.daily-tip h2 i {
+.daily-tip i {
 	float: right;
 	cursor: pointer;
 	cursor: hand;
@@ -925,11 +951,11 @@ li.top-divider {
 	margin-bottom: 5px;
 }
 
-.stats .green {
+.green {
 	color: #5A7747;
 }
 
-.stats .red {
+.red {
 	color: #DC6F52;
 }
 
@@ -938,11 +964,11 @@ li.top-divider {
 	color: #666;
 }
 
-.data-container.users-list div > ul li {
+.data-container.users-list > div > ul li {
 	height: 38px;
 }
 
-.data-container.users-list div > ul li a {
+.data-container.users-list > div > ul li a {
 	font-size: 14px;
 	font-weight: bold;
 	color: #333;
@@ -951,13 +977,91 @@ li.top-divider {
 	float: left;
 }
 
-.data-container.users-list div > ul li a:hover {
+.data-container.users-list > div > ul li a:hover {
 	background: #EEE;
 }
 
-.data-container.users-list div > ul li a img {
+.data-container.users-list > div > ul li a img {
 	margin-right: 8px;
 }
+
+.load-more-button {
+	clear: both;
+	width: 925px;
+	height: 36px;
+	margin: 5px auto;
+	background: @blue;
+	font-size: 17px;
+	line-height: 36px;
+	text-align: center;
+	letter-spacing: 2px;
+	cursor: pointer;
+	cursor: hand;
+	color: #EEE;
+}
+
+.load-more-button i {
+	font-size: 14px;
+	line-height: 36px;
+	padding-left: 12px;	
+}
+
+/*
+ * current social page footer
+ */
+
+.social-footer {
+	left: 0;
+	bottom: 0;
+	position: fixed;
+	width: 100%;
+	height: 32px;
+	/*background: #e1e1e1;*/
+}
+
+.social-footer .current-page {
+	float: left;
+}
+
+.social-footer .current-page a {
+	float: left;
+	//background: @facebook;
+	height:32px;
+	width: 32px;
+	text-align: center;
+}
+
+.social-footer .current-page a i {
+	color: #fff;
+	line-height: 32px;
+	font-size: 16px;
+}
+
+.social-footer .current-page > span {
+	line-height: 38px;
+	color: #333;
+	font-size: 20px;
+	padding-left: 10px;
+	letter-spacing: 1px;
+}
+
+.social-footer .page-options {
+	float: right;
+}
+
+.social-footer .page-options > a {
+	text-align: center;
+	padding: 0;
+	width: 32px;
+	height: 32px;
+	background: #444;
+}
+
+.social-footer .page-options > a i {
+	font-size: 17px;
+	line-height: 32px;
+}
+
 
 // Media width overrides for responsive layout
 

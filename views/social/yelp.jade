@@ -16,8 +16,92 @@ block content
 					div.submit
 						input(type="submit", value="Submit") 
 			- } else if (locals.yelp.connected && locals.yelp.data) {
-				div
-					!{JSON.stringify(locals.yelp.data)}
+				div.data-wrapper
+					div(class='data-container large daily-tip')
+						div
+							div.header
+								h2 daily tip
+								i.icon-remove-sign
+							p Remember to handle negative tweets about your business with careful grace. One viscious or reckless tweet to a single user could have dire repercussions for your online business reputation
+					div.data-container
+						div
+							div.header
+								h2 <i class='icon-globe'></i> notifications
+								a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+									i.icon-cog
+								ul(class='dropdown-menu hide')
+									li: a(href='#')
+										i.icon-wrench
+										span manage notifications
+									li.top-divider: a(href='#')
+										i.icon-eye-close
+										span hide notifications box
+							ul.page-notifications-list
+								li 
+									i(class='icon-bolt red')
+									span 
+										b you may have feedback with negative sentiment!
+								li 
+									i.icon-check
+									span you have <b>2</b> new reviews
+								li 
+									i.icon-check
+									span your rating has gone up <b>.5 [10%]</b> since your last login
+								
+					div(class='data-container stats-data')
+						div
+							div.header
+								h2 rating and reviews
+								a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+									i.icon-cog
+								ul(class='dropdown-menu hide')
+									li: a(href='#')
+										i.icon-eye-close
+										span hide statistics box
+							ul.stats
+								li current rating: 
+									b 4.5 
+										span.green [+10%]
+								li current number of reviews:
+									b 76 
+										span.green [+2%]
+								//-!{JSON.stringify(locals.yelp.data)}
+
+					div(class='data-container large clear-left')
+						div
+							div.header
+								h2 yelp rating history 
+									span [30 days]
+								a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+									i.icon-cog
+								ul(class='dropdown-menu hide')
+									li: a(href='#')
+										i.icon-calendar
+										span display 60 days
+									li: a(href='#')
+										i.icon-calendar
+										span display 90 days
+									li.top-divider: a(href='#')
+										i.icon-eye-open
+										span larger graph
+									li.top-divider: a(href='#')
+										i.icon-eye-close
+										span hide rating history box
+							div#page-likes-chart
+
+			div.social-footer
+				div.current-page
+					a(href='#', class='app-color yelp'): i.icon-yelp
+					span yelp
+				div.page-options
+					a(href='#', data-toggle='dropdown', class='dropdown-toggle'): i.icon-cog
+					ul(class='dropdown-menu dropup')
+						li: a(href='#')
+							i.icon-wrench
+							span load a new random tip
+						li.top-divider: a(href='#')
+							i.icon-wrench
+							span vocada yelp settings
 			- } else {
 				div.social-login
 					p Please login to Yelp using your claimed business account.

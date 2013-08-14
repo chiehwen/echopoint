@@ -25,8 +25,268 @@ block content
 							h1 It appears you have no Foursquare Business venues
 							p Please choose a guide below to help you get started 
 					- } else {
-						div
-							!{JSON.stringify(locals.foursquare.data)}
+						div.data-wrapper
+							div(class='data-container large daily-tip')
+								div
+									div.header
+										h2 daily tip
+										i.icon-remove-sign
+									p Running Foursquare Deals from your <a href='#'>Foursquare business account</a> page is a great way to get people through your doors and increase your number of checkins. 
+									//- Try to find a subtle way to encourage visitors to share their Foursquare checkins via Twitter and Facebook! 
+							div.data-container
+								div
+									div.header
+										h2 <i class='icon-globe'></i> notifications
+										a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+											i.icon-cog
+										ul(class='dropdown-menu hide')
+											li: a(href='#')
+												i.icon-wrench
+												span manage notifications
+										a(href='#', class='help')
+											i.icon-question
+									ul.page-notifications-list
+										li 
+											i(class='icon-warning-sign red')
+											span
+												b you may have negative user comments!
+										li 
+											i.icon-check
+											span you have had <b>12</b> new total foursquare checkins!
+										li 
+											i.icon-check
+											span <b>8</b> of your total checkins are unique
+										li 
+											i.icon-check
+											span you have a new <b>mayor</b>!
+										li 
+											i.icon-check
+											span you have <b>4</b> new likes
+										li 
+											i.icon-check
+											span you have received <b>1</b> new comment on your Foursquare page
+										li 
+											i.icon-check
+											span <b>2</b> photos have been added to your Foursquare page
+										li 
+											i.icon-check
+											span <b>2</b> new checkin shares via Twitter
+										li 
+											i.icon-check
+											span <b>1</b> new checkin shares via Facebook
+										li 
+											i.icon-check
+											span you have a <b>new top commenter</b>!
+										li 
+											i.icon-check
+											span you have a <b>new top sharing user</b>!
+										li 
+											i.icon-check
+											span you have updated your business information
+							div(class='data-container stats-data')
+								div
+									div.header
+										h2 quick stats
+										a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+											i.icon-cog
+										ul(class='dropdown-menu hide')
+											li: a(href='#')
+												i.icon-wrench
+												span manage quick stats
+									//-!{JSON.stringify(locals.facebook.data)}
+									ul.stats
+										li checkins this month: 
+											b 44 
+												span.green [+11%]
+										li unique checkins this month: 
+											b 16 
+												span.green [+5%]
+										li your mayor has checked in <b>7</b> times since becoming mayor. 
+
+										li checkin Twitter shares this month: 
+											b 6 
+												span.green [+14%]
+										li checkin Facebook shares this month: 
+											b 3 
+												span.green [+1%]
+										li total likes: 
+											b 344 
+												span.green [+1%]
+										li total comments: 
+											b 14 
+												span.green [+4%]
+										li total photo count: 
+											b 7 
+												span.green [+2%]
+							div(class='data-container clear-left')
+								div
+									div.header
+										h2 foursquare checkins 
+											span [15 days]
+										a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+											i.icon-cog
+										ul(class='dropdown-menu hide')
+											li: a(href='#')
+												i.icon-calendar
+												span display 30 days
+											li: a(href='#')
+												i.icon-calendar
+												span display 90 days
+											li.top-divider: a(href='#')
+												i.icon-eye-open
+												span larger graph
+									div#wall-posts-chart
+
+							div(class='data-container users-list')
+								div
+									div.header
+										h2 top 10 visitors 
+										a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+											i.icon-cog
+										ul(class='dropdown-menu hide')
+											li: a(href='#')
+												i.icon-group
+												span display top liking users
+											li: a(href='#')
+												i.icon-group
+												span display top sharing users
+											li: a(href='#')
+												i.icon-group
+												span display top commenting users
+									ul
+										li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-ash2/c9.5.57.57/s32x32/228973_10200937536347296_820313631_t.jpg' /> Andy Gonzalez [22 checkins and current mayor]
+										li: a(href='#') <img src='https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c5.5.65.65/s32x32/995037_10201379987161566_1563880293_t.jpg' /> Stephanie Bogus [16 checkins]
+										li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-prn1/c7.5.62.62/s32x32/31458_10200424974740320_1404269548_t.jpg' /> Brad Bogus
+										li: a(href='#') <img src='https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c0.10.66.66/s32x32/936958_522530857784897_905958233_t.jpg' /> Rob Contreras
+										li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-ash3/c2.1.65.65/s32x32/563015_10201152918479075_1124709741_t.jpg' /> Elijah May
+										li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-ash2/c9.5.57.57/s32x32/228973_10200937536347296_820313631_t.jpg' /> Andy Gonzalez
+										li: a(href='#') <img src='https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c5.5.65.65/s32x32/995037_10201379987161566_1563880293_t.jpg' /> Stephanie Bogus
+										li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-prn1/c7.5.62.62/s32x32/31458_10200424974740320_1404269548_t.jpg' /> Brad Bogus
+										li: a(href='#') <img src='https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c0.10.66.66/s32x32/936958_522530857784897_905958233_t.jpg' /> Rob Contreras
+										li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-ash3/c2.1.65.65/s32x32/563015_10201152918479075_1124709741_t.jpg' /> Elijah May
+							
+							div(class='data-container users-list  clear-left')
+								div
+									div.header
+										h2.small top 10 most recent unique visitors 
+										a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+											i.icon-cog
+										ul(class='dropdown-menu hide')
+											li: a(href='#')
+												i.icon-group
+												span display top liking users
+											li: a(href='#')
+												i.icon-group
+												span display top sharing users
+											li: a(href='#')
+												i.icon-group
+												span display top commenting users
+									ul
+										li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-ash2/c9.5.57.57/s32x32/228973_10200937536347296_820313631_t.jpg' /> Andy Gonzalez
+										li: a(href='#') <img src='https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c5.5.65.65/s32x32/995037_10201379987161566_1563880293_t.jpg' /> Stephanie Bogus
+										li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-prn1/c7.5.62.62/s32x32/31458_10200424974740320_1404269548_t.jpg' /> Brad Bogus
+										li: a(href='#') <img src='https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c0.10.66.66/s32x32/936958_522530857784897_905958233_t.jpg' /> Rob Contreras
+										li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-ash3/c2.1.65.65/s32x32/563015_10201152918479075_1124709741_t.jpg' /> Elijah May
+										li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-ash2/c9.5.57.57/s32x32/228973_10200937536347296_820313631_t.jpg' /> Andy Gonzalez
+										li: a(href='#') <img src='https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c5.5.65.65/s32x32/995037_10201379987161566_1563880293_t.jpg' /> Stephanie Bogus
+										li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-prn1/c7.5.62.62/s32x32/31458_10200424974740320_1404269548_t.jpg' /> Brad Bogus
+										li: a(href='#') <img src='https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c0.10.66.66/s32x32/936958_522530857784897_905958233_t.jpg' /> Rob Contreras
+										li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-ash3/c2.1.65.65/s32x32/563015_10201152918479075_1124709741_t.jpg' /> Elijah May	
+
+							div.data-container
+								div
+									div.header
+										h2 foursquare page likes 
+											span [90 days]
+										a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+											i.icon-cog
+										ul(class='dropdown-menu hide')
+											li: a(href='#')
+												i.icon-calendar
+												span display 30 days
+											li: a(href='#')
+												i.icon-calendar
+												span display 60 days
+											li.top-divider: a(href='#')
+												i.icon-bar-chart
+												span show individual likes per day
+											li.top-divider: a(href='#')
+												i.icon-eye-open
+												span larger graph
+									div#page-likes-chart
+
+							div.data-container
+								div
+									div.header
+										h2.small users talking about your page 
+											span [15 days]
+										a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+											i.icon-cog
+										ul(class='dropdown-menu hide')
+											li: a(href='#')
+												i.icon-calendar
+												span display 30 days
+											li: a(href='#')
+												i.icon-calendar
+												span display 60 days
+											li.top-divider: a(href='#')
+												i.icon-eye-open
+												span larger graph
+									div#talking-about-chart
+
+							div(class='data-container')
+								div
+									div.header
+										h2.small facebook user checkins 
+											span [15 days]
+										a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+											i.icon-cog
+										ul(class='dropdown-menu hide')
+											li: a(href='#')
+												i.icon-calendar
+												span display 30 days
+											li: a(href='#')
+												i.icon-calendar
+												span display 90 days
+											li.top-divider: a(href='#')
+												i.icon-bar-chart
+												span show individual checkins per day
+											li.top-divider: a(href='#')
+												i.icon-eye-open
+												span larger graph
+									div#checkins-graph
+
+
+							div(class='data-container')
+								div
+									div.header
+										h2.small pies 
+											span [shares ratio]
+										a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+											i.icon-cog
+										ul(class='dropdown-menu hide')
+											li: a(href='#')
+												i.icon-bar-chart
+												span display age breakdown of fans
+											li.top-divider: a(href='#')
+												i.icon-eye-open
+												span larger graph
+									div#pie-chart
+
+					div.social-footer
+						div.current-page
+							a(href='#', class='app-color foursquare'): i.icon-foursquare
+							span foursquare
+						div.page-options
+							a(href='#', data-toggle='dropdown', class='dropdown-toggle'): i.icon-cog
+							ul(class='dropdown-menu dropup')
+								li: a(href='#')
+									i.icon-wrench
+									span load a new random tip
+								li.top-divider: a(href='#')
+									i.icon-wrench
+									span vocada foursquare settings
+									//-!{JSON.stringify(locals.foursquare.data)}
 					- }
 			- } else {
 				div.social-login

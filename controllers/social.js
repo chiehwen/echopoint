@@ -28,7 +28,7 @@ var SocialController = {
 
 			 				facebook.get('me', {fields: 'id,accounts.fields(name,picture.type(square),access_token,about,id,website,likes,perms,category_list,category)'}, function(err, response) {
 			 					if(err) res.redirect('/social/facebook?login=true');
-			 					
+
 			 					if(f.id === 'undefined' || f.id == 0)
 			 						user.Business[indx].Social.facebook.id = response.id;
 
@@ -351,7 +351,7 @@ var SocialController = {
  							var path = url.parse(page).pathname;
 
 							user.Business[req.session.Business.index].Social.yelp = {
-								id: path.substring(path.lastIndexOf('/'))
+								id: path.substring(path.lastIndexOf('/') + 1)
 							}
 
 							user.save(function(err) {
