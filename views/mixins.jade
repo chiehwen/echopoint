@@ -55,10 +55,11 @@ mixin topNavigationMenu
 			a
 				i.icon-list
 		div.logo
-			- if (FALSE && typeof location != 'undefined' && location != '') {
-				//-span(class="icon-mini blue facebook")
+			- if (false || (typeof location != 'undefined' && location != '')) {
+				span(class="icon-mini blue facebook")
 					i.icon-facebook
-				a(href="#")= location
+				a(href="#") facebook 
+					//-= location
 			- } else {
 				a(href="/") vocada
 				em 0.0.1

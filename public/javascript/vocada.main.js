@@ -13,25 +13,27 @@ $(document).ready(function() {
 	$('.dropdown-toggle').dropdown();
 
 	// Remove daily tip
-	$('.daily-tip i.icon-remove-sign').on('click', function() {
+	$('.daily-tip .header a').on('click', function() {
 		$(this).parents('.daily-tip').addClass('hide');
 	});
 
 	// lets setup our draggable data boxes
-	var container = document.querySelector('.data-wrapper');
-  var pckry = new Packery( container, {
-    columnWidth: 480,
-    rowHeight: 100
-  });
-  var itemElems = pckry.getItemElements();
-  // for each item element
-  for ( var i=0, l = itemElems.length; i < l; i++) {
-    var elem = itemElems[i];
-    // make element draggable with Draggabilly
-    var drag = new Draggabilly( elem, {handle: '.header'});
-    // bind Draggabilly events to Packery
-    pckry.bindDraggabillyEvents( drag );
-  }
+	if($('.sortable-containers').length !== 0) {
+	 	setTimeout(function() {
+		 	var packery = new Packery( document.querySelector('.sortable-containers'), {
+		    columnWidth: 480,
+		    rowHeight: 495
+		  });
+		  var elements = packery.getItemElements();
+		  // for each item element
+		  for ( var i=0, l = elements.length; i < l; i++) {
+		    // make element draggable with Draggabilly
+		    //var drag = new Draggabilly( elements[i], {handle: '.header'});
+		    // bind Draggabilly events to Packery
+		    packery.bindDraggabillyEvents( new Draggabilly( elements[i], {handle: '.header'}) );
+		  }
+		}, 1000);
+	}
 
 	/*$('.business-select-menu li').on('click', function() {
 		var business = {
