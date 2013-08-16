@@ -187,7 +187,7 @@ li {
 /*
 * content
 */
-.content {
+#main > .content {
   padding: 24px 0;
 }
 /*
@@ -685,7 +685,10 @@ li.top-divider {
   margin: 0 auto 30px;
   float: left;
 }
-.sortable-containers .data-container {
+.sortables {
+  clear: both;
+}
+.sortables .data-container {
   height: 465px;
 }
 .data-container.large {
@@ -700,7 +703,7 @@ li.top-divider {
   letter-spacing: 2px;
   position: relative;
 }
-.sortable-containers .data-container div.header {
+.sortables .data-container div.header {
   cursor: move;
 }
 .data-container.large div.header {
@@ -752,7 +755,12 @@ li.top-divider {
 .data-container.large > div {
   width: 940px;
 }
-.data-container > div > * {
+.data-container .content {
+  position: relative;
+}
+.data-container .content > *,
+.data-container .help > *,
+.data-container .options > * {
   padding: 12px 16px;
 }
 #wall-post-chart {
@@ -791,10 +799,10 @@ li.top-divider {
   font-size: 10px;
   color: #666;
 }
-.data-container.users-list > div > ul li {
+.data-container.users-list .content > ul li {
   height: 39px;
 }
-.data-container.users-list > div > ul li a {
+.data-container.users-list .content > ul li a {
   font-size: 14px;
   font-weight: bold;
   color: #333;
@@ -802,11 +810,25 @@ li.top-divider {
   padding: 3px 2px;
   float: left;
 }
-.data-container.users-list > div > ul li a:hover {
+.data-container.users-list .content > ul li a:hover {
   background: #DDD;
 }
-.data-container.users-list > div > ul li a img {
+.data-container.users-list .content > ul li a img {
   margin-right: 8px;
+}
+.data-container .help,
+.data-container .options {
+  padding: 0;
+}
+.data-container .help {
+  background: #2A2A29;
+  padding: 0;
+  height: 100%;
+  left: 0;
+  top: 0;
+  position: absolute;
+  line-height: 18px;
+  color: #eee;
 }
 .load-more-button {
   clear: both;
@@ -1018,7 +1040,7 @@ i.google-places-icon {
   /*
   	 * Analytic data boxes
   	 */
-  .data-container > div > * {
+  .data-container .content > * {
     padding: 8px 10px;
   }
   .data-container > div,

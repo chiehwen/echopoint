@@ -18,9 +18,9 @@ $(document).ready(function() {
 	});
 
 	// lets setup our draggable data boxes
-	if($('.sortable-containers').length !== 0) {
+	if($('.sortables').length !== 0) {
 	 	setTimeout(function() {
-		 	var packery = new Packery( document.querySelector('.sortable-containers'), {
+		 	var packery = new Packery( document.querySelector('.sortables'), {
 		    columnWidth: 480,
 		    rowHeight: 495
 		  });
@@ -32,8 +32,21 @@ $(document).ready(function() {
 		    // bind Draggabilly events to Packery
 		    packery.bindDraggabillyEvents( new Draggabilly( elements[i], {handle: '.header'}) );
 		  }
-		}, 1000);
+		}, 1200);
 	}
+
+
+	$('.data-container .toggle-display').on('click', function(e) {
+		e.preventDefault();
+		var dataElement = $(this).parents('.data-container').find('.data-content');
+		if(!$(dataElement).hasClass('hide')) {
+			$(dataElement).addClass('hide');
+			$(this).children('span').text('show notifications')
+		} else {
+			$(dataElement).removeClass('hide');
+			$(this).children('span').text('hide notifications')
+		}
+	})
 
 	/*$('.business-select-menu li').on('click', function() {
 		var business = {
@@ -46,9 +59,30 @@ $(document).ready(function() {
 
 });
 
-Utils = function() {};
 
-Utils.prototype = {
+Container = function() {};
+
+// Page, Menu, Module and Popup, Message, and Form extend Container 
+// Sortable extends Module
+
+Page = function() {};
+
+Module = function() {};
+// Analytics, Graph extend module
+
+Message = function() {};
+
+// Notification, Suggestion, Help [within modules] (maybe guides?) extend Messages
+
+Form = function() {}
+// Options (in modules) extend form
+
+
+
+
+Util = function() {};
+
+Util.prototype = {
 		// http://stackoverflow.com/questions/133925/javascript-post-request-like-a-form-submit
 		httpRequest: function(path, params, method) {
 	    method = method || "POST"; // Set method to post by default if not specified.
