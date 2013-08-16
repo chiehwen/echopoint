@@ -11,6 +11,6 @@ require.config({
 });
 
 // Load the main app module to start the app
-define(['libraries/class', ], function() {
-	require(['main']);
+define(['libraries/class'], function() {
+	require(['app']);
 });

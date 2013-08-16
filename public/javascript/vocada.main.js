@@ -62,17 +62,18 @@ $(document).ready(function() {
 // App, Entity extend base Class function
 Entity = function() {};
 
-// Page, Menu, Module and Popup, Message, and Form extend Enitity 
+// Page, Menu, Module and Modal, Message, and Form extend Enitity 
 // Sortable extends Module
+// Connection  will hold Socket and Http classes
 
-Page = function() {};
+//Page = function() {};
 
 Module = function() {};
 // Analytics, Graph extend Module
 
 Message = function() {};
 
-// Notification, Suggestion, Help [within modules] (maybe guides?) extend Messages
+// Notification, Alerts (screen popup notifications) Suggestion, Help [within modules] (maybe guides?) extend Messages
 
 Form = function() {}
 // Options (in modules) extend form
@@ -84,7 +85,7 @@ Util = function() {};
 
 Util.prototype = {
 		// http://stackoverflow.com/questions/133925/javascript-post-request-like-a-form-submit
-		httpRequest: function(path, params, method) {
+		httpFormRequest: function(path, params, method) {
 	    method = method || "POST"; // Set method to post by default if not specified.
 
 	    var form = document.createElement("form");
