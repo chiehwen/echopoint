@@ -12,10 +12,14 @@ html
 		block content
 
 		script console.log(!{JSON.stringify(locals)}); //- TEMP
-		script(src='//ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js')
-		script(src='/javascript/bootstrap.min.js')
-		script(src='http://code.highcharts.com/highcharts.js')	
-		script(src='/javascript/packery.min.js')
-		script(src='/javascript/draggabilly.min.js')
+		script(src='//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js')
+		script(src='http://code.highcharts.com/highcharts.js')
+		
+		script(src='/javascript/libraries/bootstrap/bootstrap.min.js')	
+		script(src='/javascript/libraries/packery.min.js')
+		script(src='/javascript/libraries/draggabilly.min.js')
+		
+		//script(src='/javascript/libraries/class.js')
+		script(data-main='/javascript/app.js', src='/javascript/libraries/require.js')	
 		script(src='/javascript/vocada.main.js')
 		script(src='/javascript/vocada.charts.js')	

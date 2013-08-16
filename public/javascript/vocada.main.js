@@ -59,16 +59,16 @@ $(document).ready(function() {
 
 });
 
+// App, Entity extend base Class function
+Entity = function() {};
 
-Container = function() {};
-
-// Page, Menu, Module and Popup, Message, and Form extend Container 
+// Page, Menu, Module and Popup, Message, and Form extend Enitity 
 // Sortable extends Module
 
 Page = function() {};
 
 Module = function() {};
-// Analytics, Graph extend module
+// Analytics, Graph extend Module
 
 Message = function() {};
 
