@@ -18,7 +18,7 @@ $(document).ready(function() {
 	});
 
 	// lets setup our draggable data boxes
-	if($('.sortables').length !== 0) {
+	/*if($('.sortables').length !== 0) {
 	 	setTimeout(function() {
 		 	var packery = new Packery( document.querySelector('.sortables'), {
 		    columnWidth: 480,
@@ -33,12 +33,12 @@ $(document).ready(function() {
 		    packery.bindDraggabillyEvents( new Draggabilly( elements[i], {handle: '.header'}) );
 		  }
 		}, 1200);
-	}
+	}*/
 
 
-	$('.data-container .toggle-display').on('click', function(e) {
+	$('.module .toggle-display').on('click', function(e) {
 		e.preventDefault();
-		var dataElement = $(this).parents('.data-container').find('.data-content');
+		var dataElement = $(this).parents('.module').find('.data-content');
 		if(!$(dataElement).hasClass('hide')) {
 			$(dataElement).addClass('hide');
 			$(this).children('span').text('show notifications')

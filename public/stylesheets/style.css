@@ -78,7 +78,7 @@ li {
   padding: 0;
 }
 #login-form-container fieldset,
-.data-container > div {
+.module > div {
   margin: 0 auto;
   padding: 20px 16px 0 16px;
   width: 320px;
@@ -236,7 +236,7 @@ li {
 }
 #open-popup-menu a,
 #user-navigation > div > a,
-.data-container .header > a,
+.module .header > a,
 .social-footer .page-options > a {
   display: inline-block;
   background: #546f8e;
@@ -680,7 +680,7 @@ li.top-divider {
   max-width: 960px;
   margin: 0 auto;
 }
-.data-container {
+.module {
   width: 480px;
   margin: 0 auto 30px;
   float: left;
@@ -688,13 +688,13 @@ li.top-divider {
 .sortables {
   clear: both;
 }
-.sortables .data-container {
+.sortables .module {
   height: 465px;
 }
-.data-container.large {
+.module.large {
   width: 960px;
 }
-.data-container div.header {
+.module div.header {
   color: #EEE;
   background: #546f8e;
   height: 28px;
@@ -703,26 +703,26 @@ li.top-divider {
   letter-spacing: 2px;
   position: relative;
 }
-.sortables .data-container div.header {
+.sortables .module div.header {
   cursor: move;
 }
-.data-container.large div.header {
+.module.large div.header {
   width: 920px;
 }
-.data-container h2 {
+.module h2 {
   font-size: 24px;
   line-height: 26px;
   font-weight: normal;
   float: left;
 }
-.data-container h2.small {
+.module h2.small {
   font-size: 18px;
   line-height: 28px;
 }
-.data-container h2 span {
+.module h2 span {
   font-size: 11px;
 }
-.data-container .header > a {
+.module .header > a {
   margin-top: 3px;
   height: 22px;
   line-height: 17px;
@@ -733,18 +733,18 @@ li.top-divider {
   text-align: center;
   letter-spacing: 0px;
 }
-.data-container .header > a.help {
+.module .header > a.help {
   margin-right: 5px;
 }
-.data-container .header i {
+.module .header i {
   line-height: 22px;
   font-size: 14px;
 }
-.data-container .header h2 i {
+.module .header h2 i {
   line-height: 26px;
   font-size: 20px;
 }
-.data-container > div {
+.module > div {
   width: 460px;
   padding: 0;
   moz-box-shadow: none;
@@ -752,15 +752,15 @@ li.top-divider {
   box-shadow: none;
   border: 1px solid #BBB;
 }
-.data-container.large > div {
+.module.large > div {
   width: 940px;
 }
-.data-container .content {
+.module .content {
   position: relative;
 }
-.data-container .content > *,
-.data-container .help > *,
-.data-container .options > * {
+.module .content > *,
+.module .help > *,
+.module .options > * {
   padding: 12px 16px;
 }
 #wall-post-chart {
@@ -799,10 +799,10 @@ li.top-divider {
   font-size: 10px;
   color: #666;
 }
-.data-container.users-list .content > ul li {
+.module.users-list .content > ul li {
   height: 39px;
 }
-.data-container.users-list .content > ul li a {
+.module.users-list .content > ul li a {
   font-size: 14px;
   font-weight: bold;
   color: #333;
@@ -810,17 +810,17 @@ li.top-divider {
   padding: 3px 2px;
   float: left;
 }
-.data-container.users-list .content > ul li a:hover {
+.module.users-list .content > ul li a:hover {
   background: #DDD;
 }
-.data-container.users-list .content > ul li a img {
+.module.users-list .content > ul li a img {
   margin-right: 8px;
 }
-.data-container .help,
-.data-container .options {
+.module .help,
+.module .options {
   padding: 0;
 }
-.data-container .help {
+.module .help {
   background: #2A2A29;
   padding: 0;
   height: 100%;
@@ -927,16 +927,16 @@ i.google-places-icon {
   /*
   	 * Analytic data boxes
   	 */
-  .data-container,
-  .data-container.large {
+  .module,
+  .module.large {
     width: 100%;
   }
-  .data-container > div,
-  .data-container.large > div {
+  .module > div,
+  .module.large > div {
     width: 788px;
   }
-  .data-container div.header,
-  .data-container.large div.header {
+  .module div.header,
+  .module.large div.header {
     width: 768px;
   }
   /*
@@ -978,17 +978,17 @@ i.google-places-icon {
   /*
   	 * Analytic data boxes
   	 */
-  .data-container,
-  .data-container.large {
+  .module,
+  .module.large {
     width: 100%;
     margin-bottom: 25px;
   }
-  .data-container > div,
-  .data-container.large > div {
+  .module > div,
+  .module.large > div {
     width: 464px;
   }
-  .data-container div.header,
-  .data-container.large div.header {
+  .module div.header,
+  .module.large div.header {
     width: 444px;
   }
   /*
@@ -1040,15 +1040,15 @@ i.google-places-icon {
   /*
   	 * Analytic data boxes
   	 */
-  .data-container .content > * {
+  .module .content > * {
     padding: 8px 10px;
   }
-  .data-container > div,
-  .data-container.large > div {
+  .module > div,
+  .module.large > div {
     width: 420px;
   }
-  .data-container div.header,
-  .data-container.large div.header {
+  .module div.header,
+  .module.large div.header {
     width: 400px;
   }
 }

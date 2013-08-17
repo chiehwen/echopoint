@@ -9,15 +9,18 @@ define(['jquery', 'modules'], function($, Module) {
 
 		// Public variables and methods
 		return {
-			init: function(id, type) {
+			init: function(id, element) {
 				//var self = this;
+				this._super(id);
 
-				this._super(id, type);
+				//this = element;
+
+				this.element = element;
+
+				//$(element).find('.dropdown-menu').addClass('testing');
 			},
 
-			getTest: function(text) {
-				return this._super(text);
-			},
+
 		}
 	}
 

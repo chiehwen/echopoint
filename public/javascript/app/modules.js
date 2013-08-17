@@ -10,7 +10,7 @@ define(['jquery', 'entity'], function($, Entity) {
 		// Public variables and methods
 		return {
 			init: function(id, type) {
-				this.parent = this._super;
+				//this.parent = this._super;
 				//var self = this;
 
 				this._super(id, type);

@@ -9,13 +9,13 @@ block content
 		div.content
 			- if (locals.twitter.connected == true && locals.twitter.data) {
 				div.data-wrapper
-						div(class='data-container large daily-tip')
+						div(class='module large daily-tip')
 							div
 								div.header
 									h2 daily tip
 									i.icon-remove-sign
 								p Remember to handle negative tweets about your business with careful grace. One viscious or reckless tweet to a single user could have dire repercussions for your online business reputation
-						div.data-container
+						div.module
 							div
 								div.header
 									h2 <i class='icon-globe'></i> notifications
@@ -57,7 +57,7 @@ block content
 									li 
 										i.icon-check
 										span you have updated your business information
-						div(class='data-container stats-data')
+						div(class='module stats-data')
 							div
 								div.header
 									h2 quick stats
@@ -83,7 +83,7 @@ block content
 						
 						div.clear
 						div.sortables
-							div(class='data-container users-list clear-left')
+							div(class='module users-list clear-left')
 								div
 									div.header
 										h2.small last 10 users to @mention you 
@@ -111,7 +111,7 @@ block content
 										li: a(href='#') <img src='https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c0.10.66.66/s32x32/936958_522530857784897_905958233_t.jpg' /> Rob Contreras
 										li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-ash3/c2.1.65.65/s32x32/563015_10201152918479075_1124709741_t.jpg' /> Elijah May
 
-							div(class='data-container users-list')
+							div(class='module users-list')
 								div
 									div.header
 										h2.small last 10 users to retweet you 
