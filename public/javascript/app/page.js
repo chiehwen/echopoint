@@ -6,6 +6,7 @@ define(['jquery', 'entity'], function($, Entity) {
 
 		// Private variables and methods
 		var selector = {
+					module: '.module',
 					sortable: '.sortables'
 				},
 				options = {
@@ -40,6 +41,16 @@ define(['jquery', 'entity'], function($, Entity) {
 				options[type][option] = variable;
 			},
 
+			// this will check if the current DOM has any of the param elements
+			hasElement: function(name) {
+				return document.querySelector( this.getSelector(name) ) ? true : false;
+			},
+
+			getElements: function(name) {
+				return document.querySelectorAll( this.getSelector(name) );
+			},
+
+			// this will load the Packery container (note it is not individual elements)
 			getPackery: function() {
 				if(!packery){
 					packery = new Packery(
@@ -51,11 +62,6 @@ define(['jquery', 'entity'], function($, Entity) {
 					);
 				}
 				return packery;
-			},
-
-			// this will check if the current DOM has any sortable elements
-			hasSortables: function() {
-				return $( this.getSelector('sortable') ).length !== 0 ? true : false;
 			},
 
 			// this will return all current sortable DOM elements
