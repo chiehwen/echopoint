@@ -7,11 +7,266 @@ block content
 	div#main
 		mixin topNavigationMenu
 		div.content
-			p Dashboard will go here
-				a(href="/logout") logout
-			form(action="/user/delete", method="POST", id="delete-user", accept-charset="utf-8")
-				input(type="hidden", name="_method", value="DELETE")
-				input(type="submit", value="Delete User")
-			a(href="/business/create") create new business
-			br
-			a(href="/business/list") list your businesses
+			div.hide
+				p Dashboard will go here
+				form(action="/user/delete", method="POST", id="delete-user", accept-charset="utf-8")
+					input(type="hidden", name="_method", value="DELETE")
+					input(type="submit", value="Delete User")
+				a(href="/business/create") create new business
+				br
+				a(href="/business/list") list your businesses
+
+		div.data-wrapper
+			
+			div(class='module large daily-tip')
+				div
+					div.header
+						h2 daily tip
+						//-i.icon-remove-sign
+						a(href='#', class='close-tip')
+							i.icon-remove-sign
+					div.content
+						p Use the provided statistics below and your <a href='#'>Facebook Insights</a> page to determine your most successful post times. Posting when your users are most active can greatly increase the number of eyes that see your message!
+			
+			div.module
+				div
+					div.header
+						h2 <i class='icon-globe'></i> notifications
+						a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+							i.icon-cog
+						ul(class='dropdown-menu hide')
+							li: a(href='#')
+								i.icon-wrench
+								span manage notifications
+							li: a(href='#')
+								i.icon-flag-alt
+								span add to dashboard
+							li.top-divider: a(href='#', class='toggle-display')
+								i.icon-eye-close
+								span hide notifications
+							li: a(href='#')
+								i.icon-remove
+								span remove notifications box
+							li.top-divider: a(href='#')
+								i.icon-question-sign
+								span help
+					div.content
+						ul(class='data-content page-notifications-list')
+							li 
+								i(class='icon-warning-sign red')
+								span
+									b you may have negative user comments!
+							li 
+								i.icon-check
+								span you have added <b>2</b> new posts to your wall
+							li 
+								i.icon-check
+								span you have <b>1</b> new wall post from another user
+							li 
+								i.icon-check
+								span <b>22</b> new page likes
+							li 
+								i.icon-check
+								span <b>3</b> new comments
+							li 
+								i.icon-check
+								span <b>2</b> new shares 
+							li 
+								i.icon-check
+								span you have a <b>new top commenter</b>!
+							li 
+								i.icon-check
+								span you have a <b>new top liking user</b>!
+							li 
+								i.icon-check
+								span you have a <b>new top sharing user</b>!
+							li 
+								i.icon-check
+								span you have updated your business information
+						div(class='help hide')
+							p Tetsing out the help area. Here you will find help. Help is the exact think one will find in this area. Are you looking for help? Congrats. You found it... here, in the help area! Help!
+						div(class='options hide')
+
+			div(class='module stats-data')
+				div
+					div.header
+						h2 quick stats
+						a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+							i.icon-cog
+						ul(class='dropdown-menu hide')
+							li: a(href='#')
+								i.icon-question-sign
+								span help 
+							li: a(href='#')
+								i.icon-wrench
+								span manage quick stats
+							li.top-divider: a(href='#')
+								i.icon-eye-close
+								span hide statistics
+					//-!{JSON.stringify(locals.facebook.data)}
+					div.content
+						ul.stats
+							li wall posts this month: 
+								b 14 
+									span.green [+11%]
+							li total page likes: 
+								b 3576 
+									span.green [+2%]
+							li page visitors this month: 
+								b 325 
+									span.red [-4%]
+							li unique page visitors this month: 
+								b 86 
+									span.green [+14%]
+							li total checkins: <b>2</b> <span class='unchanged'>[no change]</span> 
+							li last post's viral score: <b><span class='green'>22</span></b> <span class='unchanged'>[click here to see post data]</span> 
+							li highest post viral score: <b><span class='green'>57</span></b> <span class='unchanged'>[click here to see post data]</span> 
+			
+			div.sortables
+				div(class='module large')
+					div
+						div.header
+							h2 wall posts 
+								span [15 days]
+							a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+								i.icon-cog
+							ul(class='dropdown-menu hide')
+								li: a(href='#')
+									i.icon-calendar
+									span display 30 days
+								li: a(href='#')
+									i.icon-calendar
+									span display 90 days
+								li.top-divider: a(href='#')
+									i.icon-eye-open
+									span larger graph
+						div.content
+							div#wall-posts-chart
+
+				div.module
+					div
+						div.header
+							h2 page likes 
+								span [90 days]
+							a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+								i.icon-cog
+							ul(class='dropdown-menu hide')
+								li: a(href='#')
+									i.icon-calendar
+									span display 30 days
+								li: a(href='#')
+									i.icon-calendar
+									span display 60 days
+								li.top-divider: a(href='#')
+									i.icon-bar-chart
+									span show individual likes per day
+								li.top-divider: a(href='#')
+									i.icon-eye-open
+									span larger graph
+						div.content
+							div#page-likes-chart
+
+				div(class='module users-list')
+					div
+						div.header
+							h2.small top 10 active users on your wall 
+							a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+								i.icon-cog
+							ul(class='dropdown-menu hide')
+								li: a(href='#')
+									i.icon-group
+									span display top liking users
+								li: a(href='#')
+									i.icon-group
+									span display top sharing users
+								li: a(href='#')
+									i.icon-group
+									span display top commenting users
+						div.content
+							ul
+								li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-ash2/c9.5.57.57/s32x32/228973_10200937536347296_820313631_t.jpg' /> Andy Gonzalez
+								li: a(href='#') <img src='https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c5.5.65.65/s32x32/995037_10201379987161566_1563880293_t.jpg' /> Stephanie Bogus
+								li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-prn1/c7.5.62.62/s32x32/31458_10200424974740320_1404269548_t.jpg' /> Brad Bogus
+								li: a(href='#') <img src='https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c0.10.66.66/s32x32/936958_522530857784897_905958233_t.jpg' /> Rob Contreras
+								li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-ash3/c2.1.65.65/s32x32/563015_10201152918479075_1124709741_t.jpg' /> Elijah May
+								li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-ash2/c9.5.57.57/s32x32/228973_10200937536347296_820313631_t.jpg' /> Andy Gonzalez
+								li: a(href='#') <img src='https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c5.5.65.65/s32x32/995037_10201379987161566_1563880293_t.jpg' /> Stephanie Bogus
+								li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-prn1/c7.5.62.62/s32x32/31458_10200424974740320_1404269548_t.jpg' /> Brad Bogus
+								li: a(href='#') <img src='https://fbcdn-profile-a.akamaihd.net/hprofile-ak-prn1/c0.10.66.66/s32x32/936958_522530857784897_905958233_t.jpg' /> Rob Contreras
+								li: a(href='#') <img src='https://profile-a.xx.fbcdn.net/hprofile-ash3/c2.1.65.65/s32x32/563015_10201152918479075_1124709741_t.jpg' /> Elijah May
+
+				div.module
+					div
+						div.header
+							h2.small users talking about your page 
+								span [15 days]
+							a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+								i.icon-cog
+							ul(class='dropdown-menu hide')
+								li: a(href='#')
+									i.icon-calendar
+									span display 30 days
+								li: a(href='#')
+									i.icon-calendar
+									span display 60 days
+								li.top-divider: a(href='#')
+									i.icon-eye-open
+									span larger graph
+						div.content
+							div#talking-about-chart
+
+				div.module
+					div
+						div.header
+							h2.small facebook checkins 
+								span [15 days]
+							a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+								i.icon-cog
+							ul(class='dropdown-menu hide')
+								li: a(href='#')
+									i.icon-calendar
+									span display 30 days
+								li: a(href='#')
+									i.icon-calendar
+									span display 90 days
+								li.top-divider: a(href='#')
+									i.icon-bar-chart
+									span show individual checkins per day
+								li.top-divider: a(href='#')
+									i.icon-eye-open
+									span larger graph
+						div.content
+							div#checkins-graph
+
+
+				div.module
+					div
+						div.header
+							h2.small pies 
+								span [male to female]
+							a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+								i.icon-cog
+							ul(class='dropdown-menu hide')
+								li: a(href='#')
+									i.icon-bar-chart
+									span display age breakdown of fans
+								li.top-divider: a(href='#')
+									i.icon-eye-open
+									span larger graph
+						div.content
+							div#pie-chart
+			
+
+	div.social-footer
+		div.current-page
+			a(href='#', class='app-color facebook'): i.icon-th
+			span dashboard
+		div.page-options
+			a(href='#', data-toggle='dropdown', class='dropdown-toggle'): i.icon-cog
+			ul(class='dropdown-menu dropup')
+				li: a(href='#')
+					i.icon-wrench
+					span load a new random tip
+				li.top-divider: a(href='#')
+					i.icon-wrench
+					span vocada dashboard settings
