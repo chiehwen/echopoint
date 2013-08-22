@@ -240,7 +240,22 @@ var Auth = (function() {
 				if(!Helper.isPath(req.url))
 					req.session.returnTo = req.url;
 				if(req.session.passport.user) {
-					next();
+					
+					// attempted to put this in middleware but got page load glitches, works fine here
+					if(typeof req.session.Business === 'undefined' && !Helper.isPath(req.url, ['/login', '/logout', '/business/select', '/business/create', '/user/create'], [])) {
+			 			Helper.getUser(req.session.passport.user, function(err, user) {
+			 				if (err || !user) return next(err);
+			 				if(user.meta.Business.current && user.meta.Business.current.id != '' && user.meta.Business.current.id ) {
+			 					req.session.Business = user.meta.Business.current;
+			 					next();
+			 				} else {
+			 					res.redirect('/business/select');
+			 				}
+			 			}); 
+			 		} else {
+						next(); 
+					}
+
 				} else {
 					if(typeof req.session.returnTo === 'undefined' || !req.session.returnTo) 
 						req.session.returnTo = '/dashboard';

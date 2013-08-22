@@ -1,25 +1,32 @@
 doctype 5
-html
+html(ng-app='vocada', ng-controller='MainController')
 	head
 		title= title
 		link(rel='stylesheet', href='/stylesheets/bootstrap.min.css')
 		link(rel='stylesheet', href='//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css')
 		link(rel='stylesheet', href='/fonts/font-awesome/css/font-awesome-social.css')
 		link(rel='stylesheet', href='/stylesheets/style.css')
-		script(src='/socket.io/socket.io.js')
-
+		
 	body
 		block content
 
 		script console.log(!{JSON.stringify(locals)}); //- TEMP
+		script(src='/socket.io/socket.io.js')
 		script(src='//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js')
 		script(src='http://code.highcharts.com/highcharts.js')
 		
-		script(src='/javascript/libraries/bootstrap/bootstrap.min.js')	
-		script(src='/javascript/libraries/packery.min.js')
-		script(src='/javascript/libraries/draggabilly.min.js')
+		//-script(src='/javascript/libraries/bootstrap/bootstrap.min.js')	
+		//-script(src='/javascript/libraries/packery.min.js')
+		//-script(src='/javascript/libraries/draggabilly.min.js')
 		
 		//-script(src='/javascript/libraries/class.js')
-		script(data-main='/javascript/load.js', src='/javascript/libraries/require.js')	
-		script(src='/javascript/vocada.main.js')
-		script(src='/javascript/vocada.charts.js')	
+		//-script(data-main='/javascript/load.js', src='/javascript/libraries/require.js')	
+		
+		script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js')
+		script(src='/javascript/app/app.js')
+		script(src='/javascript/app/controllers.js')
+		script(src='/javascript/app/services.js')
+		script(src='/javascript/libraries/bootstrap/bootstrap.min.js')
+
+		//-script(src='/javascript/vocada.main.js')
+		//-script(src='/javascript/vocada.charts.js')	

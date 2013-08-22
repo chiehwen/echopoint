@@ -3,6 +3,7 @@ var http = require('http'),
 		fs = require('fs'),
 		Database = require('./database').getInstance(),
 		Auth = require('./auth').getInstance(),
+		Helper = require('./helpers'),
 		Model = Model || Object;
 
 var LoadServer = (function() {
@@ -142,6 +143,17 @@ var LoadServer = (function() {
 						else
 							app[verb](Route.path, Route.restricted, Route[verb]);
 					}
+				}
+			});
+
+			// anything that doesn't match an express route pass to angular 
+			app.use(function(req, res, next){
+				if(req.session.passport.user) {
+					res.render('bootstrap');
+				} else {
+					if(!Helper.isPath(req.url))
+						req.session.returnTo = req.url;
+					res.redirect('/login');
 				}
 			});
 		};

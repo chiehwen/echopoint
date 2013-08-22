@@ -13,30 +13,35 @@ var Socket = (function() {
 
 	io.sockets.on('connection', function (socket) {
 		//setTimeout(function() {
-			socket.on('notifications', function(callback) {
-				callback({ 
-					alerts: 'world2',
-					facebook: {
-						count: 10,
-						messages: [{
-							headline: 'New user comment on a Facebook post',
-							link: '/social/facebook/notifications'
-						}]
-					},
-					twitter: {
-						count: 20,
-						messages: [{
-							headline: 'New mentions via Twitter',
-							link: '/social/twitter/notifications'
-						}]
-					}
+			socket.on('notifications', function(data, callback) {
+console.log(callback);
+				if(callback) {			
+					callback({ 
+						alerts: 'world2',
+						facebook: {
+							count: 10,
+							messages: [{
+								headline: 'New user comment on a Facebook post',
+								link: '/social/facebook/notifications'
+							}]
+						},
+						twitter: {
+							count: 20,
+							messages: [{
+								headline: 'New mentions via Twitter',
+								link: '/social/twitter/notifications'
+							}]
+						}
 
-				});
+					});
+				}
 			});
 		//}, 5000);
   	//socket.on('my other event', function (data) {
 			//console.log(data);
 		//});
+
+		socket.emit('name', {data: 'testing'});
 	});
 
 		// public members

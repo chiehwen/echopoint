@@ -32,7 +32,7 @@ Model.Analytics.find(function(err, analytic) {
 });
 
 Model.User.findOne({email: "123"}, function(err, user) {
-//	console.log(user);
+	//console.log(user.meta.Business.current);
 //	console.log(user.Social.facebook.analytics.updates[0]);
 //	console.log(user.Social.facebook.analytics.tracking[21]);
 //	console.log(user.Social.twitter.analytics.updates[0]);

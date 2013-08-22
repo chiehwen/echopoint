@@ -25,10 +25,6 @@ mixin createUserForm
 			div(class="input password required")
 				label password
 				input(type="password", name="password", id="create-user-password", required)
-			//-div(class="input checkbox")
-				input(type="hidden", name="auto-login", value="0", id="auto-login_")
-				input(type="checkbox", name="auto-login", value="1", id="auto-login")
-				label remember me
 		div.submit
 			input(type="submit", value="Create")
 
@@ -39,19 +35,12 @@ mixin createBusinessForm
 			div(class="input text required")
 				label name
 				input(type="text", name="name", id="create-business-name", required)
-			//-div(class="input password required")
-				label password
-				input(type="password", name="password", id="create-user-password", required)
-			//-div(class="input checkbox")
-				input(type="hidden", name="auto-login", value="0", id="auto-login_")
-				input(type="checkbox", name="auto-login", value="1", id="auto-login")
-				label remember me
 		div.submit
 			input(type="submit", value="Create")
 
 mixin topNavigationMenu
 	div(id="top-navigation-bar")
-		div#open-popup-menu
+		div(id='open-popup-menu', ng-hide='navigation', ng-click='toggleNavigation()')
 			a
 				i.icon-list
 		div.logo
@@ -64,16 +53,16 @@ mixin topNavigationMenu
 				a(href="/") vocada
 				em 0.0.1
 			- }
-		div#user-navigation
+		div(id='user-navigation', ng-hide='navigation')
 			div#notification
 				i.icon-exclamation-sign
 				a(href="#", class="dropdown-toggle", data-toggle="dropdown")
 					i.icon-info-sign
 				ul(class="dropdown-menu hide")
 					li.nav-header Notifications
-			script 
-				var socket = io.connect('http://localhost');
-				socket.emit('notifications', function (data) {
+			//-script 
+				var socketTmp = io.connect('http://localhost');
+				socketTmp.emit('notifications', function (data) {
 					console.log(data);
 					//socket.emit('my other event', { my: 'data' });
 				});
@@ -97,10 +86,10 @@ mixin topNavigationMenu
 							span Sign Out
 
 mixin popupNavigationMenu
-	div(id="popup-navigation", class="hide")
-		div(class='close-navigation-menu left')
+	div(id="popup-navigation", ng-show="navigation")
+		div(class='close-navigation-menu left', ng-click="toggleNavigation()")
 			i.icon-remove-sign
-		div(class='close-navigation-menu right')
+		div(class='close-navigation-menu right', ng-click="toggleNavigation()")
 			i.icon-remove-sign			
 		div.overlay-navigation
 			div.overlay-background

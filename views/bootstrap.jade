@@ -1,0 +1,10 @@
+include mixins
+extends layout
+
+block content
+	mixin popupNavigationMenu
+	
+	div#main
+		mixin topNavigationMenu
+		div.content
+			div(ng-view)
