@@ -237,7 +237,7 @@ li {
 #open-popup-menu a,
 #user-navigation > div > a,
 .module .header > a,
-.social-footer .page-options > a {
+.location-footer .page-options > a {
   display: inline-block;
   background: #546f8e;
   padding: 7px 10px;
@@ -795,6 +795,9 @@ li.top-divider {
 .red {
   color: #DC6F52;
 }
+.gray {
+  color: grey;
+}
 .stats .unchanged {
   font-size: 10px;
   color: #666;
@@ -852,7 +855,7 @@ li.top-divider {
 /*
  * current social page footer
  */
-.social-footer {
+.location-footer {
   left: 0;
   bottom: 0;
   position: fixed;
@@ -864,7 +867,7 @@ li.top-divider {
   /*background: #e1e1e1;*/
 
 }
-.social-footer .current-page {
+.location-footer .current-page {
   display: inline-block;
   float: left;
   background: #444;
@@ -875,18 +878,18 @@ li.top-divider {
   cursor: pointer;
   cursor: hand;
 }
-.social-footer .current-page a {
+.location-footer .current-page a {
   float: left;
   height: 26px;
   width: 26px;
   text-align: center;
 }
-.social-footer .current-page a i {
+.location-footer .current-page a i {
   color: #fff;
   line-height: 26px;
   font-size: 14px;
 }
-.social-footer .current-page > span {
+.location-footer .current-page > span {
   float: left;
   line-height: 28px;
   color: #EEE;
@@ -894,17 +897,17 @@ li.top-divider {
   padding-left: 8px;
   letter-spacing: 2px;
 }
-.social-footer .page-options {
+.location-footer .page-options {
   float: right;
 }
-.social-footer .page-options > a {
+.location-footer .page-options > a {
   text-align: center;
   padding: 0;
   width: 26px;
   height: 26px;
   background: #444;
 }
-.social-footer .page-options > a i {
+.location-footer .page-options > a i {
   font-size: 14px;
   line-height: 26px;
 }
@@ -917,6 +920,31 @@ i.google-places-icon {
 }
 .icon:hover i.google-places-icon {
   background-position: -39px 0;
+}
+.module-options {
+  font-size: 14px;
+}
+.module-options li {
+  cursor: pointer;
+  cursor: hand;
+  height: 28px;
+  line-height: 28px;
+  font-weight: bold;
+}
+.module-options li span.disabled {
+  color: grey;
+  text-decoration: line-through;
+  font-weight: normal;
+}
+.module-options li i {
+  margin-right: 8px;
+  font-size: 16px;
+}
+.help-partial {
+  background: #333;
+  color: #EEE;
+  font-weight: bold;
+  text-align: center;
 }
 /* Large desktop */
 @media (min-width: 1200px) {
@@ -942,11 +970,11 @@ i.google-places-icon {
   /*
   	 * social media page fixed footer 
   	 */
-  /*.social-footer {
+  /*.location-footer {
   		background: #555;
   	}
   
-  	.social-footer .current-page > span {
+  	.location-footer .current-page > span {
   		display: block;
   	}*/
 }
@@ -997,11 +1025,11 @@ i.google-places-icon {
   /*
   	 * social media page fixed footer 
   	 */
-  /*.social-footer {
+  /*.location-footer {
   		background: #555;
   	}
   
-  	.social-footer .current-page > span {
+  	.location-footer .current-page > span {
   		display: block;
   	}*/
 }

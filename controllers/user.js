@@ -154,30 +154,27 @@ var UserController = {
 						"modules": {
 							"notifications": {
 								"type": "list",
-								"dashboarded": 1,
-								"hidden": 0,
-								"size": 0,
-								"settings": {
-									"updates": {
-										"post": 1,
-										"like": 1,
-										"comment": 1,
-										"share": 1,
-										"top_commenter": 1,
-										"top_liking_user": 1,
-										"top_sharer": 1,
-										"profile": 1						
-									}
-									
-								}
+								"dashboarded": true,
+								"hidden": false,
+								"size": false,
+								"settings": [
+									{"type": "post", "val": true},
+									{"type": "like", "val": true},
+									{"type": "comment", "val": true},
+									{"type": "share", "val": true},
+									{"type": "top_commenter", "val": true},
+									{"type": "top_liking_user", "val": true},
+									{"type": "top_sharer", "val": true},
+									{"type": "profile", "val": true}
+								]
 							},
 							"likes": {
 								"type": "graph",
-								"dashboarded": 0,
-								"hidden": 0,
-								"size": 1,
+								"dashboarded": false,
+								"hidden": false,
+								"size": true,
 								"timeframes": ["15day", "30day", "90day"],
-								"settings": {}
+								"settings": []
 							}
 						}
 					}

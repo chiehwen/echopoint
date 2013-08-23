@@ -1,2 +1,17 @@
-div.data-wrapper
-	div(ng-repeat='mod in mods', id='{{mod.title}}', class='module', ng-include='module', ng-controller='ModuleCtrl')
+div
+	div.data-wrapper
+		div(ng-repeat='mod in mods', class='module {{mod.class || mod.title}}', ng-include='module', ng-controller='ModuleCtrl')
+
+div.location-footer
+	div.current-page
+		a(href='#', class='app-color facebook'): i.icon-facebook
+		span {{location}}
+	div.page-options
+		a(href='#', data-toggle='dropdown', class='dropdown-toggle'): i.icon-cog
+		ul(class='dropdown-menu dropup')
+			li: a(href='#')
+				i.icon-wrench
+				span load a new random tip
+			li.top-divider: a(href='#')
+				i.icon-wrench
+				span vocada {{location}} settings

@@ -11,28 +11,25 @@
 		"modules": {
 			"notifications": {
 				"type": "list",
-				"dashboarded": 1,
-				"hidden": 0,
-				"size": 0,
+				"dashboarded": true,
+				"hidden": false,
+				"size": false,
 				"settings": {
-					"updates": {
-						"post": 1,
-						"like": 1,
-						"comment": 1,
-						"share": 1,
-						"top_commenter": 1,
-						"top_liking_user": 1,
-						"top_sharer": 1,
-						"profile": 1						
-					}
-					
+					"post": true,
+					"like": true,
+					"comment": true,
+					"share": true,
+					"top_commenter": true,
+					"top_liking_user": true,
+					"top_sharer": true,
+					"profile": true						
 				}
 			},
 			"likes": {
 				"type": "graph",
-				"dashboarded": 0,
-				"hidden": 0,
-				"size": 1,
+				"dashboarded": false,
+				"hidden": false,
+				"size": true,
 				"timeframes": ["15day", "30day", "90day"],
 				"settings": {}
 			}

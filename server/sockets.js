@@ -39,10 +39,11 @@ console.log(callback);
 							{
 								title: 'notifications',
 								type: 'list', // 'graph', 'text'
+								icon: 'globe',
 								menu: [
-									['manage', 'dashboard'],
-									['hide'],
-									['help']
+									//['manage', 'dashboard'],
+									//['hide'],
+									//['help']
 
 								/*	{
 										label: 'manage notification', 
@@ -85,17 +86,21 @@ console.log(callback);
 
 							{
 								title: 'quick stats',
+								class: 'facebook-likes',
 								type: 'list', // 'graph', 'text'
-								menu: [
-									/*{
-										label: 'manage quick stats', 
-										icon: 'wrench',
-										action: 'manage', // 'dashboard', 'hide', 'help', 'resize', 'timeframe'
-										current: null, // 'onDashboard', 'offDashboard', 'large', 'small', '30day', '60day'
-										meta: null,
-										divider: false
-									}*/
-								],
+								menu: { 
+									custom: [
+										{
+											label: 'display column view', 
+											icon: 'bar-chart',
+											action: 'changeDisplay(column)', // 'dashboard', 'hide', 'help', 'resize', 'timeframe'
+											current: null, // 'onDashboard', 'offDashboard', 'large', 'small', '30day', '60day'
+											meta: null,
+											divider: true
+										}
+									],
+									timeframe: ['15 days', '30 days', '90 days']
+								},
 								data: {
 									viewport: [],
 									help: ''

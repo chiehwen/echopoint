@@ -1,6 +1,6 @@
 'use strict';
 
-var Vocada = angular.module('vocada', [])
+var Vocada = angular.module('vocada', ['firebase'])
 .config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
 		$routeProvider.when('/:model/:controller', {
 			templateUrl: '/partials/data',
@@ -10,11 +10,12 @@ var Vocada = angular.module('vocada', [])
 			templateUrl: '/partials/data',
 			controller: 'DataCtrl'
 		})
-		.otherwise({redirectTo: '/partials/index'});
+		.otherwise({redirectTo: '/dashboard'});
 
 		$locationProvider.html5Mode(true).hashPrefix('!');;
 	}]);
 
+Vocada.value('firebaseUrl', 'https://vocada.firebaseio.com/');
 
 // https://github.com/grevory/angular-local-storage
 Vocada.value('prefix', 'vocada');

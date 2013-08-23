@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('vocada')
+Vocada
 
 .factory('socket', function ($rootScope) {
   var socket = io.connect();
@@ -316,5 +316,19 @@ angular.module('vocada')
     }
   }
 
+})
+
+// this is an abstraction layer for localStorage 
+// dealing directly with updating user settings
+.factory('settings', function ($rootScope, localStorage) {
+
+  return {
+    getData: function () {
+
+    },
+    setData: function () {
+
+    }
+  }
 });
 

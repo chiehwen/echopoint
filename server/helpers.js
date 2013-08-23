@@ -55,7 +55,7 @@ exports.redirectToPrevious = function(session) {
 
 exports.isPath = function(currentUrl, bypassPaths, bypassPathKeywords) {
 	var urlsToBypass = bypassPaths || ['/login', '/logout', '/business/select', '/business/create'],
-			pathKeywordsToBypass = bypassPathKeywords || ['/oauth/'],
+			pathKeywordsToBypass = bypassPathKeywords || ['/oauth/', '/partials/'],
 			path = url.parse(currentUrl).pathname;
 
 	for(var i = 0, l = urlsToBypass.length; i < l; i++) {

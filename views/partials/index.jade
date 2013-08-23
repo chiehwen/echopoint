@@ -6,5 +6,7 @@ block content
 	
 	div#main
 		mixin topNavigationMenu
-		div.content
-			div(ng-view)
+		div(class='content', ng-view)
+
+		//-div(class='content', ng-switch, on='template')
+			div(ng-switch-when='/partials/data', ng-include="template")
