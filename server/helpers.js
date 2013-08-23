@@ -2,6 +2,9 @@
 var url = require('url'),
 		Model = Model || Object;
 
+// this is for Angular JS bootstraped pages
+exports.bootstrapRoute = 'bootstrap';
+
 exports.getUser= function(id, callback) {
 	Model.User.findById(id, function(err, user) {
 		callback(err, user);

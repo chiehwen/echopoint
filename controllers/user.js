@@ -86,18 +86,11 @@ var UserController = {
 		}
 	},
 
-	list: {
-		get: function(req, res) {
-			res.send("respond with a resource")
-		}
-	},
-
 	dashboard: {
-
 		path: '/dashboard',
 		get: function(req, res) {
 			res.render(
-				'user/dashboard', 
+				Helper.bootstrapRoute, //'user/dashboard', 
 				{
 			  	title: 'Vocada | User Dashboard'
 			 	}
@@ -110,7 +103,7 @@ var UserController = {
 		path: '/profile',
 		get: function(req, res) {
 			res.render(
-				'user/profile', 
+				Helper.bootstrapRoute, //'user/profile', 
 				{
 			  	title: 'Vocada | User Profile'
 			 	}
@@ -131,7 +124,7 @@ var UserController = {
 
 	delete: {
 		get: function(req, res) {
-				res.send(req.session.passport.user);
+				//res.send(req.session.passport.user);
 		},
 		delete: function(req, res) {
 			if(req.session.passport.user) {
@@ -143,7 +136,56 @@ var UserController = {
 				});
 			}
 		}
+	},
+
+	settings: {
+		json: function(req, res) {
+			res.json(
+				{
+					"dashboard": {
+						"modules": {
+							"facebook": ["notifications"],
+							"twitter": ["notifications"],
+							"foursquare": ["notifications"],
+							"yelp": ["notifications"]
+						}
+					},
+					"facebook": {
+						"modules": {
+							"notifications": {
+								"type": "list",
+								"dashboarded": 1,
+								"hidden": 0,
+								"size": 0,
+								"settings": {
+									"updates": {
+										"post": 1,
+										"like": 1,
+										"comment": 1,
+										"share": 1,
+										"top_commenter": 1,
+										"top_liking_user": 1,
+										"top_sharer": 1,
+										"profile": 1						
+									}
+									
+								}
+							},
+							"likes": {
+								"type": "graph",
+								"dashboarded": 0,
+								"hidden": 0,
+								"size": 1,
+								"timeframes": ["15day", "30day", "90day"],
+								"settings": {}
+							}
+						}
+					}
+				}
+			)
+		}
 	}
+
 }
 
 module.exports = UserController;

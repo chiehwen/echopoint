@@ -1,58 +1,29 @@
-div.module
-	div
-		div.header
-			h2 <i class='icon-globe'></i> notifications
-			a(href='#', data-toggle='dropdown', class='dropdown-toggle')
-				i.icon-cog
-			ul(class='dropdown-menu hide')
-				li: a(href='#')
-					i.icon-wrench
-					span manage notifications
-				li: a(href='#')
-					i.icon-flag-alt
-					span add to dashboard
-				li.top-divider: a(href='#', class='toggle-display')
-					i.icon-eye-close
-					span hide notifications
-				li: a(href='#')
-					i.icon-remove
-					span remove notifications box
-				li.top-divider: a(href='#')
-					i.icon-question-sign
-					span help
-		div.content
-			ul(class='data-content page-notifications-list')
-				li 
-					i(class='icon-warning-sign red')
-					span
-						b you may have negative user comments!
-				li 
-					i.icon-check
-					span you have added <b>2</b> new posts to your wall
-				li 
-					i.icon-check
-					span you have <b>1</b> new wall post from another user
-				li 
-					i.icon-check
-					span <b>22</b> new page likes
-				li 
-					i.icon-check
-					span <b>3</b> new comments
-				li 
-					i.icon-check
-					span <b>2</b> new shares 
-				li 
-					i.icon-check
-					span you have a <b>new top commenter</b>!
-				li 
-					i.icon-check
-					span you have a <b>new top liking user</b>!
-				li 
-					i.icon-check
-					span you have a <b>new top sharing user</b>!
-				li 
-					i.icon-check
-					span you have updated your business information
-			div(class='help hide')
-				p Tetsing out the help area. Here you will find help. Help is the exact think one will find in this area. Are you looking for help? Congrats. You found it... here, in the help area! Help!
-			div(class='options hide')
+//-div.module
+div
+	div.header
+		h2 <i class='icon-globe'></i> {{title}}
+		a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+			i.icon-cog
+		//-ul(class='dropdown-menu hide', ng-include='menu', ng-controller='MenuController')
+		ul(class='dropdown-menu hide')
+			li(ng-repeat='option in menu', ng-class='{"top-divider": option.divider}'): a(href='#', ng-click='{{"menu" + option.action}}')
+				i(class='{{"icon-" + option.icon}}')
+				span {{option.label}}
+			//-li: a(href='#')
+				i.icon-wrench
+				span manage notifications
+			//-li: a(href='#')
+				i.icon-flag-alt
+				span add to dashboard 
+					//-pull from dashboard
+			//-li.top-divider: a(href='#', class='toggle-display')
+				i.icon-eye-close
+				span hide notification box
+			//-li: a(href='#')
+				i.icon-remove
+				span remove notification box
+			//-li.top-divider: a(href='#', ng-click='toggleHelp()')
+				i.icon-question-sign
+				span help	
+		
+	div(class='content', ng-include='viewport')

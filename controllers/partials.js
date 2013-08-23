@@ -9,36 +9,34 @@ var PartialsController = {
 	index: {
  		//restricted: false,
  		get: function(req, res) {
- 			res.render(
- 				'partials/index', 
- 				{
- 			  	title: 'Vocada | Test Template'
- 			 	}
- 			);
+ 			res.render('partials/index');
  		}
  	},
- 	template: {
- 		//restricted: false,
+ 	data: {
  		get: function(req, res) {
- 			res.render(
- 				'partials/template', 
- 				{
- 			  	title: 'Vocada | Test Template'
- 			 	}
- 			);
+ 			res.render('partials/data');
  		}
  	},
  	module: {
- 		//restricted: false,
  		get: function(req, res) {
- 			res.render(
- 				'partials/module', 
- 				{
- 			  	title: 'Vocada | Test Template'
- 			 	}
- 			);
+ 			res.render('partials/module');
  		}
  	},
+ 	viewport: {
+ 		get: function(req, res) {
+ 			res.render('partials/viewport');
+ 		}
+ 	},
+ 	menu: {
+ 		get: function(req, res) {
+ 			res.render('partials/menu');
+ 		}
+ 	},
+ 	help: {
+ 		get: function(req, res) {
+ 			res.render('partials/help');
+ 		}
+ 	}
 }
 
 module.exports = PartialsController;

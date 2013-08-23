@@ -64,7 +64,7 @@ var SocialController = {
 //								Analytics.getGraphData('facebook', 'days', 30);
 
 								res.render(
-									'social/facebook', 
+									Helper.bootstrapRoute, //'social/facebook', 
 									{
 										title: 'Vocada | Business Facebook Page',
 										facebook: {
@@ -82,7 +82,7 @@ var SocialController = {
 									res.redirect('/social/facebook?login=true');
 
 								res.render(
-									'social/facebook', 
+									Helper.bootstrapRoute, //'social/facebook', 
 									{
 										title: 'Vocada | Business Facebook Page',
 										facebook: {
@@ -123,7 +123,7 @@ var SocialController = {
 						req.session.facebookState = crypto.randomBytes(10).toString('hex');
 //req.session.messages.push(req.session.facebookState);
 				 		res.render(
-				 			'social/facebook', 
+				 			Helper.bootstrapRoute, //'social/facebook', 
 				 			{
 					 			title: 'Vocada | Business Facebook Page',
 					 			facebook: {
@@ -159,7 +159,7 @@ var SocialController = {
 							} 
 			 						
 			 				res.render(
-				 				'social/twitter', 
+				 				Helper.bootstrapRoute, //'social/twitter', 
 				 				{
 					 				title: 'Vocada | Business Twitter Page',
 					 				twitter: {
@@ -202,7 +202,7 @@ var SocialController = {
 							}
 
 				 			res.render(
-				 				'social/twitter', 
+				 				Helper.bootstrapRoute, //'social/twitter', 
 				 				{
 					 				title: 'Vocada | Business Twitter Page',
 					 				twitter: {				
@@ -274,7 +274,7 @@ var SocialController = {
 									console.log(response.meta.code);//res.redirect('/social/foursquare?login=true');
 
 								res.render(
-			 						'social/foursquare', 
+			 						Helper.bootstrapRoute, //'social/foursquare', 
 			 						{
 				 					  	title: 'Vocada | Business Foursquare Page',
 				 					  	foursquare: {
@@ -291,7 +291,7 @@ var SocialController = {
 									res.redirect('/social/foursquare?login=true');
 
 									res.render(
-				 						'social/foursquare', 
+				 						Helper.bootstrapRoute, //'social/foursquare', 
 				 						{
 					 					  	title: 'Vocada | Business Foursquare Page',
 					 					  	foursquare: {
@@ -320,7 +320,7 @@ var SocialController = {
  					} else {
 	 					
 	 					res.render(
-	 						'social/foursquare', 
+	 						Helper.bootstrapRoute, //'social/foursquare', 
 	 						{
 		 					  	title: 'Vocada | Business Foursquare Page',
 		 					  	foursquare: {
@@ -371,7 +371,7 @@ var SocialController = {
 	 						if(err) console.log(err);
 
 							res.render(
-		 						'social/yelp', 
+		 						Helper.bootstrapRoute, //'social/yelp', 
 		 						{
 			 					  	title: 'Vocada | Business Yelp Page',
 			 					  	yelp: {
@@ -383,7 +383,7 @@ var SocialController = {
 	 					});
 	 				} else {
 						res.render(
-		 					'social/yelp', 
+		 					Helper.bootstrapRoute, //'social/yelp', 
 		 					{
 			 					 	title: 'Vocada | Business Yelp Page',
 			 					 	yelp: {
@@ -404,7 +404,7 @@ var SocialController = {
  					if (err || !user) return next(err);;	
  					
  					res.render(
- 						'social/pinterest', 
+ 						Helper.bootstrapRoute, //'social/pinterest', 
  						{
  					  	title: 'Vocada | Business Pinterest Page',
  					  	businesses: user.Business
@@ -428,7 +428,7 @@ var SocialController = {
  								res.redirect('/social/instagram?login=true');
 
  							res.render(
-		 						'social/instagram', 
+		 						Helper.bootstrapRoute, //'social/instagram', 
 		 						{
 			 					  	title: 'Vocada | Business Instagram Page',
 			 					  	instagram: {
@@ -456,7 +456,7 @@ var SocialController = {
 
  						req.session.instagramState = crypto.randomBytes(10).toString('hex');
 	 					res.render(
-	 						'social/instagram', 
+	 						Helper.bootstrapRoute, //'social/instagram', 
 	 						{
 		 					  	title: 'Vocada | Business Instagram Page',
 		 					  	instagram: {
@@ -476,9 +476,9 @@ var SocialController = {
  					if (err || !user) return next(err);		
  					
  					res.render(
- 						'social/pinterest', 
+ 						Helper.bootstrapRoute, //'social/youtube', 
  						{
- 					  	title: 'Vocada | Business Pinterest Page',
+ 					  	title: 'Vocada | Business Youtube Page',
  					  	businesses: user.Business
  						}
  					);

@@ -2,7 +2,8 @@
  * Business Controller
  */
 
-var Model = Model || Object;
+var Helper = require('../server/helpers'),
+		Model = Model || Object;
 
 var AnalyticsController = {
 
@@ -50,29 +51,10 @@ var AnalyticsController = {
  		}
  	},
 
- 	list: {
- 		get: function(req, res) {
- 			if(req.session.passport.user) {
- 				var id = req.session.passport.user;
-
- 				Model.User.findById(id, function(err, user) {
- 					if (err) return next(err);	
- 					
- 					res.render(
- 						'business/list', 
- 						{
- 					  	title: 'Vocada | Business List',
- 					  	businesses: user.Business
- 						}
- 					);
- 				});
- 			}
- 		}
- 	},
 
  	delete: {
  		get: function(req, res) {
- 			res.send(req.session.passport.user);
+ 			//res.send(req.session.passport.user);
  		},
  		delete: function(req, res) {
  			if(req.session.passport.user) {

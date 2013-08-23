@@ -26,7 +26,7 @@ var ToolsController = {
 	var bitlyData = 'testing it hot';
 
 res.render(
-'tools/bitly', 
+Helper.bootstrapRoute, //'tools/bitly', 
 {
 title: 'Vocada | Business Bitly Page',
 bitly: {
@@ -59,7 +59,7 @@ data: bitlyData
 
 						req.session.bitlyState = crypto.randomBytes(10).toString('hex');
 				 		res.render(
-				 			'tools/bitly', 
+				 			Helper.bootstrapRoute, //'tools/bitly', 
 				 			{
 					 			title: 'Vocada | Business Bitly Page',
 					 			bitly: {

@@ -138,6 +138,11 @@ var LoadServer = (function() {
 
 						//if(typeof Route['login'] !== 'undefined' && Route['login'] && typeof Route.auth !== 'undefined')
 							//app[verb](Route.path, Route.auth, Route[verb]);
+						if(verb == 'json') {
+							app.use(Route.path, Route[verb]);
+							continue;
+						}
+
 						if(!Route.restricted)
 							app[verb](Route.path, Route[verb]);
 						else
@@ -146,8 +151,8 @@ var LoadServer = (function() {
 				}
 			});
 
-			// anything that doesn't match an express route pass to angular 
-			app.use(function(req, res, next){
+			// create 404 page
+			/*app.use(function(req, res, next){
 				if(req.session.passport.user) {
 					res.render('bootstrap');
 				} else {
@@ -155,7 +160,8 @@ var LoadServer = (function() {
 						req.session.returnTo = req.url;
 					res.redirect('/login');
 				}
-			});
+			});*/
+
 		};
 
 		// public members

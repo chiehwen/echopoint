@@ -1,0 +1,18 @@
+{
+	"manage": {
+		"label": "manage {{}}",
+		"icon": "wrench"
+	},
+	"dashboard": {
+		"label": "add to dashboard",
+		"icon": "flag-alt"
+	},
+	"hide": {
+		"label": "hide {{}} box",
+		"icon": "eye-close"
+	},
+	"help": {
+		"label": "help",
+		"icon": "question-sign"
+	},
+}

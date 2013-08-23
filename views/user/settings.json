@@ -1,0 +1,41 @@
+{
+	"dashboard": {
+		"modules": {
+			"facebook": ["notifications"],
+			"twitter": ["notifications"],
+			"foursquare": ["notifications"],
+			"yelp": ["notifications"]
+		}
+	},
+	"facebook": {
+		"modules": {
+			"notifications": {
+				"type": "list",
+				"dashboarded": 1,
+				"hidden": 0,
+				"size": 0,
+				"settings": {
+					"updates": {
+						"post": 1,
+						"like": 1,
+						"comment": 1,
+						"share": 1,
+						"top_commenter": 1,
+						"top_liking_user": 1,
+						"top_sharer": 1,
+						"profile": 1						
+					}
+					
+				}
+			},
+			"likes": {
+				"type": "graph",
+				"dashboarded": 0,
+				"hidden": 0,
+				"size": 1,
+				"timeframes": ["15day", "30day", "90day"],
+				"settings": {}
+			}
+		}
+	}
+}

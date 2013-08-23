@@ -92,7 +92,7 @@ var BusinessController = {
 					}
 
  					res.render(
- 						'business/select', 
+ 						Helper.bootstrapRoute, //'business/select', 
  						{
  					  	title: 'Vocada | Business List',
  					  	businesses: user.Business
@@ -132,7 +132,7 @@ var BusinessController = {
  					if (err) return next(err);	
  					
  					res.render(
- 						'business/list', 
+ 						Helper.bootstrapRoute, //'business/list', 
  						{
  					  	title: 'Vocada | Business List',
  					  	businesses: user.Business
@@ -145,7 +145,7 @@ var BusinessController = {
 
  	delete: {
  		get: function(req, res) {
- 			res.send(req.session.passport.user);
+ 			//res.send(req.session.passport.user);
  		},
  		delete: function(req, res) {
  			if(req.session.passport.user) {
