@@ -33,6 +33,14 @@ var PartialsController = {
  		}
  	},
 
+	// module viewport partials
+	facebook_module_notifications: {
+		path: '/partials/modules/facebook-notifications',
+		get: function(req, res) {
+			res.render('partials/modules/facebook-notifications');
+		}
+	},
+	
  	// help viewport partials
  	notifications: {
  		path: '/partials/help/notifications',

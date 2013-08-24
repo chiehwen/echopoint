@@ -92,8 +92,9 @@ Vocada
 		$scope.menu = module.menu.custom
 		$scope.timeframe = module.menu.timeframe
 
-		$scope.viewport = '/partials/viewport';
-		
+		$scope.viewport = {};
+		$scope.viewport.current = $scope.viewport.origin = '/partials/modules/' + ($scope.location + '-' + (module.class || module.title));
+	
 		// get our users current module settings from firebase
 		var firebaseSettingsUrl = firebaseUrl + 'users/' + 'scottcarlsonjr@gmail2/' + 'settings/' + $scope.location + '/modules/notifications/settings/';
 		$scope.management = angularFireCollection(firebaseSettingsUrl);
@@ -101,14 +102,14 @@ Vocada
 		// handle management action
 		$scope.manage = { state: 'manage ' + $scope.title, partial: '/partials/management/' + $scope.location + '-' + (module.class || module.title)};
 		$scope.toggleManagement = function() {
-			$scope.viewport = $scope.manage.state === 'exit management window' ? '/partials/viewport' : $scope.manage.partial;
+			$scope.viewport.current = $scope.manage.state === 'exit management window' ? $scope.viewport.origin : $scope.manage.partial;
 			$scope.manage.state = $scope.manage.state === 'exit management window' ? $scope.manage.state = 'manage ' + $scope.title : $scope.manage.state = 'exit management window';
 		};
 
 		// handle help action
 		$scope.help = { state: 'help', partial: '/partials/help/' + (module.class || module.title)};
 		$scope.toggleHelp = function() {
-			$scope.viewport = $scope.help.state === 'help' ? $scope.help.partial : '/partials/viewport';
+			$scope.viewport.current = $scope.help.state === 'help' ? $scope.help.partial : $scope.viewport.origin;
 			$scope.help.state = $scope.help.state === 'help' ? $scope.help.state = 'close help' : $scope.help.state = 'help';
 		};
 
