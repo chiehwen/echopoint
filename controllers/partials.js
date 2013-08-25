@@ -34,10 +34,10 @@ var PartialsController = {
  	},
 
  	// navigation partials
- 	main_menu: {
-		path: '/partials/menus/main',
+ 	header: {
+		path: '/partials/header',
 		get: function(req, res) {
-			res.render('partials/menus/main');
+			res.render('partials/header');
 		}
 	},
 	navigation: {

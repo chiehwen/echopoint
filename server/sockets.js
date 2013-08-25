@@ -88,6 +88,7 @@ console.log(callback);
 							{
 								title: 'quick stats',
 								id: 'facebook-likes',
+								class: 'statistics',
 								type: 'list', // 'graph', 'text'
 								menu: { 
 									custom: [

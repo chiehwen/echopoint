@@ -4,10 +4,14 @@ Vocada
 	
 	// Page Controller
 	.controller('PageCtrl', ['$scope', function ($scope) {
-		
-		$scope.navigation = false;
+		$scope.header = '/partials/header';
+		$scope.navigation = {
+			template: '/partials/menus/navigation',
+			active: false
+		}
+
 		$scope.toggleNavigation = function() {
-			$scope.navigation = $scope.navigation === false ? true : false;
+			$scope.navigation.active = !$scope.navigation.active ? true : false;
 		};
 	}])
 
@@ -35,8 +39,7 @@ Vocada
 	.controller('DataCtrl', ['$scope', '$window', '$http', '$route', '$routeParams', 'angularFireCollection', 'firebaseUrl', 'localStorage', 'socket', function ($scope, $window, $http, $route, $routeParams, angularFireCollection, firebaseUrl, localStorage, socket) {
 
 //console.log(menu.getMenu('test', ['manage']));
-$scope.mainMenu = '/partials/menus/main';
-$scope.navigationMenu = '/partials/menus/navigation';
+
 		var model = $scope.model = $routeParams.model,
 				controller = $scope.controller = $routeParams.controller;
 
@@ -87,7 +90,7 @@ $scope.navigationMenu = '/partials/menus/navigation';
 
 		// build module header
 		$scope.icon = module.icon ? '<i class="icon-'+module.icon+'"></i> ' : '';
-		$scope.title = module.title;
+		$scope.title = module.class || module.title;
 
 		// add additional menu items
 		$scope.menu = module.menu.custom
@@ -101,14 +104,14 @@ $scope.navigationMenu = '/partials/menus/navigation';
 		$scope.management = angularFireCollection(firebaseSettingsUrl);
 
 		// handle management action
-		$scope.manage = { state: 'manage ' + $scope.title, partial: '/partials/management/' + $scope.location + '-' + (module.id || module.title)};
+		$scope.manage = { state: 'manage ' + (module.class || module.title), partial: '/partials/management/' + module.id };
 		$scope.toggleManagement = function() {
 			$scope.viewport.current = $scope.manage.state === 'exit management window' ? $scope.viewport.origin : $scope.manage.partial;
 			$scope.manage.state = $scope.manage.state === 'exit management window' ? $scope.manage.state = 'manage ' + $scope.title : $scope.manage.state = 'exit management window';
 		};
 
 		// handle help action
-		$scope.help = { state: 'help', partial: '/partials/help/' + (module.id || module.title)};
+		$scope.help = { state: 'help', partial: '/partials/help/' + (module.class || module.title)};
 		$scope.toggleHelp = function() {
 			$scope.viewport.current = $scope.help.state === 'help' ? $scope.help.partial : $scope.viewport.origin;
 			$scope.help.state = $scope.help.state === 'help' ? $scope.help.state = 'close help' : $scope.help.state = 'help';

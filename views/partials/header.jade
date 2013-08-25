@@ -1,11 +1,11 @@
 //-div(id="top-navigation-bar")
-div(id='open-popup-menu', ng-hide='navigation', ng-click='toggleNavigation()')
+div(id='open-popup-menu', ng-hide='navigation.active', ng-click='toggleNavigation()')
 	a
 		i.icon-list
 div.logo
 	a(href="/") vocada
 	em 0.0.1
-div(id='user-navigation', ng-hide='navigation')
+div(id='user-navigation', ng-hide='navigation.active')
 	div#notification
 		i.icon-exclamation-sign
 		a(href="#", class="dropdown-toggle", data-toggle="dropdown")
