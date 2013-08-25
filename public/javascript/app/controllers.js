@@ -35,7 +35,8 @@ Vocada
 	.controller('DataCtrl', ['$scope', '$window', '$http', '$route', '$routeParams', 'angularFireCollection', 'firebaseUrl', 'localStorage', 'socket', function ($scope, $window, $http, $route, $routeParams, angularFireCollection, firebaseUrl, localStorage, socket) {
 
 //console.log(menu.getMenu('test', ['manage']));
-	
+$scope.mainMenu = '/partials/menus/main';
+$scope.navigationMenu = '/partials/menus/navigation';
 		var model = $scope.model = $routeParams.model,
 				controller = $scope.controller = $routeParams.controller;
 
@@ -93,21 +94,21 @@ Vocada
 		$scope.timeframe = module.menu.timeframe
 
 		$scope.viewport = {};
-		$scope.viewport.current = $scope.viewport.origin = '/partials/modules/' + ($scope.location + '-' + (module.class || module.title));
+		$scope.viewport.current = $scope.viewport.origin = '/partials/modules/' + module.id;
 	
 		// get our users current module settings from firebase
 		var firebaseSettingsUrl = firebaseUrl + 'users/' + 'scottcarlsonjr@gmail2/' + 'settings/' + $scope.location + '/modules/notifications/settings/';
 		$scope.management = angularFireCollection(firebaseSettingsUrl);
 
 		// handle management action
-		$scope.manage = { state: 'manage ' + $scope.title, partial: '/partials/management/' + $scope.location + '-' + (module.class || module.title)};
+		$scope.manage = { state: 'manage ' + $scope.title, partial: '/partials/management/' + $scope.location + '-' + (module.id || module.title)};
 		$scope.toggleManagement = function() {
 			$scope.viewport.current = $scope.manage.state === 'exit management window' ? $scope.viewport.origin : $scope.manage.partial;
 			$scope.manage.state = $scope.manage.state === 'exit management window' ? $scope.manage.state = 'manage ' + $scope.title : $scope.manage.state = 'exit management window';
 		};
 
 		// handle help action
-		$scope.help = { state: 'help', partial: '/partials/help/' + (module.class || module.title)};
+		$scope.help = { state: 'help', partial: '/partials/help/' + (module.id || module.title)};
 		$scope.toggleHelp = function() {
 			$scope.viewport.current = $scope.help.state === 'help' ? $scope.help.partial : $scope.viewport.origin;
 			$scope.help.state = $scope.help.state === 'help' ? $scope.help.state = 'close help' : $scope.help.state = 'help';

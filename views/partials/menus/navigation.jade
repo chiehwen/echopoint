@@ -1,0 +1,82 @@
+//-div(id="popup-navigation", ng-show="navigation")
+div(class='close-navigation-menu left', ng-click="toggleNavigation()")
+	i.icon-remove-sign
+div(class='close-navigation-menu right', ng-click="toggleNavigation()")
+	i.icon-remove-sign			
+div.overlay-navigation
+	div.overlay-background
+	div.overlay-menu
+		div(class="menu-block one-row")
+			h1
+				a data
+			div.menu
+				div
+					a(href="/dashboard", class="icon dashboard")
+						i.icon-th
+						span dashboard
+					a(href="#", class="icon notifications")
+						i.icon-bolt
+						span alerts
+					a(href="#", class="icon analytics")
+						i.icon-bar-chart
+						span analytics
+
+		div(class="menu-block two-row")
+			h1
+				a social
+			div.menu
+				div
+					a(href="/social/facebook", class="icon facebook")
+						i.icon-facebook
+						span facebook
+					a(href="/social/twitter", class="icon twitter")
+						i.icon-twitter
+						span twitter
+					a(href="/social/foursquare", class="icon foursquare")
+						i.icon-foursquare
+						span foursquare
+					a(href="/social/yelp", class="icon yelp")
+						i.icon-yelp
+						span yelp
+					//-a(href="/social/google", class="icon google")
+						i.icon-map-marker
+						span places
+					a(href="/social/places", class="icon palces")
+						i.google-places-icon
+						span places
+					a(href="/social/google", class="icon google")
+						i.icon-google-plus-sign
+						span google+
+					a(href="/social/youtube", class="icon youtube")
+						i.icon-youtube-play
+						span youtube
+					a(href="/social/instagram", class="icon instagram")
+						i.icon-instagram
+						span instagram
+						
+		div(class="menu-block one-row")
+			h1
+				a tools
+			div.menu
+				div
+					a(href="/tools/bitly", class="icon bitly")
+						i .ly
+						span bitly
+					a(href="#", class="icon responders")
+						i.icon-retweet
+						span responders
+					a(href="#", class="icon users")
+						i.icon-user
+						span users
+
+		div(class="menu-block one-row")
+			h1
+				a help
+			div.menu
+				div
+					a(href="#", class="icon quick-start")
+						i.icon-rocket
+						span quick start
+					a(href="#", class="icon faq")
+						i.icon-question
+						span faq

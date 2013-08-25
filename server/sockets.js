@@ -37,6 +37,7 @@ console.log(callback);
 					callback({
 						modules: [
 							{
+								id: 'facebook-notifications',
 								title: 'notifications',
 								type: 'list', // 'graph', 'text'
 								icon: 'globe',
@@ -86,7 +87,7 @@ console.log(callback);
 
 							{
 								title: 'quick stats',
-								class: 'facebook-likes',
+								id: 'facebook-likes',
 								type: 'list', // 'graph', 'text'
 								menu: { 
 									custom: [

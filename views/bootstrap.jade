@@ -2,8 +2,8 @@ include mixins
 extends layout
 
 block content
-	mixin popupNavigationMenu
+	div(id='popup-navigation', ng-show='navigation', ng-include='navigationMenu')
 	
 	div#main
-		mixin topNavigationMenu
+		div(id='top-navigation-bar', ng-include='mainMenu')
 		div(class='content', ng-view)

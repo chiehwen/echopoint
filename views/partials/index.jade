@@ -2,10 +2,10 @@ include ../mixins
 extends ../layout
 
 block content
-	mixin popupNavigationMenu
+	div(id="popup-navigation", ng-show="navigation", ng-include='/partials/menus/navigation')
 	
 	div#main
-		mixin topNavigationMenu
+		div(id='top-navigation-bar', ng-include='/partials/menus/main')
 		div(class='content', ng-view)
 
 		//-div(class='content', ng-switch, on='template')

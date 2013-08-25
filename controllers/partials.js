@@ -33,6 +33,20 @@ var PartialsController = {
  		}
  	},
 
+ 	// navigation partials
+ 	main_menu: {
+		path: '/partials/menus/main',
+		get: function(req, res) {
+			res.render('partials/menus/main');
+		}
+	},
+	navigation: {
+		path: '/partials/menus/navigation',
+		get: function(req, res) {
+			res.render('partials/menus/navigation');
+		}
+	},
+
 	// module viewport partials
 	facebook_module_notifications: {
 		path: '/partials/modules/facebook-notifications',
@@ -40,7 +54,7 @@ var PartialsController = {
 			res.render('partials/modules/facebook-notifications');
 		}
 	},
-	
+
  	// help viewport partials
  	notifications: {
  		path: '/partials/help/notifications',

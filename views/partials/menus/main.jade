@@ -1,0 +1,38 @@
+//-div(id="top-navigation-bar")
+div(id='open-popup-menu', ng-hide='navigation', ng-click='toggleNavigation()')
+	a
+		i.icon-list
+div.logo
+	a(href="/") vocada
+	em 0.0.1
+div(id='user-navigation', ng-hide='navigation')
+	div#notification
+		i.icon-exclamation-sign
+		a(href="#", class="dropdown-toggle", data-toggle="dropdown")
+			i.icon-info-sign
+		ul(class="dropdown-menu hide")
+			li.nav-header Notifications
+	//-script 
+		var socketTmp = io.connect('http://localhost');
+		socketTmp.emit('notifications', function (data) {
+			console.log(data);
+			//socket.emit('my other event', { my: 'data' });
+		});
+	div#user-menu
+		a(href="#", class='dropdown-toggle', data-toggle="dropdown") 
+			span Hello 
+				b Scott Carlson
+			i.icon-caret-down
+		ul(class="dropdown-menu")
+			li
+				a(href='#') 
+					i.icon-wrench
+					span Account Settings
+			li
+				a(href='/business/create')
+					i.icon-edit
+					span Create New Business
+			li.top-divider
+				a(href='/logout') 
+					i.icon-off
+					span Sign Out
