@@ -4,7 +4,7 @@ extends ../layout
 block content
 	div(id="popup-navigation", ng-show="navigation", ng-include='/partials/menus/navigation')
 	
-	div#main
+	div(id='main', data-uid='!{locals.uid}')
 		div(id='top-navigation-bar', ng-include='/partials/menus/main')
 		div(class='content', ng-view)
 

@@ -3,7 +3,10 @@
 Vocada
 	
 	// Page Controller
-	.controller('PageCtrl', ['$scope', function ($scope) {
+	.controller('PageCtrl', ['$scope', '$http', '$cookies', 'socket', 'uid', 'firebaseUrl', function ($scope, $http, $cookies, socket, uid, firebaseUrl) {
+
+		$scope.user = { uid: uid };
+
 		$scope.header = '/partials/header';
 		$scope.navigation = {
 			template: '/partials/menus/navigation',
@@ -36,37 +39,35 @@ Vocada
 
 
 	// Content Controller
-	.controller('DataCtrl', ['$scope', '$window', '$http', '$route', '$routeParams', '$cookies', 'angularFireCollection', 'firebaseUrl', 'localStorage', 'socket', function ($scope, $window, $http, $route, $routeParams, $cookies, angularFireCollection, firebaseUrl, localStorage, socket) {
+	.controller('DataCtrl', ['$scope', '$window', '$http', '$route', '$routeParams', '$cookies', 'uid', 'angularFireCollection', 'firebaseUrl', 'localStorage', 'socket', function ($scope, $window, $http, $route, $routeParams, $cookies, uid, angularFireCollection, firebaseUrl, localStorage, socket) {
 
 //console.log(menu.getMenu('test', ['manage']));
+		if(uid === '') {
+			$http.get('/user/settings').then(function(json) {
+				$scope.firebase = new Firebase(firebaseUrl + 'users');
+				$scope.user.uid = $scope.firebase.push({settings: json['data']}).name();
+			});
+		}
 
+		// first thing we do is get the data for the loading page
+		socket.emit('init', {sid: $cookies['connect.sid']}, function (loggedIn, passport, uidFromDatabase) {
+			//if(!loggedIn)
+				//$window.location.href = '/logout'
+			if(loggedIn) {
+				$scope.user.passport = passport;
+
+				if(uidFromDatabase === '') {
+					socket.emit('setUid', {passport: passport, uid: $scope.user.uid}, function (err) {
+						if(err) console.log(err)
+					});
+				}
+			}
+		});
+		
 		var model = $scope.model = $routeParams.model,
 				controller = $scope.controller = $routeParams.controller;
 
 		$scope.location = typeof controller !== 'undefined' ? controller : model;
-
-		// first thing we do is get the data for the loading page
-		socket.emit('init', {sid: $cookies['connect.sid']}, function (loggedIn, passport, uid) {
-			if(!loggedIn)
-				$window.location.href = '/logout'
-
-			$scope.user = {
-				passport: passport,
-				uid: uid
-			}
-
-			if(uid === '') {
-				$http.get('/user/settings').then(function(json) {
-					$scope.firebase = new Firebase(firebaseUrl + 'users');
-					var userPushReference = $scope.firebase.push({settings: json['data']}).name();
-					
-					socket.emit('setUid', {passport: passport, uid: userPushReference}, function (err) {
-						if(err) console.log(err)
-						$scope.user.uid = userPushReference;
-					});
-				});
-			}
-		});
 		 //angularFireCollection('https://vocada.firebaseio.com/users/');
 		//var pushReference = $scope.firebase.push({test: 'testing'});
 //console.log(pushReference.name());		
@@ -124,7 +125,10 @@ Vocada
 		// get our users current module settings from firebase
 		var firebaseSettingsUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + $scope.location + '/modules/notifications/settings/';
 		$scope.management = angularFireCollection(firebaseSettingsUrl);
-console.log($scope.management);
+console.log($scope.management.length);
+
+		$scope.firebase = new Firebase(firebaseSettingsUrl);
+		console.log($scope.firebase);
 // BEGIN HERE TOMORROW
 $scope.options = {
 	post: true

@@ -1,5 +1,5 @@
 doctype 5
-html(ng-app='vocada', ng-controller='PageCtrl')
+html(ng-app='vocada', ng-init="uid='#{locals.uid}'", ng-controller='PageCtrl')
 	head
 		title= title
 		link(rel='stylesheet', href='/stylesheets/bootstrap.min.css')
@@ -34,6 +34,7 @@ html(ng-app='vocada', ng-controller='PageCtrl')
 		script(src='/javascript/app/controllers.js')
 		script(src='/javascript/app/services.js')
 		script(src='/javascript/libraries/bootstrap/bootstrap.min.js')
-
+		script
+			Vocada.constant('uid', '!{locals.uid}') 
 		//-script(src='/javascript/vocada.main.js')
 		//-script(src='/javascript/vocada.charts.js')	

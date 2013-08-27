@@ -16,6 +16,19 @@ var Middleware = {
 			req.session.messages = [];
 	},
 
+	uidSessionVariable: function(req, res, next) {
+		if(req.session.passport.user) {
+ 			Helper.getUser(req.session.passport.user, function(err, user) {
+ 				if(err) console.log(err);
+ 				res.locals.uid = user.uid;
+ 				next();
+ 			});
+ 		} else {
+	 		next();
+	 	}
+
+	},
+
 	loadBusiness: function(req, res, next) {
 		if(req.session.passport.user && typeof req.session.Business === 'undefined' && !Helper.isPath(req.url, ['/login', '/logout', '/business/select', '/business/create', '/user/create'], [])) {
  			Helper.getUser(req.session.passport.user, function(err, user) {
