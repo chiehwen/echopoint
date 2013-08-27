@@ -5,7 +5,8 @@ var express = require('express'),
 		path = require('path'),
 		Class = require('../server/libraries/class'),
 		passport = require('passport'),
-		Middleware = require('./middleware').Middleware;
+		Middleware = require('./middleware').Middleware,
+		Session = require('./session');
 
 var AppSetup = (function() {
 	return {
@@ -21,8 +22,9 @@ var AppSetup = (function() {
 			}
 		},
 		setup: function() {
-			var app = this.application;
-
+			var app = this.application,
+					store = new express.session.MemoryStore;			
+			
 			// all environments
 			app
 				.set('port', process.env.PORT || 3000)
@@ -36,8 +38,8 @@ var AppSetup = (function() {
 				.use(express.bodyParser())
 				.use(express.methodOverride())
 				.use(express.cookieParser('The world is full of secrets!'))
-				.use(express.session('Yes, even wizards have secrets...'))
-
+				.use(express.session({secret: 'Yes, even wizards have secrets...', store: store, cookie: {httpOnly: false}}))
+	
 				// passport setup
 				.use(passport.initialize())
 				.use(passport.session())
@@ -50,6 +52,9 @@ var AppSetup = (function() {
 				.use(app.router)
 				.use(require('less-middleware')({ src: __dirname + '/../public' }))
 				.use(express.static(path.join(__dirname, '../public')));
+
+			// create reference to session store
+			Session.store = store;
 
 			return app;
 		}

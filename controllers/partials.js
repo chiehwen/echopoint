@@ -48,32 +48,32 @@ var PartialsController = {
 	},
 
 	// module viewport partials
-	facebook_module_notifications: {
-		path: '/partials/modules/facebook-notifications',
+	facebook_notifications: {
+		path: '/partials/modules/facebook/notifications/index',
 		get: function(req, res) {
-			res.render('partials/modules/facebook-notifications');
+			res.render('partials/modules/facebook/notifications/index');
 		}
 	},
 
  	// help viewport partials
- 	notifications: {
- 		path: '/partials/help/notifications',
+ 	facebook_notifications_help: {
+ 		path: '/partials/modules/facebook/notifications/help',
  		get: function(req, res) {
- 			res.render('partials/help/notifications');
+ 			res.render('partials/modules/facebook/notifications/help');
  		}
  	},
- 	facebook_likes: {
- 		path: '/partials/help/facebook-likes',
+ 	facebook_likes_help: {
+ 		path: '/partials/modules/facebook/notifications/management',
  		get: function(req, res) {
- 			res.render('partials/help/facebook-likes');
+ 			res.render('partials/modules/facebook/notifications/management');
  		}
  	},
 
  	// options viewport partials
- 	facebook_options_notifications: {
- 		path: '/partials/management/facebook-notifications',
+ 	facebook_notifications_management: {
+ 		path: '/partials/modules/facebook/notifications/management',
  		get: function(req, res) {
- 			res.render('partials/management/facebook-notifications');
+ 			res.render('partials/modules/facebook/notifications/management');
  		}
  	},
 }

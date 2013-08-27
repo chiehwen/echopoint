@@ -6,12 +6,14 @@ div.logo
 	a(href="/") vocada
 	em 0.0.1
 div(id='user-navigation', ng-hide='navigation.active')
-	div#notification
+	div(id='notification')
 		i.icon-exclamation-sign
 		a(href="#", class="dropdown-toggle", data-toggle="dropdown")
 			i.icon-info-sign
-		ul(class="dropdown-menu hide")
-			li.nav-header Notifications
+		div(class="dropdown-menu hide")
+			h2 All Notifications
+			ul
+				li.nav-header Notifications
 	//-script 
 		var socketTmp = io.connect('http://localhost');
 		socketTmp.emit('notifications', function (data) {

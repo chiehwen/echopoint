@@ -1,6 +1,6 @@
 'use strict';
 
-var Vocada = angular.module('vocada', ['firebase'])
+var Vocada = angular.module('vocada', ['ngCookies', 'firebase'])
 .config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
 		$routeProvider.when('/:model/:controller', {
 			templateUrl: '/partials/data',

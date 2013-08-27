@@ -183,7 +183,7 @@ var Auth = (function() {
 		}
 
 		function _salt(callback) {
-			bcrypt.genSalt(this.saltWorkFactor, function(err, salt) {
+			bcrypt.genSalt(saltWorkFactor, function(err, salt) {
 				if (err) callback(err);
 				callback(null, salt);
 			});

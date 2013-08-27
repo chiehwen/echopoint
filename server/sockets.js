@@ -1,6 +1,8 @@
 // Module dependencies.
 var Auth = require('./auth').getInstance(),
+		Helper = require('./helpers'),
 		Notification = require('./notification'),
+		Session = require('./session'),
 		Model = Model || Object;
 
 
@@ -12,6 +14,39 @@ var Socket = (function() {
 	function constructor(io) {
 
 	io.sockets.on('connection', function (socket) {
+		// init is called on initial page load 
+		// it checks to see if user is logged in
+		// and then returns the uid for firebase
+		socket.on('init', function(data, callback) {
+			var sid = data.sid.replace('s:','').split('.')[0],
+					passportUserId = JSON.parse(Session.store.sessions[sid]).passport.user;
+
+			if(passportUserId && passportUserId != '') {
+ 				Helper.getUser(passportUserId, function(err, user) {
+ 					if (err || !user) callback(false, null, '');
+ 					callback(true, passportUserId, user.uid);
+				});
+			} else {
+				callback(false, null, '');
+			}
+			
+		});
+
+		socket.on('setUid', function(data, callback) {
+			if(data.passport) {
+ 				Helper.getUser(data.passport, function(err, user) {
+ 					if (err || !user) callback(err);
+ 					user.uid = data.uid;
+ 					user.save(function(err){
+ 						if(err) callback(err);
+ 						callback(null);
+ 					});
+				});
+			} else {
+				callback('not logged it!');
+			}
+		});
+
 		//setTimeout(function() {
 			socket.on('getModules', function(data, callback) {
 console.log(callback);
@@ -37,7 +72,7 @@ console.log(callback);
 					callback({
 						modules: [
 							{
-								id: 'facebook-notifications',
+								id: 'facebook',
 								title: 'notifications',
 								type: 'list', // 'graph', 'text'
 								icon: 'globe',
@@ -86,8 +121,8 @@ console.log(callback);
 							},
 
 							{
+								id: 'facebook',
 								title: 'quick stats',
-								id: 'facebook-likes',
 								class: 'statistics',
 								type: 'list', // 'graph', 'text'
 								menu: { 
