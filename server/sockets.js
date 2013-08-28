@@ -73,47 +73,21 @@ console.log(callback);
 						modules: [
 							{
 								id: 'facebook',
+								title: 'tip',
+								type: 'text', // 'graph', 'text'
+								menu: false,
+								closeable: true,
+								data: {
+									viewport: []
+								}
+							},
+
+							{
+								id: 'facebook',
 								title: 'notifications',
 								type: 'list', // 'graph', 'text'
 								icon: 'globe',
-								menu: [
-									//['manage', 'dashboard'],
-									//['hide'],
-									//['help']
-
-								/*	{
-										label: 'manage notification', 
-										icon: 'wrench',
-										action: 'manage', // 'dashboard', 'hide', 'help', 'resize', 'timeframe'
-										current: null, // 'onDashboard', 'offDashboard', 'large', 'small', '30day', '60day'
-										meta: null,
-										divider: false
-									},
-									{
-										label: 'add to dashboard', 
-										icon: 'flag-alt',
-										action: 'dashboard', // 'dashboard', 'hide', 'help', 'resize', 'timeframe'
-										current: false, // 'onDashboard(or false)', 'offDashboard(or true)', 'large', 'small', '30day', '60day'
-										meta: null,
-										divider: false
-									},
-									{
-										label: 'hide notification box', 
-										icon: 'eye-close',
-										action: 'hide', // 'dashboard', 'hide', 'help', 'resize', 'timeframe'
-										current: null, // 'onDashboard(or false)', 'offDashboard(or true)', 'large', 'small', '30day', '60day'
-										meta: null,
-										divider: true
-									},
-									{
-										label: 'help', 
-										icon: 'question-sign',
-										action: 'help', // 'dashboard', 'hide', 'help', 'resize', 'timeframe'
-										current: null, // 'onDashboard(or false)', 'offDashboard(or true)', 'large', 'small', '30day', '60day'
-										meta: null,
-										divider: true
-									} */
-								],
+								menu: [],
 								data: {
 									viewport: [],
 									help: ''
@@ -125,6 +99,18 @@ console.log(callback);
 								title: 'quick stats',
 								class: 'statistics',
 								type: 'list', // 'graph', 'text'
+								menu: [],
+								data: {
+									viewport: [],
+									help: ''
+								}
+							},
+
+							{
+								id: 'facebook',
+								title: 'wall posts',
+								class: 'posts', 
+								type: 'graph', // 'graph', 'text'
 								menu: { 
 									custom: [
 										{
@@ -139,10 +125,9 @@ console.log(callback);
 									timeframe: ['15 days', '30 days', '90 days']
 								},
 								data: {
-									viewport: [],
-									help: ''
+									viewport: []
 								}
-							}
+							},
 						]
 					});
 				}

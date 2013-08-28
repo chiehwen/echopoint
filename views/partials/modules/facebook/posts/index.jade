@@ -1,0 +1,75 @@
+div#wall-posts-chart
+
+script
+	$(function () {
+		jQuery('#wall-posts-chart').highcharts({
+			chart: {
+				type: 'column'
+			},
+			title: {
+				text: '',
+			},
+			credits: {
+				enabled: false
+			},
+			colors: [
+				'#546f8e',
+				'#546f8e',
+				'#546f8e',
+				'#546f8e',
+				'#546f8e',
+				'#546f8e',
+				'#546f8e',
+				'#546f8e',
+				'#546f8e'
+			],
+			xAxis: {
+				tickinterval: 1,
+				labels: {
+					enabled: false
+				},
+				lineColor: '#D3D3D3',
+				lineWidth: 1,
+				minPadding: 0
+			},
+			yAxis: {
+				title: {
+					text: null
+				},
+				stackLabels: {
+					enabled: false
+				},
+				lineColor: '#D3D3D3',
+				lineWidth: 1,
+				minPadding: 0
+				//plotLines: [{
+				//	value: 0,
+				//	width: 1,
+				//	color: '#808080'
+				//}]
+			},
+			plotOptions: {
+				area: {
+					fillColor: '#546f8e',
+					marker: {
+						enabled: false
+					}
+				},
+				series: {
+					groupPadding: 0,
+					pointPadding: 0,
+					shadow: false
+				}
+			},
+			tooltip: {
+				valueSuffix: '°C'
+			},
+			legend: {
+				enabled: false
+			},
+			series: [{
+					name: 'Tokyo',
+					data: [1, 0, 0, 2, 1, 0, 3, 2, 2, 0, 1, 1, 2, 4, 3 ]
+				}]
+		});
+	});

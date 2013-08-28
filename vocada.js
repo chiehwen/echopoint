@@ -54,7 +54,8 @@ Model.User.findOne({email: "123"}, function(err, user) {
 		biz.Business[0].name = 'silly co';
 		biz.save(function(err, res){});
 	})*/
-	//user.Business = [];user.save(function(err,res){});
+	//user.Business = [];
+	//user.save(function(err,res){});
 });
 
 

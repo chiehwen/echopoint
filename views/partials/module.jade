@@ -1,10 +1,12 @@
 div
 	div.header
 		h2(ng-bind-html-unsafe='icon+title')
-		a(href='#', data-toggle='dropdown', class='dropdown-toggle')
+		a(href='#', class='close-tip', ng-show='closeable', ng-click='closeModule()')
+			i.icon-remove-sign
+		a(href='#', data-toggle='dropdown', class='dropdown-toggle', ng-show='menu.on')
 			i.icon-cog
 		//-ul(class='dropdown-menu hide', ng-include='menu', ng-controller='MenuController')
-		ul(class='dropdown-menu hide')
+		ul(class='dropdown-menu hide', ng-show='menu.on')
 			li: a(href='#', ng-click='toggleManagement()')
 				i.icon-wrench
 				span {{manage.state}}
@@ -13,13 +15,16 @@ div
 				span add to dashboard 
 					//-pull from dashboard
 			
-			li(ng-repeat='option in menu', ng-class='{"top-divider":option.divider}'): a(href='#', ng-click='{{option.action}}')
+			li(ng-repeat='option in menu.custom', ng-class='{"top-divider":option.divider}'): a(href='#', ng-click='{{option.action}}')
 				i(class='{{"icon-"+option.icon}}')
 				span {{option.label}}
-			li(ng-repeat='time in timeframe', ng-class='{"top-divider":option.divider}'): a(href='#', ng-click='changeTimeframe({{time}})')
+			li(ng-repeat='time in menu.timeframe', ng-class='{"top-divider":option.divider}'): a(href='#', ng-click='changeTimeframe({{time}})')
 				i(class='icon-calendar')
 				span show {{time}}
-			li.top-divider: a(href='#', class='toggle-display')
+			li.top-divider: a(href='#', class='toggle-size', ng-click='toggleSize()')
+				i.icon-resize-horizontal
+				span larger {{title}} box
+			li: a(href='#', class='toggle-display')
 				i.icon-eye-close
 				span hide {{title}} box
 			li.top-divider: a(href='#', ng-click='toggleHelp()')

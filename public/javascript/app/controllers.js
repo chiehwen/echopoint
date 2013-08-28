@@ -40,8 +40,12 @@ Vocada
 
 	// Content Controller
 	.controller('DataCtrl', ['$scope', '$window', '$http', '$route', '$routeParams', '$cookies', 'uid', 'angularFireCollection', 'firebaseUrl', 'localStorage', 'socket', function ($scope, $window, $http, $route, $routeParams, $cookies, uid, angularFireCollection, firebaseUrl, localStorage, socket) {
-
+$scope.load = {complete: false};	
 //console.log(menu.getMenu('test', ['manage']));
+		
+		// This must be done on first load business creation because 
+		// not having a uid already created and connected to firebase
+		// causes load errors
 		if(uid === '') {
 			$http.get('/user/settings').then(function(json) {
 				$scope.firebase = new Firebase(firebaseUrl + 'users');
@@ -59,11 +63,12 @@ Vocada
 				if(uidFromDatabase === '') {
 					socket.emit('setUid', {passport: passport, uid: $scope.user.uid}, function (err) {
 						if(err) console.log(err)
+						console.log('new uid has been saved to database');
 					});
 				}
 			}
 		});
-		
+
 		var model = $scope.model = $routeParams.model,
 				controller = $scope.controller = $routeParams.controller;
 
@@ -86,11 +91,11 @@ Vocada
 			});*/
 
 		// first thing we do is get the data for the loading page
-		socket.emit('getPageData', {model: model, controller: controller}, function (data) {
+		/*socket.emit('getPageData', {model: model, controller: controller}, function (data) {
 			console.log(data.modules);
 			if(data.modules.length > 0) 
 				$scope.mods = data.modules;
-		});
+		});*/
 
 
 		// if the page has modules lets get them
@@ -108,6 +113,7 @@ Vocada
 
 	.controller('ModuleCtrl', ['$scope', 'angularFire', 'angularFireCollection', 'firebaseUrl', 'socket', function ($scope, angularFire, angularFireCollection, firebaseUrl, socket) {
 
+
 		var module = $scope.$parent.mod;
 		$scope.location = $scope.$parent.location;
 
@@ -116,23 +122,53 @@ Vocada
 		$scope.title = module.class || module.title;
 
 		// add additional menu items
-		$scope.menu = module.menu.custom
-		$scope.timeframe = module.menu.timeframe
+		$scope.menu = {
+			on: module.menu === false ? false : true,
+			custom: module.menu.custom,
+			timeframe: module.menu.timeframe
+		}
+
+		$scope.closeable = module.closeable === true ? true : false; 
 
 		$scope.viewport = {};
+		//$scope.viewport.current = '/partials/modules/loading';
 		$scope.viewport.current = $scope.viewport.origin = '/partials/modules/' + module.id + '/' + (module.class || module.title) + '/index';
-	
-		// get our users current module settings from firebase
-		var firebaseSettingsUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + $scope.location + '/modules/notifications/settings/';
-		$scope.management = angularFireCollection(firebaseSettingsUrl);
-console.log($scope.management.length);
 
-		$scope.firebase = new Firebase(firebaseSettingsUrl);
-		console.log($scope.firebase);
-// BEGIN HERE TOMORROW
-$scope.options = {
-	post: true
-}
+
+//$scope.$watch('management[7]', function() {
+//	console.log($scope.management);
+//});
+		$scope.isLarge = ''; 
+		$scope.makeLarge = function() {
+			$scope.isLarge = 'large';
+			console.log('anything?');
+		}
+		var firebaseModuleUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + $scope.location + '/modules/' + $scope.title;
+		var firebaseModule = new Firebase(firebaseModuleUrl);
+		firebaseModule.on('value', function (snapshot) {
+			var data = snapshot.val();
+			if(data) {
+				$scope.size = data.large === true ? 'large' : '';
+				$scope.load.complete = true;
+			}
+		});
+
+
+		// get our users current module settings from firebase
+		//var firebaseSettingsUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + $scope.location + '/modules/' + $scope.title +'/settings/';
+		$scope.management = angularFireCollection(firebaseModuleUrl + '/settings/');
+
+		// setup viewport based on options (if any options)
+		var firebaseOptionsList = new Firebase(firebaseModuleUrl + '/settings/');
+		$scope.options = {};
+		firebaseOptionsList.on('value', function (snapshot) {
+			var optionList = snapshot.val();
+			if(optionList)
+				for(var i=0, l = optionList.length; i<l; i++) {
+					$scope.options[optionList[i].type] = optionList[i].val;
+				}
+		})
+
 
 		// handle management action
 		$scope.manage = { state: 'manage ' + (module.class || module.title), partial: '/partials/modules/' + module.id + '/' + (module.class || module.title) + '/management'};
@@ -155,7 +191,7 @@ $scope.options = {
 	// with firebase for user settings   
 	.controller('OptionCtrl', ['$scope', 'angularFire', 'firebaseUrl', function ($scope, angularFire, firebaseUrl) {
 		var option = $scope.$parent.option, // option is defined in partial (it is singulars from $scope.management)
-				firebaseSettingsUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + 'facebook' + '/modules/notifications/settings/';
+				firebaseSettingsUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + 'facebook' + '/modules/' + $scope.title +'/settings/';
 		$scope.icon = {
 			on: option.val ? '' : '-empty',
 			color: option.val ? 'green' : 'gray'
@@ -163,10 +199,10 @@ $scope.options = {
 		$scope.text = {
 			on: option.val ? 'active' : 'disabled'
 		}
-		angularFire(firebaseSettingsUrl + option.$id + '/val', $scope, 'remote', true).
+		angularFire(firebaseSettingsUrl + option.$id, $scope, 'remote', {}).
 		then(function() {
 				$scope.toggleOption = function() {
-					$scope.remote = $scope.options.post = !option.val;
+					$scope.remote.val = $scope.options[$scope.remote.type] = !option.val;
 				}
 		});
 	}])

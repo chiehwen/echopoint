@@ -1,5 +1,5 @@
 doctype 5
-html(ng-app='vocada', ng-init="uid='#{locals.uid}'", ng-controller='PageCtrl')
+html(ng-app='vocada', ng-controller='PageCtrl')
 	head
 		title= title
 		link(rel='stylesheet', href='/stylesheets/bootstrap.min.css')
@@ -12,11 +12,16 @@ html(ng-app='vocada', ng-init="uid='#{locals.uid}'", ng-controller='PageCtrl')
 
 		script console.log(!{JSON.stringify(locals)}); //- TEMP
 		script(src='/socket.io/socket.io.js')
+
 		script(src='//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js')
+		script(src='http://code.highcharts.com/highcharts.js')
+
+		script(src='/javascript/libraries/bootstrap/bootstrap.min.js')
 
 		//-script(src='/javascript/libraries/bootstrap/bootstrap.min.js')	
 		//-script(src='/javascript/libraries/packery.min.js')
-		//-script(src='/javascript/libraries/draggabilly.min.js')
+		//-script(src='/javascript/libraries/draggabilly.min.js?v=1.0.5')
+		//-script(src='//cdnjs.cloudflare.com/ajax/libs/draggabilly/1.0.2/draggabilly.pkgd.min.js?v=1.0.2')
 		
 		//-script(src='/javascript/libraries/class.js')
 		//-script(data-main='/javascript/load.js', src='/javascript/libraries/require.js')	
@@ -25,15 +30,12 @@ html(ng-app='vocada', ng-init="uid='#{locals.uid}'", ng-controller='PageCtrl')
 		//-script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular-resource.min.js')
 		script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular-cookies.min.js')
 
-		script(src='https://cdn.firebase.com/v0/firebase.js')
-		script(src='/javascript/libraries/angularfire.min.js')
-
-		script(src='http://code.highcharts.com/highcharts.js')
+		script(src='//cdn.firebase.com/v0/firebase.js')
+		script(src='//cdnjs.cloudflare.com/ajax/libs/angularFire/0.2.0/angularfire.min.js')
 
 		script(src='/javascript/app/app.js')
 		script(src='/javascript/app/controllers.js')
 		script(src='/javascript/app/services.js')
-		script(src='/javascript/libraries/bootstrap/bootstrap.min.js')
 		script
 			Vocada.constant('uid', '!{locals.uid}') 
 		//-script(src='/javascript/vocada.main.js')

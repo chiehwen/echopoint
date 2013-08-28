@@ -152,11 +152,19 @@ var UserController = {
 					},
 					"facebook": {
 						"modules": {
+							"tip": {
+								"type": "text",
+								"dashboarded": null,
+								"hidden": false,
+								"menu": false,
+								"large": true,
+								"settings": []
+							},
 							"notifications": {
 								"type": "list",
 								"dashboarded": true,
 								"hidden": false,
-								"size": false,
+								"large": false,
 								"settings": [
 									{"type": "post", "val": true},
 									{"type": "like", "val": true},
@@ -168,11 +176,26 @@ var UserController = {
 									{"type": "profile", "val": true}
 								]
 							},
-							"likes": {
+							"statistics": {
+								"type": "list",
+								"dashboarded": false,
+								"hidden": false,
+								"large": false,
+								"settings": [
+									{"type": "post_count", "val": true},
+									{"type": "total_likes", "val": true},
+									{"type": "page_visits", "val": true},
+									{"type": "unique_page_visits", "val": true},
+									{"type": "total_checkins", "val": true},
+									{"type": "latest_viral_score", "val": true},
+									{"type": "highest_viral_score", "val": true}
+								]
+							},
+							"posts": {
 								"type": "graph",
 								"dashboarded": false,
 								"hidden": false,
-								"size": true,
+								"large": true,
 								"timeframes": ["15day", "30day", "90day"],
 								"settings": []
 							}
