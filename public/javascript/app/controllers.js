@@ -18,7 +18,6 @@ Vocada
 		};
 	}])
 
-
 	// Template Controller
 	/*.controller('TemplateCtrl', ['$scope', '$window', '$http', '$route', '$routeParams', '$location', 'angularFireCollection', 'localStorage', 'socket', function ($scope, $window, $http, $route, $routeParams, $location, angularFireCollection, localStorage, socket) {
 
@@ -38,18 +37,18 @@ Vocada
 	}]) */
 
 
-	// Content Controller
-	.controller('DataCtrl', ['$scope', '$window', '$http', '$route', '$routeParams', '$cookies', 'uid', 'angularFireCollection', 'firebaseUrl', 'localStorage', 'socket', function ($scope, $window, $http, $route, $routeParams, $cookies, uid, angularFireCollection, firebaseUrl, localStorage, socket) {
-$scope.load = {complete: false};	
-//console.log(menu.getMenu('test', ['manage']));
+	// Social Pages Controller
+	.controller('SocialCtrl', ['$scope', '$window', '$http', '$route', '$routeParams', '$cookies', 'uid', 'angularFireCollection', 'firebaseUrl', 'localStorage', 'socket', function ($scope, $window, $http, $route, $routeParams, $cookies, uid, angularFireCollection, firebaseUrl, localStorage, socket) {
 		
+		$scope.load = {complete: false};	
+
 		// This must be done on first load business creation because 
 		// not having a uid already created and connected to firebase
 		// causes load errors
 		if(uid === '') {
 			$http.get('/user/settings').then(function(json) {
-				$scope.firebase = new Firebase(firebaseUrl + 'users');
-				$scope.user.uid = $scope.firebase.push({settings: json['data']}).name();
+				var firebase = new Firebase(firebaseUrl + 'users');
+				$scope.user.uid = firebase.push({settings: json['data']}).name();
 			});
 		}
 
@@ -69,57 +68,54 @@ $scope.load = {complete: false};
 			}
 		});
 
-		var model = $scope.model = $routeParams.model,
-				controller = $scope.controller = $routeParams.controller;
+		$scope.page = {location: $routeParams.controller}
 
-		$scope.location = typeof controller !== 'undefined' ? controller : model;
-		 //angularFireCollection('https://vocada.firebaseio.com/users/');
-		//var pushReference = $scope.firebase.push({test: 'testing'});
-//console.log(pushReference.name());		
-		//pushReference.set({test: 'testing'});
-		//firebase.on('value', function(snapshot) {
-		 // console.log(snapshot.val());
-		//});
-		//firebase.add({scott: settings: {}})
+		//$scope.location = typeof controller !== 'undefined' ? controller : model;
 
-		/*var userSettings = localStorage.get('userSettings');
-		if(!userSettings)
-			$http.get('/user/settings').then(function(json) {
-				userSettings = json.data;
-				$scope.firebase.update({"scottcarlsonjr@gmail2": {settings: userSettings}});
-				localStorage.set('userSettings', userSettings);
-			});*/
 
-		// first thing we do is get the data for the loading page
-		/*socket.emit('getPageData', {model: model, controller: controller}, function (data) {
-			console.log(data.modules);
-			if(data.modules.length > 0) 
-				$scope.mods = data.modules;
-		});*/
+		$scope.firebase = {
+			url: firebaseUrl + 'users/' + $scope.user.uid + '/settings/' + $scope.page.location + '/modules/'
+		}
 
+		$scope.firebase.modules = new Firebase($scope.firebase.url);
 
 		// if the page has modules lets get them
-		socket.emit('getModules', {model: model, controller: controller}, function (data) {
-			//console.log(data.modules);
-			if(data.modules.length > 0) {
-				$scope.module = '/partials/module';
-				$scope.mods = data.modules;
-				//socket.emit('my other event', { my: 'data' });
-			}
+		$scope.firebase.modules.on('value', function(snapshot) {
+			//for(var data in snapshot.val()) {
+			//	console.log(data);
+			//};
+
+			
 		});
+
+		socket.emit('getModules', {controller: $scope.page.location}, function (data) {			if(data.modules.length > 0) {
+					$scope.modules = {
+						partial: '/partials/module',
+						data: data.modules,
+						/*revive: function(num) {
+							console.log(num)
+							console.log($scope.modules.data[num]);
+							$scope.modules.data[num].hidden = false;
+						}*/
+					}
+				}
+			});
+
 
 	}])
 
 
 	.controller('ModuleCtrl', ['$scope', 'angularFire', 'angularFireCollection', 'firebaseUrl', 'socket', function ($scope, angularFire, angularFireCollection, firebaseUrl, socket) {
 
-
-		var module = $scope.$parent.mod;
-		$scope.location = $scope.$parent.location;
+		var module = $scope.module;
+		$scope.module.hidden = true;
+		//$scope.location = $scope.$parent.location;
 
 		// build module header
-		$scope.icon = module.icon ? '<i class="icon-'+module.icon+'"></i> ' : '';
-		$scope.title = module.class || module.title;
+		$scope.frame = {
+			icon: module.icon ? '<i class="icon-'+module.icon+'"></i> ' : '',
+			title: module.class || module.title
+		}
 
 		// add additional menu items
 		$scope.menu = {
@@ -130,38 +126,99 @@ $scope.load = {complete: false};
 
 		$scope.closeable = module.closeable === true ? true : false; 
 
-		$scope.viewport = {};
-		//$scope.viewport.current = '/partials/modules/loading';
-		$scope.viewport.current = $scope.viewport.origin = '/partials/modules/' + module.id + '/' + (module.class || module.title) + '/index';
+		$scope.viewport = {current: '/partials/modules/loading'};
 
+		$scope.viewport.origin = '/partials/modules/' + module.id + '/' + (module.class || module.title) + '/index';
 
-//$scope.$watch('management[7]', function() {
-//	console.log($scope.management);
-//});
 		$scope.isLarge = ''; 
 		$scope.makeLarge = function() {
 			$scope.isLarge = 'large';
 			console.log('anything?');
 		}
-		var firebaseModuleUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + $scope.location + '/modules/' + $scope.title;
-		var firebaseModule = new Firebase(firebaseModuleUrl);
-		firebaseModule.on('value', function (snapshot) {
+
+		//var firebaseModuleUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + $scope.page.location + '/modules/' + $scope.title;
+		//var firebaseModule = new Firebase(firebaseModuleUrl);
+		$scope.chartTest = {
+			options: {
+				chart: {
+					type: 'column',
+					width: 428,
+					height: 400
+				},
+				credits: {
+					enabled: false
+				},
+				colors: [
+					'#546f8e'
+				],
+				
+				plotOptions: {
+					area: {
+						fillColor: '#546f8e',
+						marker: {
+							enabled: false
+						}
+					},
+					series: {
+						groupPadding: 0,
+						pointPadding: 0,
+						shadow: false
+					}
+				},
+				tooltip: {
+					//valueSuffix: ' posts'
+				},
+				legend: {
+					enabled: false
+				},
+			},
+			title: {
+				text: '',
+			},
+
+			series: [{
+				name: 'wall posts',
+				data: [1, 0, 0, 2, 1, 0, 3, 2, 2, 0, 1, 1, 2, 4, 3 ]
+			}],
+
+			loading: false
+		} // chartTest
+
+		$scope.firebase.modules.child($scope.frame.title).on('value', function (snapshot) {
 			var data = snapshot.val();
 			if(data) {
-				$scope.size = data.large === true ? 'large' : '';
+				$scope.frame.size = data.large === true ? 'large' : '';
+				
+				$scope.chartTest.options.chart.width = 908;
+				if(!data.hidden) {
+					$scope.viewport.current = $scope.viewport.origin
+					$scope.module.hidden = false;
+				}
 				$scope.load.complete = true;
 			}
 		});
-
+//$scope.modules.revive(num) {
+//	console.log('is it happeneing', num)
+//}
+		angularFire($scope.firebase.url + $scope.frame.title, $scope, 'remoteModule', {}).
+		then(function() {
+			$scope.modules.revive = function(num) {
+				//console.log($scope.modules.data[num]);
+				//$scope.modules.data[num].hidden = false;
+				$scope.remoteModule.hidden = $scope.module.hidden = !$scope.module.hidden;
+			}
+		});
 
 		// get our users current module settings from firebase
-		//var firebaseSettingsUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + $scope.location + '/modules/' + $scope.title +'/settings/';
-		$scope.management = angularFireCollection(firebaseModuleUrl + '/settings/');
+		//var firebaseSettingsUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + $scope.page.location + '/modules/' + $scope.frame.title +'/settings/';
+		$scope.management = {
+			settings: angularFireCollection($scope.firebase.url + $scope.frame.title + '/settings/')
+		}
 
 		// setup viewport based on options (if any options)
-		var firebaseOptionsList = new Firebase(firebaseModuleUrl + '/settings/');
+		//var firebaseOptionsList = new Firebase(firebaseModuleUrl + '/settings/');
 		$scope.options = {};
-		firebaseOptionsList.on('value', function (snapshot) {
+		$scope.firebase.modules.child($scope.frame.title).child('settings').on('value', function (snapshot) {
 			var optionList = snapshot.val();
 			if(optionList)
 				for(var i=0, l = optionList.length; i<l; i++) {
@@ -174,7 +231,7 @@ $scope.load = {complete: false};
 		$scope.manage = { state: 'manage ' + (module.class || module.title), partial: '/partials/modules/' + module.id + '/' + (module.class || module.title) + '/management'};
 		$scope.toggleManagement = function() {
 			$scope.viewport.current = $scope.manage.state === 'exit management window' ? $scope.viewport.origin : $scope.manage.partial;
-			$scope.manage.state = $scope.manage.state === 'exit management window' ? $scope.manage.state = 'manage ' + $scope.title : $scope.manage.state = 'exit management window';
+			$scope.manage.state = $scope.manage.state === 'exit management window' ? $scope.manage.state = 'manage ' + $scope.frame.title : $scope.manage.state = 'exit management window';
 		};
 
 		// handle help action
@@ -191,7 +248,7 @@ $scope.load = {complete: false};
 	// with firebase for user settings   
 	.controller('OptionCtrl', ['$scope', 'angularFire', 'firebaseUrl', function ($scope, angularFire, firebaseUrl) {
 		var option = $scope.$parent.option, // option is defined in partial (it is singulars from $scope.management)
-				firebaseSettingsUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + 'facebook' + '/modules/' + $scope.title +'/settings/';
+				firebaseSettingsUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + 'facebook' + '/modules/' + $scope.frame.title +'/settings/';
 		$scope.icon = {
 			on: option.val ? '' : '-empty',
 			color: option.val ? 'green' : 'gray'
@@ -207,13 +264,14 @@ $scope.load = {complete: false};
 		});
 	}])
 
-	//.controller('ViewportController', ['$scope', 'socket', function ($scope, socket) {
+	.controller('GraphCtrl', ['$scope', 'socket', function ($scope, socket) {
 
 		
 
-	//}])
-	//.controller('MenuCtrl', ['$scope', 'socket', function ($scope, socket) {
+	}]);
 
 
 
-	//}]);
+
+	//.controller('ViewportCtrl', ['$scope', 'socket', function ($scope, socket) {}])
+	//.controller('MenuCtrl', ['$scope', 'socket', function ($scope, socket) {}]);

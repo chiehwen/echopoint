@@ -205,6 +205,7 @@ li {
   background: #e1e1e1;
   height: 45px;
   position: relative;
+  border-bottom: 1px solid #BBB;
 }
 .logo {
   height: 45px;
@@ -955,7 +956,7 @@ i.google-places-icon {
   font-weight: bold;
   text-align: center;
 }
-.module-loading {
+.page-loading {
   float: left;
   margin-left: 16px;
   line-height: 27px;
@@ -963,8 +964,36 @@ i.google-places-icon {
   font-weight: bold;
   color: #FFF;
 }
-.module-loading > span {
+.page-loading > span {
   margin-right: 8px;
+}
+.module-loading {
+  text-align: center;
+  margin: 10px 0;
+  line-height: 27px;
+  letter-spacing: 1px;
+  font-weight: bold;
+  color: #333;
+}
+.hidden-modules div {
+  font-size: 12px;
+  line-height: 16px;
+  height: 16px;
+  margin: 3px 0 0 12px;
+  color: #EEE;
+  font-weight: bold;
+  padding: 2px 8px;
+  background: #444;
+  float: left;
+  letter-spacing: 1px;
+  cursor: pointer;
+  cursor: hand;
+}
+.hidden-modules div:hover {
+  background: #333;
+}
+.hidden-modules i {
+  font-size: 10px;
 }
 /* Large desktop */
 @media (min-width: 1200px) {

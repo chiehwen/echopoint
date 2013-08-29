@@ -43,7 +43,7 @@ var Socket = (function() {
  					});
 				});
 			} else {
-				callback('not logged it!');
+				callback('not logged in!');
 			}
 		});
 

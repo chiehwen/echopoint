@@ -12,9 +12,9 @@ var PartialsController = {
  			res.render('partials/index');
  		}
  	},
- 	data: {
+ 	social: {
  		get: function(req, res) {
- 			res.render('partials/data');
+ 			res.render('partials/social');
  		}
  	},
  	module: {

@@ -1,6 +1,6 @@
-div
+div(ng-hide='module.hidden')
 	div.header
-		h2(ng-bind-html-unsafe='icon+title')
+		h2(ng-bind-html-unsafe='frame.icon+frame.title')
 		a(href='#', class='close-tip', ng-show='closeable', ng-click='closeModule()')
 			i.icon-remove-sign
 		a(href='#', data-toggle='dropdown', class='dropdown-toggle', ng-show='menu.on')
