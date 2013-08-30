@@ -2,6 +2,10 @@ div(ng-controller='SocialCtrl')
 	div(class='data-wrapper')
 		div(ng-repeat='module in modules.data', class='module {{module.title || module.name}} {{module.size}}', ng-include='modules.partial', ng-controller='ModuleCtrl', ng-show='load.complete&&!module.hidden')
 
+	form(action="/user/delete", method="POST", id="delete-user", accept-charset="utf-8")
+		input(type="hidden", name="_method", value="DELETE")
+		input(type="submit", value="Delete User")
+
 	div.location-footer
 		div.current-page
 			a(href='#', class='app-color facebook'): i.icon-facebook

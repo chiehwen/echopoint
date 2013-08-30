@@ -128,12 +128,13 @@ var UserController = {
 		},
 		delete: function(req, res) {
 			if(req.session.passport.user) {
-				Helper.getUser(req.session.passport.user, function(err, user) {
- 					if (err || !user) return next(err);	
-					req.session.destroy(function(){
-						res.redirect('/user/create');
+				var id = req.session.passport.user;
+				Model.User.remove({ _id: id }, function (err) {
+				  if (err) throw err;
+				  req.session.destroy(function(){
+					  res.redirect('/user/create');
 					});
-				});
+				});	
 			}
 		}
 	},

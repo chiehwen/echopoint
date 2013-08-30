@@ -84,7 +84,8 @@ var SocialController = {
 			 						}
 			 					}
 
-			 					res.redirect('/social/facebook/connect' + (found ? '' : '?login=true'));
+			 					//res.redirect('/social/facebook/connect' + (found ? '' : '?login=true'));
+								res.json({success: found});
 
 			 				});
 												

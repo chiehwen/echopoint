@@ -33,6 +33,8 @@ Model.Analytics.find(function(err, analytic) {
 
 Model.User.findOne({email: "123"}, function(err, user) {
 	console.log(user);
+	//user.Business[0].Social.facebook = {}
+	//user.Business[0].Social.facebook = {}
 	//user.uid = '';
 //	console.log(user.Social.facebook.analytics.updates[0]);
 //	console.log(user.Social.facebook.analytics.tracking[21]);

@@ -57,10 +57,36 @@ Vocada
 			$scope.template = '/partials/social';
 			$scope.$apply();
 }, 500)*/
+		
+		$scope.selectBusiness = function(id) {
+			$scope.template = '/partials/loading';
+			$http.get('/social/facebook/connect?id='+id).success(function(response) {
+				if(response.success)
+					$scope.template = '/partials/social/index';
+				else
+					$scope.template = '/partials/social/connect';
+			})
+		};
 
 		$http.get('/social/facebook/connect').success(function(res) {
 			console.log(res);
-			$scope.template = '/partials/social';
+			$scope.network = {
+				name: $scope.page.location,
+
+			}
+
+			if(res.success){
+				if(res.connected && res.account) 
+					$scope.template = '/partials/social/index';
+				if(res.connected && !res.account) {
+					$scope.network.businesses = res.data.accounts.data;
+					$scope.template = '/partials/social/select';
+				}
+				if(res.url && !res.connected && !res.account) {
+					$scope.network.url = res.url
+					$scope.template = '/partials/social/connect';		
+				}
+			}
 			//$scope.$apply();
 		})
 		//else 
@@ -142,7 +168,6 @@ console.log($scope.remoteModules);
 
 
 	.controller('ModuleCtrl', ['$scope', 'angularFire', 'angularFireCollection', 'firebaseUrl', 'socket', function ($scope, angularFire, angularFireCollection, firebaseUrl, socket) {
-		$scope.module.loaded = false;
 
 		var module = $scope.module;
 		console.log(module)
