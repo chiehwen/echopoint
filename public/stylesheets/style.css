@@ -213,7 +213,7 @@ li {
 }
 .logo a {
   font-size: 38px;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
 }
 .logo em {
   font-size: 9px;
@@ -776,7 +776,7 @@ li.top-divider {
   width: 410px;
   height: 180px;
 }
-.daily-tip p {
+.module .tip p {
   font-size: 14px;
   font-weight: bold;
   line-height: 19px;

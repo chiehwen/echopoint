@@ -19,28 +19,9 @@ Vocada
 	}])
 
 	// Template Controller
-	/*.controller('TemplateCtrl', ['$scope', '$window', '$http', '$route', '$routeParams', '$location', 'angularFireCollection', 'localStorage', 'socket', function ($scope, $window, $http, $route, $routeParams, $location, angularFireCollection, localStorage, socket) {
+	.controller('TemplateCtrl', ['$scope', '$window', '$http', '$cookies', '$route', '$routeParams', '$location', 'angularFireCollection', 'localStorage', 'socket', 'uid', 'firebaseUrl', function ($scope, $window, $http, $cookies, $route, $routeParams, $location, angularFireCollection, localStorage, socket, uid, firebaseUrl) {
 
-		var model = $scope.model = $routeParams.model;
-		var controller = $scope.controller = $routeParams.controller;
-
-	
-		if(model == 'guide')
-			$scope.template = '/partials/guide'
-		else 
-			$scope.template = '/partials/data'
-
-		// some secure routes are still run by the server, route these paths to the actual addresses
-		if(model == 'logout')
-			$window.location.href = '/logout';	
-
-	}]) */
-
-
-	// Social Pages Controller
-	.controller('SocialCtrl', ['$scope', '$window', '$http', '$route', '$routeParams', '$cookies', 'uid', 'angularFireCollection', 'firebaseUrl', 'localStorage', 'socket', function ($scope, $window, $http, $route, $routeParams, $cookies, uid, angularFireCollection, firebaseUrl, localStorage, socket) {
-		
-		$scope.load = {complete: false};	
+		$scope.template = '/partials/loading'
 
 		// This must be done on first load business creation because 
 		// not having a uid already created and connected to firebase
@@ -67,11 +48,35 @@ Vocada
 				}
 			}
 		});
+		//var model = $scope.model = $routeParams.model;
+		//var controller = $scope.controller = $routeParams.controller;
 
 		$scope.page = {location: $routeParams.controller}
+		//if(model == 'guide')
+/*setTimeout(function() {
+			$scope.template = '/partials/social';
+			$scope.$apply();
+}, 500)*/
 
-		//$scope.location = typeof controller !== 'undefined' ? controller : model;
+		$http.get('/social/facebook/connect').success(function(res) {
+			console.log(res);
+			$scope.template = '/partials/social';
+			//$scope.$apply();
+		})
+		//else 
+			//$scope.template = '/partials/data'
 
+		// some secure routes are still run by the server, route these paths to the actual addresses
+		//if(model == 'logout')
+			//$window.location.href = '/logout';	
+
+	}]) 
+
+
+	// Social Pages Controller
+	.controller('SocialCtrl', ['$scope', '$window', '$http', '$route', '$routeParams', '$cookies', 'uid', 'angularFire', 'angularFireCollection', 'firebaseUrl', 'localStorage', 'socket', function ($scope, $window, $http, $route, $routeParams, $cookies, uid, angularFire, angularFireCollection, firebaseUrl, localStorage, socket) {
+		
+		$scope.load = {complete: false};	
 
 		$scope.firebase = {
 			url: firebaseUrl + 'users/' + $scope.user.uid + '/settings/' + $scope.page.location + '/modules/'
@@ -80,55 +85,100 @@ Vocada
 		$scope.firebase.modules = new Firebase($scope.firebase.url);
 
 		// if the page has modules lets get them
-		$scope.firebase.modules.on('value', function(snapshot) {
+		//$scope.firebase.modules.on('value', function(snapshot) {
 			//for(var data in snapshot.val()) {
 			//	console.log(data);
 			//};
+		//});
+		$scope.modules = { 
+			partial: '/partials/module',
+			iteration: 0
+		}
 
-			
+		angularFire($scope.firebase.url, $scope, 'remoteModules', []).
+		then(function() {
+			//if($scope.remoteModules.length > 0) {
+console.log($scope.remoteModules);
+				$scope.modules.data = $scope.remoteModules;
+				//var firebaseActiveModules = [],
+				//		firebaseHiddenModules = [];
+				for(var i=0,l=$scope.modules.data.length; i<l; i++)
+					$scope.modules.data[i].id = i;
+				$scope.modules.count = l;
+				//for(var module in $scope.remoteModules) {
+					/*if(!$scope.remoteModules[module].hidden)
+				 		firebaseActiveModules.push(module);
+				 	else
+				 		firebaseHiddenModules.push(module);*/
+				 	//$scope.modules.data.push($scope.remoteModules[module]); 
+				//}
+				//$scope.modules.data = firebaseActiveModules;
+				
+				//console.log(firebaseActiveModules);
+				//console.log(firebaseHiddenModules);
+
+				/*socket.emit('getModules', {controller: $scope.page.location, modules: firebaseActiveModules}, function (res) {
+					if(res.modules.length > 0) {
+						$scope.modules = {
+							partial: '/partials/module',
+							data: res.modules
+						}
+					}
+				});*/
+			//}		
 		});
 
-		socket.emit('getModules', {controller: $scope.page.location}, function (data) {			if(data.modules.length > 0) {
-					$scope.modules = {
-						partial: '/partials/module',
-						data: data.modules,
-						/*revive: function(num) {
-							console.log(num)
-							console.log($scope.modules.data[num]);
-							$scope.modules.data[num].hidden = false;
-						}*/
-					}
+		/*socket.emit('getModules', {controller: $scope.page.location}, function (data) {
+			if(data.modules.length > 0) {
+				$scope.modules = {
+					partial: '/partials/module',
+					data: data.modules
 				}
-			});
+			}
+		});*/
 
 
 	}])
 
 
 	.controller('ModuleCtrl', ['$scope', 'angularFire', 'angularFireCollection', 'firebaseUrl', 'socket', function ($scope, angularFire, angularFireCollection, firebaseUrl, socket) {
+		$scope.module.loaded = false;
 
 		var module = $scope.module;
-		$scope.module.hidden = true;
-		//$scope.location = $scope.$parent.location;
+		console.log(module)
+		//$scope.module.hidden = true;
+		//$scope.module.dashboarded = false;
 
 		// build module header
-		$scope.frame = {
+		$scope.module.header = {
 			icon: module.icon ? '<i class="icon-'+module.icon+'"></i> ' : '',
-			title: module.class || module.title
+			title: module.title || module.name
 		}
+
+		// connect module actions to firebase
+		angularFire($scope.firebase.url + $scope.module.id, $scope, 'remoteModule', {}).
+		then(function() {
+			$scope.module.toggleDisplay = function() {
+				$scope.remoteModule.hidden = !$scope.module.hidden;
+			}
+
+			$scope.module.toggleDashboardDisplay = function() {
+				$scope.remoteModule.dashboarded = !$scope.module.dashboarded;
+			}
+		});
 
 		// add additional menu items
 		$scope.menu = {
 			on: module.menu === false ? false : true,
-			custom: module.menu.custom,
-			timeframe: module.menu.timeframe
+			//custom: module.menu.custom,
+			//timeframe: module.menu.timeframe
 		}
 
 		$scope.closeable = module.closeable === true ? true : false; 
 
-		$scope.viewport = {current: '/partials/modules/loading'};
+		$scope.viewport = {current: '/partials/modules/loading', loading: true};
 
-		$scope.viewport.origin = '/partials/modules/' + module.id + '/' + (module.class || module.title) + '/index';
+		$scope.viewport.origin = '/partials/modules/' + $scope.page.location + '/' + module.name + '/index';
 
 		$scope.isLarge = ''; 
 		$scope.makeLarge = function() {
@@ -184,41 +234,37 @@ Vocada
 			loading: false
 		} // chartTest
 
-		$scope.firebase.modules.child($scope.frame.title).on('value', function (snapshot) {
+		$scope.firebase.modules.child($scope.module.id).on('value', function (snapshot) {
 			var data = snapshot.val();
 			if(data) {
-				$scope.frame.size = data.large === true ? 'large' : '';
-				
+				$scope.module.size = data.large === true ? 'large' : '';
+				$scope.module.dashboarded = data.dashboarded;
+
 				$scope.chartTest.options.chart.width = 908;
-				if(!data.hidden) {
-					$scope.viewport.current = $scope.viewport.origin
-					$scope.module.hidden = false;
-				}
-				$scope.load.complete = true;
+				if(!data.hidden)
+					if($scope.viewport.loading) {
+						$scope.viewport.current = $scope.viewport.origin
+						$scope.viewport.loading = false;
+					}
+
+				$scope.module.hidden = data.hidden;
+				//$scope.load.complete = true;
 			}
 		});
 //$scope.modules.revive(num) {
 //	console.log('is it happeneing', num)
 //}
-		angularFire($scope.firebase.url + $scope.frame.title, $scope, 'remoteModule', {}).
-		then(function() {
-			$scope.modules.revive = function(num) {
-				//console.log($scope.modules.data[num]);
-				//$scope.modules.data[num].hidden = false;
-				$scope.remoteModule.hidden = $scope.module.hidden = !$scope.module.hidden;
-			}
-		});
 
 		// get our users current module settings from firebase
-		//var firebaseSettingsUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + $scope.page.location + '/modules/' + $scope.frame.title +'/settings/';
+		//var firebaseSettingsUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + $scope.page.location + '/modules/' + $scope.module.name+'/settings/';
 		$scope.management = {
-			settings: angularFireCollection($scope.firebase.url + $scope.frame.title + '/settings/')
+			settings: angularFireCollection($scope.firebase.url + $scope.module.id+ '/settings/')
 		}
 
 		// setup viewport based on options (if any options)
 		//var firebaseOptionsList = new Firebase(firebaseModuleUrl + '/settings/');
 		$scope.options = {};
-		$scope.firebase.modules.child($scope.frame.title).child('settings').on('value', function (snapshot) {
+		$scope.firebase.modules.child($scope.module.id).child('settings').on('value', function (snapshot) {
 			var optionList = snapshot.val();
 			if(optionList)
 				for(var i=0, l = optionList.length; i<l; i++) {
@@ -228,18 +274,30 @@ Vocada
 
 
 		// handle management action
-		$scope.manage = { state: 'manage ' + (module.class || module.title), partial: '/partials/modules/' + module.id + '/' + (module.class || module.title) + '/management'};
+		$scope.manage = { state: 'manage ' + module.name, partial: '/partials/modules/' + $scope.page.location + '/' + module.name + '/management'};
 		$scope.toggleManagement = function() {
 			$scope.viewport.current = $scope.manage.state === 'exit management window' ? $scope.viewport.origin : $scope.manage.partial;
-			$scope.manage.state = $scope.manage.state === 'exit management window' ? $scope.manage.state = 'manage ' + $scope.frame.title : $scope.manage.state = 'exit management window';
+			$scope.manage.state = $scope.manage.state === 'exit management window' ? $scope.manage.state = 'manage ' + $scope.module.name: $scope.manage.state = 'exit management window';
 		};
 
 		// handle help action
-		$scope.help = { state: 'help', partial: '/partials/modules/' + module.id + '/' + (module.class || module.title) + '/help'};
+		$scope.help = { state: 'help', partial: '/partials/modules/' + $scope.page.location + '/' + module.name + '/help'};
 		$scope.toggleHelp = function() {
 			$scope.viewport.current = $scope.help.state === 'help' ? $scope.help.partial : $scope.viewport.origin;
 			$scope.help.state = $scope.help.state === 'help' ? $scope.help.state = 'close help' : $scope.help.state = 'help';
 		};
+
+		// this is the load.complete finsihing based off all
+		// $includeContentLoaded firing. Its ugly but it works
+		// TODO: watch this and find a better solution!
+		$scope.$on('$includeContentLoaded', function(e) {
+			$scope.modules.iteration++;
+			// note the 2 multiplier in conditional
+			// why is that needed??
+			var totalModuleLoads = $scope.modules.count*2;
+			if($scope.modules.iteration >= totalModuleLoads)
+				$scope.load.complete = true;
+		})
 
 	}])
 
@@ -248,7 +306,7 @@ Vocada
 	// with firebase for user settings   
 	.controller('OptionCtrl', ['$scope', 'angularFire', 'firebaseUrl', function ($scope, angularFire, firebaseUrl) {
 		var option = $scope.$parent.option, // option is defined in partial (it is singulars from $scope.management)
-				firebaseSettingsUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + 'facebook' + '/modules/' + $scope.frame.title +'/settings/';
+				firebaseSettingsUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + 'facebook' + '/modules/' + $scope.module.id+'/settings/';
 		$scope.icon = {
 			on: option.val ? '' : '-empty',
 			color: option.val ? 'green' : 'gray'
@@ -256,10 +314,10 @@ Vocada
 		$scope.text = {
 			on: option.val ? 'active' : 'disabled'
 		}
-		angularFire(firebaseSettingsUrl + option.$id, $scope, 'remote', {}).
+		angularFire(firebaseSettingsUrl + option.$id, $scope, 'remoteOption', {}).
 		then(function() {
 				$scope.toggleOption = function() {
-					$scope.remote.val = $scope.options[$scope.remote.type] = !option.val;
+					$scope.remoteOption.val = $scope.options[$scope.remoteOption.type] = !option.val;
 				}
 		});
 	}])

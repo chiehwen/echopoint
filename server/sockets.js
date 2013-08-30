@@ -39,6 +39,7 @@ var Socket = (function() {
  					user.uid = data.uid;
  					user.save(function(err){
  						if(err) callback(err);
+ 						console.log(data.uid);
  						callback(null);
  					});
 				});
@@ -49,7 +50,7 @@ var Socket = (function() {
 
 		//setTimeout(function() {
 			socket.on('getModules', function(data, callback) {
-console.log(callback);
+console.log(data);
 				if(callback) {			
 					/*callback({ 
 						alerts: 'world2',

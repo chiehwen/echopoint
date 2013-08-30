@@ -1,34 +1,33 @@
-div(ng-hide='module.hidden')
-	div.header
-		h2(ng-bind-html-unsafe='frame.icon+frame.title')
-		a(href='#', class='close-tip', ng-show='closeable', ng-click='closeModule()')
-			i.icon-remove-sign
-		a(href='#', data-toggle='dropdown', class='dropdown-toggle', ng-show='menu.on')
-			i.icon-cog
-		//-ul(class='dropdown-menu hide', ng-include='menu', ng-controller='MenuController')
-		ul(class='dropdown-menu hide', ng-show='menu.on')
-			li: a(href='#', ng-click='toggleManagement()')
-				i.icon-wrench
-				span {{manage.state}}
-			li: a(href='#')
-				i.icon-flag-alt
-				span add to dashboard 
-					//-pull from dashboard
-			
-			li(ng-repeat='option in menu.custom', ng-class='{"top-divider":option.divider}'): a(href='#', ng-click='{{option.action}}')
-				i(class='{{"icon-"+option.icon}}')
-				span {{option.label}}
-			li(ng-repeat='time in menu.timeframe', ng-class='{"top-divider":option.divider}'): a(href='#', ng-click='changeTimeframe({{time}})')
-				i(class='icon-calendar')
-				span show {{time}}
-			li.top-divider: a(href='#', class='toggle-size', ng-click='toggleSize()')
-				i.icon-resize-horizontal
-				span larger {{title}} box
-			li: a(href='#', class='toggle-display')
-				i.icon-eye-close
-				span hide {{title}} box
-			li.top-divider: a(href='#', ng-click='toggleHelp()')
-				i.icon-question-sign
-				span {{help.state}}	
+div.header
+	h2(ng-bind-html-unsafe='module.header.icon+module.header.title')
+	a(href='#', class='close-tip', ng-show='closeable', ng-click='closeModule()')
+		i.icon-remove-sign
+	a(href='#', data-toggle='dropdown', class='dropdown-toggle', ng-show='menu.on')
+		i.icon-cog
+	//-ul(class='dropdown-menu hide', ng-include='menu', ng-controller='MenuController')
+	ul(class='dropdown-menu hide', ng-show='menu.on')
+		li: a(href='#', ng-click='toggleManagement()')
+			i.icon-wrench
+			span {{manage.state}}
+		li: a(href='#', ng-click='module.toggleDashboardDisplay()')
+			i.icon-flag-alt
+			span {{{true:'pull from dashboard',false:'add to dashboard'}[module.dashboarded]}} 
+				//- consider making this a regular ternary when upgrade to Angular 1.1.x 
 		
-	div(class='content', ng-include='viewport.current')
+		li(ng-repeat='option in module.menu.custom', ng-class='{"top-divider":option.divider}'): a(href='#', ng-click='{{option.action}}')
+			i(class='{{"icon-"+option.icon}}')
+			span {{option.label}}
+		li(ng-repeat='time in module.menu.timeframes', ng-class='{"top-divider":option.divider}'): a(href='#', ng-click='changeTimeframe("{{time}}")')
+			i(class='icon-calendar')
+			span show {{time}}
+		li.top-divider: a(href='#', class='toggle-size', ng-click='toggleSize()')
+			i.icon-resize-horizontal
+			span larger {{title}} box
+		li: a(href='#', class='toggle-display', ng-click='module.toggleDisplay()')
+			i.icon-eye-close
+			span hide {{title}} box
+		li.top-divider: a(href='#', ng-click='toggleHelp()')
+			i.icon-question-sign
+			span {{help.state}}	
+	
+div(class='content', ng-include='viewport.current')

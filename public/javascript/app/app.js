@@ -4,12 +4,13 @@ var Vocada = angular.module('vocada', ['ngCookies', 'firebase'])
 .config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
 		$routeProvider
 		.when('/social/:controller', {
-			templateUrl: '/partials/social',
-			controller: 'SocialCtrl'
+			controller: 'TemplateCtrl',
+			templateUrl: '/partials/app'
+			
 		})
 		.when('/dashboard', {
-			templateUrl: '/partials/social',
-			controller: 'SocialCtrl'
+			controller: 'TemplateCtrl',
+			templateUrl: '/partials/app'
 		})
 		.otherwise({redirectTo: '/dashboard'});
 

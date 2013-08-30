@@ -12,6 +12,16 @@ var PartialsController = {
  			res.render('partials/index');
  		}
  	},
+ 	app: {
+ 		get: function(req, res) {
+ 			res.render('partials/app');
+ 		}
+ 	},
+ 	loading: {
+		get: function(req, res) {
+ 			res.render('partials/loading');
+ 		}
+ 	},
  	social: {
  		get: function(req, res) {
  			res.render('partials/social');
@@ -48,7 +58,7 @@ var PartialsController = {
 	},
 
 	// module loading partial
-	loading: {
+	module_loading: {
 		path: '/partials/modules/loading',
 		get: function(req, res) {
 			res.render('partials/modules/loading');

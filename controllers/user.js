@@ -151,20 +151,25 @@ var UserController = {
 						}
 					},
 					"facebook": {
-						"modules": {
-							"tip": {
+						"modules": [
+							{ 
+								"name": "tip", 
 								"type": "text",
 								"dashboarded": null,
 								"hidden": false,
-								"menu": false,
 								"large": true,
+								"closeable": true,
+								"menu": false,
 								"settings": []
 							},
-							"notifications": {
+							{
+								"name": "notifications",
 								"type": "list",
 								"dashboarded": true,
 								"hidden": false,
 								"large": false,
+								"menu": [],
+								"icon": "globe",
 								"settings": [
 									{"type": "post", "val": true},
 									{"type": "like", "val": true},
@@ -176,11 +181,14 @@ var UserController = {
 									{"type": "profile", "val": true}
 								]
 							},
-							"statistics": {
+							{
+								"name": "statistics",
+								"title": "quick stats",
 								"type": "list",
 								"dashboarded": false,
 								"hidden": false,
 								"large": false,
+								"menu": [],
 								"settings": [
 									{"type": "post_count", "val": true},
 									{"type": "total_likes", "val": true},
@@ -191,15 +199,30 @@ var UserController = {
 									{"type": "highest_viral_score", "val": true}
 								]
 							},
-							"posts": {
+							{
+								"name": "posts",
+								"title": "wall posts",
 								"type": "graph",
 								"dashboarded": false,
 								"hidden": false,
 								"large": true,
-								"timeframes": ["15day", "30day", "90day"],
+								"menu": { 
+									custom: [
+										{
+											label: 'display column view', 
+											icon: 'bar-chart',
+											action: 'changeDisplay(column)', // 'dashboard', 'hide', 'help', 'resize', 'timeframe'
+											current: null, // 'onDashboard', 'offDashboard', 'large', 'small', '30day', '60day'
+											meta: null,
+											divider: true
+										}
+									],
+									timeframes: ['15 days', '30 days', '90 days']
+								},
+								"timeframe": ["15day"],
 								"settings": []
 							}
-						}
+						]
 					}
 				}
 			)
