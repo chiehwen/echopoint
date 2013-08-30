@@ -20,9 +20,9 @@ div.header
 		li(ng-repeat='time in module.menu.timeframes', ng-class='{"top-divider":option.divider}'): a(href='#', ng-click='changeTimeframe("{{time}}")')
 			i(class='icon-calendar')
 			span show {{time}}
-		li.top-divider: a(href='#', class='toggle-size', ng-click='toggleSize()')
-			i.icon-resize-horizontal
-			span larger {{title}} box
+		li.top-divider: a(href='#', class='toggle-size', ng-click='module.toggleSize()', ng-show='module.sizing')
+			<i class='icon-resize-{{{true:"small",false:"horizontal"}[module.large]}}'></i>'
+			span {{{true:'smaller',false:'larger'}[module.large]}} {{title}} box
 		li: a(href='#', class='toggle-display', ng-click='module.toggleDisplay()')
 			i.icon-eye-close
 			span hide {{title}} box

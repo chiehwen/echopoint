@@ -1,6 +1,6 @@
 div(ng-controller='SocialCtrl')
 	div(class='data-wrapper')
-		div(ng-repeat='module in modules.data', class='module {{module.title || module.name}} {{module.size}}', ng-include='modules.partial', ng-controller='ModuleCtrl', ng-show='load.complete&&!module.hidden')
+		div(ng-repeat='module in modules.data', class='module {{module.title || module.name}} large-{{module.large}}', ng-include='modules.partial', ng-controller='ModuleCtrl', ng-show='load.complete&&!module.hidden')
 
 	form(action="/user/delete", method="POST", id="delete-user", accept-charset="utf-8")
 		input(type="hidden", name="_method", value="DELETE")

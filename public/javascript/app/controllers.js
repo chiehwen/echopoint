@@ -1,11 +1,11 @@
 'use strict';
 
 Vocada
-	
-	// Page Controller
-	.controller('PageCtrl', ['$scope', '$http', '$cookies', 'socket', 'uid', 'firebaseUrl', function ($scope, $http, $cookies, socket, uid, firebaseUrl) {
 
-		$scope.user = { uid: uid };
+	// Page Controller
+	.controller('PageCtrl', ['$scope', 'uid', function ($scope, uid) {
+
+		$scope.user = {uid:uid};
 
 		$scope.header = '/partials/header';
 		$scope.navigation = {
@@ -53,12 +53,7 @@ Vocada
 		//var controller = $scope.controller = $routeParams.controller;
 
 		$scope.page = {location: $routeParams.controller}
-		//if(model == 'guide')
-/*setTimeout(function() {
-			$scope.template = '/partials/social';
-			$scope.$apply();
-}, 500)*/
-		
+
 		$scope.selectBusiness = function(id) {
 			$scope.template = '/partials/loading';
 			$http.get('/social/facebook/connect?id='+id).success(function(response) {
@@ -90,9 +85,6 @@ Vocada
 			//$scope.$apply();
 		})
 
-		//else 
-			//$scope.template = '/partials/data'
-
 		// some secure routes are still run by the server, route these paths to the actual addresses
 		//if(model == 'logout')
 			//$window.location.href = '/logout';	
@@ -101,7 +93,7 @@ Vocada
 
 
 	// Social Pages Controller
-	.controller('SocialCtrl', ['$scope', '$window', '$http', '$route', '$routeParams', '$cookies', 'uid', 'angularFire', 'angularFireCollection', 'firebaseUrl', 'localStorage', 'socket', function ($scope, $window, $http, $route, $routeParams, $cookies, uid, angularFire, angularFireCollection, firebaseUrl, localStorage, socket) {
+	.controller('SocialCtrl', ['$scope', '$window', 'angularFire', 'uid', 'firebaseUrl', function ($scope, $window, angularFire, uid, firebaseUrl) {
 		
 		// check that we have a uid connected to firebase
 		if($scope.user.uid === '') 
@@ -118,55 +110,14 @@ Vocada
 		$scope.firebase = {url: firebaseUrl + 'users/' + $scope.user.uid + '/settings/' + $scope.page.location + '/modules/'}
 		$scope.firebase.connection = new Firebase($scope.firebase.url)
 
-
-
-		// if the page has modules lets get them
-		//$scope.firebase.connection.on('value', function(snapshot) {
-			//for(var data in snapshot.val()) {
-			//	console.log(data);
-			//};
-		//});
-		
-
+		// get individual module settings data from firebase
 		angularFire($scope.firebase.url, $scope, 'remoteModules', []).
 		then(function() {
-				$scope.modules.data = $scope.remoteModules;
-				for(var i=0,l=$scope.modules.data.length; i<l; i++)
-					$scope.modules.data[i].id = i;
-				$scope.modules.count = l;
-				//for(var module in $scope.remoteModules) {
-					/*if(!$scope.remoteModules[module].hidden)
-				 		firebaseActiveModules.push(module);
-				 	else
-				 		firebaseHiddenModules.push(module);*/
-				 	//$scope.modules.data.push($scope.remoteModules[module]); 
-				//}
-				//$scope.modules.data = firebaseActiveModules;
-				
-				//console.log(firebaseActiveModules);
-				//console.log(firebaseHiddenModules);
-
-				/*socket.emit('getModules', {controller: $scope.page.location, modules: firebaseActiveModules}, function (res) {
-					if(res.modules.length > 0) {
-						$scope.modules = {
-							partial: '/partials/module',
-							data: res.modules
-						}
-					}
-				});*/
-			//}		
+			$scope.modules.data = $scope.remoteModules;
+			for(var i=0,l=$scope.modules.data.length; i<l; i++)
+				$scope.modules.data[i].id = i;
+			$scope.modules.count = l;	
 		});
-
-		/*socket.emit('getModules', {controller: $scope.page.location}, function (data) {
-			if(data.modules.length > 0) {
-				$scope.modules = {
-					partial: '/partials/module',
-					data: data.modules
-				}
-			}
-		});*/
-
-
 	}])
 
 
@@ -185,15 +136,20 @@ Vocada
 
 		// connect module actions to firebase
 		angularFire($scope.firebase.url + $scope.module.id, $scope, 'remoteModule', {}).
-		then(function() {
-			$scope.module.toggleDisplay = function() {
-				$scope.remoteModule.hidden = !$scope.module.hidden;
-			}
+			then(function() {
+				$scope.module.toggleDisplay = function() {
+					$scope.remoteModule.hidden = !$scope.module.hidden;
+				}
 
-			$scope.module.toggleDashboardDisplay = function() {
-				$scope.remoteModule.dashboarded = !$scope.module.dashboarded;
-			}
-		});
+				$scope.module.toggleDashboardDisplay = function() {
+					$scope.remoteModule.dashboarded = !$scope.module.dashboarded;
+				}
+
+				$scope.module.toggleSize = function() {
+					if($scope.module.sizing)
+						$scope.remoteModule.large = !$scope.module.large;
+				}
+			});
 
 		// add additional menu items
 		$scope.menu = {
@@ -265,10 +221,16 @@ Vocada
 		$scope.firebase.connection.child($scope.module.id).on('value', function (snapshot) {
 			var data = snapshot.val();
 			if(data) {
-				$scope.module.size = data.large === true ? 'large' : '';
+				if(data.sizing)
+					$scope.module.large = data.large;
+
 				$scope.module.dashboarded = data.dashboarded;
 
-				$scope.chartTest.options.chart.width = 908;
+				if(data.large)
+					$scope.chartTest.options.chart.width = 908;
+				else
+					$scope.chartTest.options.chart.width = 428;
+
 				if(!data.hidden)
 					if($scope.viewport.loading) {
 						$scope.viewport.current = $scope.viewport.origin
@@ -343,11 +305,11 @@ Vocada
 			on: option.val ? 'active' : 'disabled'
 		}
 		angularFire(firebaseSettingsUrl + option.$id, $scope, 'remoteOption', {}).
-		then(function() {
-				$scope.toggleOption = function() {
-					$scope.remoteOption.val = $scope.options[$scope.remoteOption.type] = !option.val;
-				}
-		});
+			then(function() {
+					$scope.toggleOption = function() {
+						$scope.remoteOption.val = $scope.options[$scope.remoteOption.type] = !option.val;
+					}
+			});
 	}])
 
 	.controller('GraphCtrl', ['$scope', 'socket', function ($scope, socket) {

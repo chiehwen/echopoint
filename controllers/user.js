@@ -158,6 +158,7 @@ var UserController = {
 								"type": "text",
 								"dashboarded": null,
 								"hidden": false,
+								"sizing": false,
 								"large": true,
 								"closeable": true,
 								"menu": false,
@@ -168,6 +169,7 @@ var UserController = {
 								"type": "list",
 								"dashboarded": true,
 								"hidden": false,
+								"sizing": false,
 								"large": false,
 								"menu": [],
 								"icon": "globe",
@@ -188,6 +190,7 @@ var UserController = {
 								"type": "list",
 								"dashboarded": false,
 								"hidden": false,
+								"sizing": false,
 								"large": false,
 								"menu": [],
 								"settings": [
@@ -206,6 +209,7 @@ var UserController = {
 								"type": "graph",
 								"dashboarded": false,
 								"hidden": false,
+								"sizing": true,
 								"large": true,
 								"menu": { 
 									custom: [
