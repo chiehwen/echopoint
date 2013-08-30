@@ -20,7 +20,7 @@ Vocada
 
 	// Template Controller
 	.controller('TemplateCtrl', ['$scope', '$window', '$http', '$cookies', '$route', '$routeParams', '$location', 'angularFireCollection', 'localStorage', 'socket', 'uid', 'firebaseUrl', function ($scope, $window, $http, $cookies, $route, $routeParams, $location, angularFireCollection, localStorage, socket, uid, firebaseUrl) {
-
+		
 		$scope.template = '/partials/loading'
 
 		// This must be done on first load business creation because 
@@ -44,6 +44,7 @@ Vocada
 					socket.emit('setUid', {passport: passport, uid: $scope.user.uid}, function (err) {
 						if(err) console.log(err)
 						console.log('new uid has been saved to database');
+						//$route.reload();
 					});
 				}
 			}
@@ -71,8 +72,7 @@ Vocada
 		$http.get('/social/facebook/connect').success(function(res) {
 			console.log(res);
 			$scope.network = {
-				name: $scope.page.location,
-
+				name: $scope.page.location
 			}
 
 			if(res.success){
@@ -89,6 +89,7 @@ Vocada
 			}
 			//$scope.$apply();
 		})
+
 		//else 
 			//$scope.template = '/partials/data'
 
@@ -102,32 +103,34 @@ Vocada
 	// Social Pages Controller
 	.controller('SocialCtrl', ['$scope', '$window', '$http', '$route', '$routeParams', '$cookies', 'uid', 'angularFire', 'angularFireCollection', 'firebaseUrl', 'localStorage', 'socket', function ($scope, $window, $http, $route, $routeParams, $cookies, uid, angularFire, angularFireCollection, firebaseUrl, localStorage, socket) {
 		
-		$scope.load = {complete: false};	
+		// check that we have a uid connected to firebase
+		if($scope.user.uid === '') 
+			$window.location.href = '/social/'+$scope.page.location;
 
-		$scope.firebase = {
-			url: firebaseUrl + 'users/' + $scope.user.uid + '/settings/' + $scope.page.location + '/modules/'
-		}
-
-		$scope.firebase.modules = new Firebase($scope.firebase.url);
-
-		// if the page has modules lets get them
-		//$scope.firebase.modules.on('value', function(snapshot) {
-			//for(var data in snapshot.val()) {
-			//	console.log(data);
-			//};
-		//});
+		// intial settings and variables for our social pages
+		$scope.load = {complete: false}
 		$scope.modules = { 
 			partial: '/partials/module',
 			iteration: 0
 		}
 
+		// firebase connection data
+		$scope.firebase = {url: firebaseUrl + 'users/' + $scope.user.uid + '/settings/' + $scope.page.location + '/modules/'}
+		$scope.firebase.connection = new Firebase($scope.firebase.url)
+
+
+
+		// if the page has modules lets get them
+		//$scope.firebase.connection.on('value', function(snapshot) {
+			//for(var data in snapshot.val()) {
+			//	console.log(data);
+			//};
+		//});
+		
+
 		angularFire($scope.firebase.url, $scope, 'remoteModules', []).
 		then(function() {
-			//if($scope.remoteModules.length > 0) {
-console.log($scope.remoteModules);
 				$scope.modules.data = $scope.remoteModules;
-				//var firebaseActiveModules = [],
-				//		firebaseHiddenModules = [];
 				for(var i=0,l=$scope.modules.data.length; i<l; i++)
 					$scope.modules.data[i].id = i;
 				$scope.modules.count = l;
@@ -259,7 +262,7 @@ console.log($scope.remoteModules);
 			loading: false
 		} // chartTest
 
-		$scope.firebase.modules.child($scope.module.id).on('value', function (snapshot) {
+		$scope.firebase.connection.child($scope.module.id).on('value', function (snapshot) {
 			var data = snapshot.val();
 			if(data) {
 				$scope.module.size = data.large === true ? 'large' : '';
@@ -289,7 +292,7 @@ console.log($scope.remoteModules);
 		// setup viewport based on options (if any options)
 		//var firebaseOptionsList = new Firebase(firebaseModuleUrl + '/settings/');
 		$scope.options = {};
-		$scope.firebase.modules.child($scope.module.id).child('settings').on('value', function (snapshot) {
+		$scope.firebase.connection.child($scope.module.id).child('settings').on('value', function (snapshot) {
 			var optionList = snapshot.val();
 			if(optionList)
 				for(var i=0, l = optionList.length; i<l; i++) {
