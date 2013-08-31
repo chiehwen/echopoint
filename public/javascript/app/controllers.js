@@ -13,8 +13,8 @@ Vocada
 			active: false
 		}
 
-		$scope.toggleNavigation = function() {
-			$scope.navigation.active = !$scope.navigation.active ? true : false;
+		$scope.navigation.toggle = function() {
+			$scope.navigation.active = !$scope.navigation.active;
 		};
 	}])
 
@@ -26,12 +26,10 @@ Vocada
 		// This must be done on first load business creation because 
 		// not having a uid already created and connected to firebase
 		// causes load errors
-		if(uid === '') {
+		if(uid === '')
 			$http.get('/user/settings').then(function(json) {
-				var firebase = new Firebase(firebaseUrl + 'users');
-				$scope.user.uid = firebase.push({settings: json['data']}).name();
+				$scope.user.uid = new Firebase(firebaseUrl + 'users').push({settings: json['data']}).name();
 			});
-		}
 
 		// first thing we do is get the data for the loading page
 		socket.emit('init', {sid: $cookies['connect.sid']}, function (loggedIn, passport, uidFromDatabase) {
@@ -44,7 +42,6 @@ Vocada
 					socket.emit('setUid', {passport: passport, uid: $scope.user.uid}, function (err) {
 						if(err) console.log(err)
 						console.log('new uid has been saved to database');
-						//$route.reload();
 					});
 				}
 			}
@@ -52,39 +49,50 @@ Vocada
 		//var model = $scope.model = $routeParams.model;
 		//var controller = $scope.controller = $routeParams.controller;
 
-		$scope.page = {location: $routeParams.controller}
+		$scope.page = {location: $routeParams.network}
 
-		$scope.selectBusiness = function(id) {
-			$scope.template = '/partials/loading';
-			$http.get('/social/facebook/connect?id='+id).success(function(response) {
-				if(response.success)
-					$scope.template = '/partials/social/index';
-				else
-					$scope.template = '/partials/social/connect';
-			})
-		};
-
-		$http.get('/social/facebook/connect').success(function(res) {
-			console.log(res);
+		
+//console.log($route.current.action);
+		if($route.current.action === 'social') {
 			$scope.network = {
-				name: $scope.page.location
-			}
-
-			if(res.success){
-				if(res.connected && res.account) 
-					$scope.template = '/partials/social/index';
-				if(res.connected && !res.account) {
-					$scope.network.businesses = res.data.accounts.data;
-					$scope.template = '/partials/social/select';
-				}
-				if(res.url && !res.connected && !res.account) {
-					$scope.network.url = res.url
-					$scope.template = '/partials/social/connect';		
+				name: $scope.page.location,
+				yelp: {
+					setup: function() {
+						$scope.template = '/partials/social/yelp/setup';
+					}
 				}
 			}
-			//$scope.$apply();
-		})
+			$scope.network.selectBusiness = function(id) {
+				$scope.template = '/partials/loading';
+				$http.get('/connect/social/'+$scope.network.name+'?id='+id).success(function(res) {
+					if(res.success)
+						$scope.template = '/partials/social/index';
+					else
+						$scope.template = '/partials/social/connect';
+				})
+			};
 
+			$http.get('/connect/social/'+$scope.network.name).success(function(res) {
+				console.log(res);
+				
+				if(res.success){
+
+					if(res.url) {
+						$scope.network.url = res.url
+						$scope.template = '/partials/social/connect';		
+					} else if(res.connected && res.data.businesses) {
+						$scope.network.businesses = res.data.businesses;
+						$scope.template = '/partials/social/select';
+					} else if(res.connected && $scope.network.name === 'yelp') {
+					
+					} else {
+						$scope.template = '/partials/social/index';
+					}
+					
+				}
+				//$scope.$apply();
+			})
+		}
 		// some secure routes are still run by the server, route these paths to the actual addresses
 		//if(model == 'logout')
 			//$window.location.href = '/logout';	

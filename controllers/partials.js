@@ -76,6 +76,19 @@ var PartialsController = {
 		}
 	},
 
+	// social network specific setup partials
+	yelp_login: {
+		path: '/partials/social/yelp/index',
+		get: function(req, res) {
+			res.render('partials/social/yelp/index');
+		}
+	},
+	yelp_setup: {
+		path: '/partials/social/yelp/setup',
+		get: function(req, res) {
+			res.render('partials/social/yelp/setup');
+		}
+	}
 	// module loading partial
 	module_loading: {
 		restricted: false,

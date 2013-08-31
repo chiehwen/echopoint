@@ -3,10 +3,10 @@
 var Vocada = angular.module('vocada', ['ngCookies', 'firebase'])
 .config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
 		$routeProvider
-		.when('/social/:controller', {
+		.when('/social/:network', {
 			controller: 'TemplateCtrl',
-			templateUrl: '/partials/template'
-			
+			templateUrl: '/partials/template',
+			action: 'social'
 		})
 		.when('/dashboard', {
 			controller: 'TemplateCtrl',

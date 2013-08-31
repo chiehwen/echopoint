@@ -42,9 +42,8 @@ var SocialController = {
 		}
  	},
 
-
  	facebook_connect: {
- 		path: '/social/facebook/connect',
+ 		path: '/connect/social/facebook',
  		json: function(req, res, next) {
 			Helper.getUser(req.session.passport.user, function(err, user) {
  					if (err || !user) return res.json({success: false, error: 'User is not logged in'});
@@ -115,7 +114,7 @@ var SocialController = {
 									success: true,
 									connected: true,
 									account: false,
-									data: response,
+									data: {businesses: response.accounts.data},
 		 					  	url: null
 								});	
 							});
@@ -163,7 +162,7 @@ var SocialController = {
  	},
 
  	twitter_connect: {
- 		path: '/social/twitter/connect',
+ 		path: '/connect/social/twitter',
  		get: function(req, res, next) {
 			Helper.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) return next(err);
@@ -235,7 +234,7 @@ var SocialController = {
  	},
 
  	foursquare_connect: {
- 		path: '/social/foursquare/connect',
+ 		path: '/connect/social/foursquare',
  		get: function(req, res) {
  			Helper.getUser(req.session.passport.user, function(err, user) {
  					if (err || !user) return next(err);
@@ -271,7 +270,8 @@ var SocialController = {
 			 						}
 			 					}
 
-			 					res.redirect('/social/foursquare/connect' + (found ? '' : '?login=true'));
+			 					//res.redirect('/social/foursquare/connect' + (found ? '' : '?login=true'));
+			 					res.json({success: found});
 			 				});
 												
 						} else if(typeof f.venue.id !== 'undefined' && f.venue.id != '' && typeof req.query.select === 'undefined') {
@@ -313,7 +313,7 @@ var SocialController = {
 										success: true,
 										connected: true,
 										venue: false,
-										data: response,
+										data: {businesses:response.response.venues.items},
 		 					  		url: null
 									});
 							});
@@ -347,7 +347,7 @@ var SocialController = {
  	},
 
  	 yelp_connect: {
- 	 	path: '/social/yelp/connect',
+ 	 	path: '/connect/social/yelp',
  		get: function(req, res) {
  			Helper.getUser(req.session.passport.user, function(err, user) {
  				if (err || !user) return next(err);
@@ -406,7 +406,7 @@ var SocialController = {
  	},
 
  	instagram_connect: {
- 		path: '/social/instagram/connect',
+ 		path: '/connect/social/instagram',
 		get: function(req, res) {
  			Helper.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) return next(err);	

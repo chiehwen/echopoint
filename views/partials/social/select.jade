@@ -5,7 +5,7 @@ div(class='simple-select-menu facebook-account-select-menu')
 	ul
 		li(ng-repeat='business in network.businesses')
 			div.button
-				a(href='#', ng-click='selectBusiness(business.id)')
+				a(ng-click='network.selectBusiness(business.id)')
 					i.icon-signin
 					span {{business.name}}
 
