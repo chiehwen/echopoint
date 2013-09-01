@@ -1,32 +1,32 @@
 div.header
 	h2(ng-bind-html-unsafe='module.header.icon+module.header.title')
-	a(href='#', class='close-tip', ng-show='closeable', ng-click='closeModule()')
+	a(class='close-tip', ng-show='closeable', ng-click='closeModule()')
 		i.icon-remove-sign
-	a(href='#', data-toggle='dropdown', class='dropdown-toggle', ng-show='menu.on')
-		i.icon-cog
+	a(data-toggle='dropdown', class='dropdown-toggle', ng-show='menu.on', ng-click='toOrigin()')
+		<i class='icon-{{{true:"cog",false:"caret-up"}[menu.active]}}'></i>
 	//-ul(class='dropdown-menu hide', ng-include='menu', ng-controller='MenuController')
 	ul(class='dropdown-menu hide', ng-show='menu.on')
-		li: a(href='#', ng-click='toggleManagement()')
+		li: a(ng-click='toggleManagement()')
 			i.icon-wrench
 			span {{manage.state}}
-		li: a(href='#', ng-click='module.toggleDashboardDisplay()')
+		li: a(ng-click='module.toggleDashboardDisplay()')
 			i.icon-flag-alt
 			span {{{true:'pull from dashboard',false:'add to dashboard'}[module.dashboarded]}} 
 				//- consider making this a regular ternary when upgrade to Angular 1.1.x 
 		
-		li(ng-repeat='option in module.menu.custom', ng-class='{"top-divider":option.divider}'): a(href='#', ng-click='{{option.action}}')
+		li(ng-repeat='option in module.menu.custom', ng-class='{"top-divider":option.divider}'): a(ng-click='{{option.action}}')
 			i(class='{{"icon-"+option.icon}}')
 			span {{option.label}}
-		li(ng-repeat='time in module.menu.timeframes', ng-class='{"top-divider":option.divider}'): a(href='#', ng-click='changeTimeframe("{{time}}")')
+		li(ng-repeat='time in module.menu.timeframes', ng-class='{"top-divider":option.divider}'): a(ng-click='changeTimeframe("{{time}}")')
 			i(class='icon-calendar')
 			span show {{time}}
-		li.top-divider: a(href='#', class='toggle-size', ng-click='module.toggleSize()', ng-show='module.sizing')
+		li.top-divider: a(class='toggle-size', ng-click='module.toggleSize()', ng-show='module.sizing')
 			<i class='icon-resize-{{{true:"small",false:"horizontal"}[module.large]}}'></i>'
 			span {{{true:'smaller',false:'larger'}[module.large]}} {{title}} box
-		li: a(href='#', class='toggle-display', ng-click='module.toggleDisplay()')
+		li: a(class='toggle-display', ng-click='module.toggleDisplay()')
 			i.icon-eye-close
 			span hide {{title}} box
-		li.top-divider: a(href='#', ng-click='toggleHelp()')
+		li.top-divider: a(ng-click='toggleHelp()')
 			i.icon-question-sign
 			span {{help.state}}	
 	

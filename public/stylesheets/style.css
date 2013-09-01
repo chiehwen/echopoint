@@ -18,6 +18,7 @@ body {
 a {
   color: #003D4C;
   text-decoration: none;
+  cursor: pointer;
 }
 a:hover {
   color: #367889;
@@ -223,7 +224,6 @@ li {
   font-size: 18px;
   color: #EEE;
   cursor: pointer;
-  cursor: hand;
 }
 #open-popup-menu,
 #user-navigation {
@@ -255,7 +255,6 @@ li {
   -webkit-box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.2), 1px 1px 0 rgba(255, 255, 255, 0.2);
   box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.2), 1px 1px 0 rgba(255, 255, 255, 0.2);
   cursor: pointer;
-  cursor: hand;
 }
 #open-popup-menu a {
   padding: 7px 9px 5px;
@@ -526,7 +525,6 @@ li.top-divider {
   font-size: 20px;
   color: #444;
   cursor: pointer;
-  cursor: hand;
 }
 .close-navigation-menu i:hover {
   color: #000;
@@ -783,7 +781,6 @@ li.top-divider {
 /*.daily-tip i {
 	float: right;
 	cursor: pointer;
-	cursor: hand;
 }*/
 .page-notifications-list li {
   font-size: 14px;
@@ -853,7 +850,6 @@ li.top-divider {
   text-align: center;
   letter-spacing: 2px;
   cursor: pointer;
-  cursor: hand;
   color: #EEE;
 }
 .load-more-button i {
@@ -885,7 +881,6 @@ li.top-divider {
   -webkit-box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.2), 1px 1px 0 rgba(255, 255, 255, 0.2);
   box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.2), 1px 1px 0 rgba(255, 255, 255, 0.2);
   cursor: pointer;
-  cursor: hand;
 }
 .location-footer .current-page a {
   float: left;
@@ -941,7 +936,6 @@ i.google-places-icon {
   line-height: 28px;
   padding: 0 16px;
   cursor: pointer;
-  cursor: hand;
   margin: 0;
 }
 .module-options li:hover {
@@ -993,7 +987,6 @@ i.google-places-icon {
   float: left;
   letter-spacing: 1px;
   cursor: pointer;
-  cursor: hand;
 }
 .hidden-modules div:hover {
   background: #333;

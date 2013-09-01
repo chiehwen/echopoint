@@ -22,6 +22,7 @@ Vocada
 	.controller('TemplateCtrl', ['$scope', '$window', '$http', '$cookies', '$route', '$routeParams', '$location', 'angularFireCollection', 'localStorage', 'socket', 'uid', 'firebaseUrl', function ($scope, $window, $http, $cookies, $route, $routeParams, $location, angularFireCollection, localStorage, socket, uid, firebaseUrl) {
 		
 		$scope.template = '/partials/loading'
+		$scope.navigation.active = false;
 
 		// This must be done on first load business creation because 
 		// not having a uid already created and connected to firebase
@@ -72,7 +73,7 @@ Vocada
 				})
 			};
 
-			$http.get('/connect/social/'+$scope.network.name).success(function(res) {
+			$http.get('/social/'+$scope.network.name+'/connect').success(function(res) {
 				console.log(res);
 				
 				if(res.success){
@@ -162,8 +163,7 @@ Vocada
 		// add additional menu items
 		$scope.menu = {
 			on: module.menu === false ? false : true,
-			//custom: module.menu.custom,
-			//timeframe: module.menu.timeframe
+			active: true
 		}
 
 		$scope.closeable = module.closeable === true ? true : false; 
@@ -171,12 +171,6 @@ Vocada
 		$scope.viewport = {current: '/partials/modules/loading', loading: true};
 
 		$scope.viewport.origin = '/partials/modules/' + $scope.page.location + '/' + module.name + '/index';
-
-		$scope.isLarge = ''; 
-		$scope.makeLarge = function() {
-			$scope.isLarge = 'large';
-			console.log('anything?');
-		}
 
 		//var firebaseModuleUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + $scope.page.location + '/modules/' + $scope.title;
 		//var firebaseModule = new Firebase(firebaseModuleUrl);
@@ -274,16 +268,25 @@ Vocada
 		// handle management action
 		$scope.manage = { state: 'manage ' + module.name, partial: '/partials/modules/' + $scope.page.location + '/' + module.name + '/management'};
 		$scope.toggleManagement = function() {
-			$scope.viewport.current = $scope.manage.state === 'exit management window' ? $scope.viewport.origin : $scope.manage.partial;
-			$scope.manage.state = $scope.manage.state === 'exit management window' ? $scope.manage.state = 'manage ' + $scope.module.name: $scope.manage.state = 'exit management window';
+			$scope.menu.active = false;
+			$scope.viewport.current = $scope.manage.partial;
+			//$scope.viewport.current = $scope.manage.state === 'exit management window' ? $scope.viewport.origin : $scope.manage.partial;
+			//$scope.manage.state = $scope.manage.state === 'exit management window' ? $scope.manage.state = 'manage ' + $scope.module.name: $scope.manage.state = 'exit management window';
 		};
 
 		// handle help action
 		$scope.help = { state: 'help', partial: '/partials/modules/' + $scope.page.location + '/' + module.name + '/help'};
 		$scope.toggleHelp = function() {
-			$scope.viewport.current = $scope.help.state === 'help' ? $scope.help.partial : $scope.viewport.origin;
-			$scope.help.state = $scope.help.state === 'help' ? $scope.help.state = 'close help' : $scope.help.state = 'help';
+			$scope.menu.active = false;
+			$scope.viewport.current = $scope.help.partial;
+			//$scope.viewport.current = $scope.help.state === 'help' ? $scope.help.partial : $scope.viewport.origin;
+			//$scope.help.state = $scope.help.state === 'help' ? $scope.help.state = 'close help' : $scope.help.state = 'help';
 		};
+
+		$scope.toOrigin = function() {
+			$scope.viewport.current = $scope.viewport.origin;
+			$scope.menu.active = true;
+		}
 
 		// this is the load.complete finsihing based off all
 		// $includeContentLoaded firing. Its ugly but it works

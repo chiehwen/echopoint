@@ -224,7 +224,7 @@ var UserController = {
 									],
 									timeframes: ['15 days', '30 days', '90 days']
 								},
-								"timeframe": ["15day"],
+								"timeframe": "15 days",
 								"settings": []
 							}
 						]

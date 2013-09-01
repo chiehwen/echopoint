@@ -88,7 +88,7 @@ var PartialsController = {
 		get: function(req, res) {
 			res.render('partials/social/yelp/setup');
 		}
-	}
+	},	
 	// module loading partial
 	module_loading: {
 		restricted: false,

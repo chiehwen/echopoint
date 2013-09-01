@@ -43,7 +43,7 @@ var SocialController = {
  	},
 
  	facebook_connect: {
- 		path: '/connect/social/facebook',
+ 		path: '/social/facebook/connect',
  		json: function(req, res, next) {
 			Helper.getUser(req.session.passport.user, function(err, user) {
  					if (err || !user) return res.json({success: false, error: 'User is not logged in'});
@@ -162,7 +162,7 @@ var SocialController = {
  	},
 
  	twitter_connect: {
- 		path: '/connect/social/twitter',
+ 		path: '/social/twitter/connect',
  		get: function(req, res, next) {
 			Helper.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) return next(err);
@@ -234,7 +234,7 @@ var SocialController = {
  	},
 
  	foursquare_connect: {
- 		path: '/connect/social/foursquare',
+ 		path: '/social/foursquare/connect',
  		get: function(req, res) {
  			Helper.getUser(req.session.passport.user, function(err, user) {
  					if (err || !user) return next(err);
@@ -347,7 +347,7 @@ var SocialController = {
  	},
 
  	 yelp_connect: {
- 	 	path: '/connect/social/yelp',
+ 	 	path: '/social/yelp/connect',
  		get: function(req, res) {
  			Helper.getUser(req.session.passport.user, function(err, user) {
  				if (err || !user) return next(err);
@@ -406,7 +406,7 @@ var SocialController = {
  	},
 
  	instagram_connect: {
- 		path: '/connect/social/instagram',
+ 		path: '/social/instagram/connect',
 		get: function(req, res) {
  			Helper.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) return next(err);	
