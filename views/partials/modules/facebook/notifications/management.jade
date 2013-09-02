@@ -1,3 +1,7 @@
+div.viewport-header
+	h3 Facebook Notifications Settings
+	a(ng-click='closeWindow("management")')
+		i.icon-remove-sign
 ul(class='module-options {{location}}')
 	li(ng-controller='OptionCtrl', ng-repeat='option in management.settings', class='{{option.type}}', ng-click='toggleOption()') 
 		i(class='{{"icon-check"+icon.on}} {{icon.color}}') 

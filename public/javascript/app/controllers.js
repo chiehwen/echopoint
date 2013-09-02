@@ -162,8 +162,7 @@ Vocada
 
 		// add additional menu items
 		$scope.menu = {
-			on: module.menu === false ? false : true,
-			active: true
+			on: module.menu === false ? false : true
 		}
 
 		$scope.closeable = module.closeable === true ? true : false; 
@@ -268,24 +267,19 @@ Vocada
 		// handle management action
 		$scope.manage = { state: 'manage ' + module.name, partial: '/partials/modules/' + $scope.page.location + '/' + module.name + '/management'};
 		$scope.toggleManagement = function() {
-			$scope.menu.active = false;
-			$scope.viewport.current = $scope.manage.partial;
-			//$scope.viewport.current = $scope.manage.state === 'exit management window' ? $scope.viewport.origin : $scope.manage.partial;
-			//$scope.manage.state = $scope.manage.state === 'exit management window' ? $scope.manage.state = 'manage ' + $scope.module.name: $scope.manage.state = 'exit management window';
+			$scope.viewport.current = $scope.manage.state === 'exit management window' ? $scope.viewport.origin : $scope.manage.partial;
+			$scope.manage.state = $scope.manage.state === 'exit management window' ? $scope.manage.state = 'manage ' + $scope.module.name: $scope.manage.state = 'exit management window';
 		};
 
 		// handle help action
 		$scope.help = { state: 'help', partial: '/partials/modules/' + $scope.page.location + '/' + module.name + '/help'};
 		$scope.toggleHelp = function() {
-			$scope.menu.active = false;
-			$scope.viewport.current = $scope.help.partial;
-			//$scope.viewport.current = $scope.help.state === 'help' ? $scope.help.partial : $scope.viewport.origin;
-			//$scope.help.state = $scope.help.state === 'help' ? $scope.help.state = 'close help' : $scope.help.state = 'help';
+			$scope.viewport.current = $scope.help.state === 'help' ? $scope.help.partial : $scope.viewport.origin;
+			$scope.help.state = $scope.help.state === 'help' ? $scope.help.state = 'close help' : $scope.help.state = 'help';
 		};
 
 		$scope.toOrigin = function() {
 			$scope.viewport.current = $scope.viewport.origin;
-			$scope.menu.active = true;
 		}
 
 		// this is the load.complete finsihing based off all

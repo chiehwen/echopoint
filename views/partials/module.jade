@@ -2,8 +2,8 @@ div.header
 	h2(ng-bind-html-unsafe='module.header.icon+module.header.title')
 	a(class='close-tip', ng-show='closeable', ng-click='closeModule()')
 		i.icon-remove-sign
-	a(data-toggle='dropdown', class='dropdown-toggle', ng-show='menu.on', ng-click='toOrigin()')
-		<i class='icon-{{{true:"cog",false:"caret-up"}[menu.active]}}'></i>
+	a(data-toggle='dropdown', class='dropdown-toggle', ng-show='menu.on')
+		i.icon-cog
 	//-ul(class='dropdown-menu hide', ng-include='menu', ng-controller='MenuController')
 	ul(class='dropdown-menu hide', ng-show='menu.on')
 		li: a(ng-click='toggleManagement()')
