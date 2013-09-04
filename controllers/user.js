@@ -156,6 +156,7 @@ var UserController = {
 							{ 
 								"name": "tip", 
 								"type": "text",
+								"sortable": false,
 								"dashboarded": null,
 								"hidden": false,
 								"sizing": false,
@@ -167,6 +168,7 @@ var UserController = {
 							{
 								"name": "notifications",
 								"type": "list",
+								"sortable": false,
 								"dashboarded": true,
 								"hidden": false,
 								"sizing": false,
@@ -188,6 +190,7 @@ var UserController = {
 								"name": "statistics",
 								"title": "quick stats",
 								"type": "list",
+								"sortable": false,
 								"dashboarded": false,
 								"hidden": false,
 								"sizing": false,
@@ -207,6 +210,7 @@ var UserController = {
 								"name": "posts",
 								"title": "wall posts",
 								"type": "graph",
+								"sortable": true,
 								"dashboarded": false,
 								"hidden": false,
 								"sizing": true,

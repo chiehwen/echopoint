@@ -158,18 +158,24 @@ Vocada
 					if($scope.module.sizing)
 						$scope.remoteModule.large = !$scope.module.large;
 				}
+
+				$scope.module.changeTimeframe = function(time) {
+					$scope.remoteModule.timeframe = $scope.menu.timeframe = time;
+				}
 			});
 
 		// add additional menu items
 		$scope.menu = {
-			on: module.menu === false ? false : true
+			on: module.menu === false ? false : true,
+			timeframe: module.timeframe
 		}
+
 
 		$scope.closeable = module.closeable === true ? true : false; 
 
-		$scope.viewport = {current: '/partials/modules/loading', loading: true};
+		$scope.view = {current: '/partials/modules/loading', loading: true, atOrigin: true};
 
-		$scope.viewport.origin = '/partials/modules/' + $scope.page.location + '/' + module.name + '/index';
+		$scope.view.origin = '/partials/modules/' + $scope.page.location + '/' + module.name + '/index';
 
 		//var firebaseModuleUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + $scope.page.location + '/modules/' + $scope.title;
 		//var firebaseModule = new Firebase(firebaseModuleUrl);
@@ -233,12 +239,14 @@ Vocada
 					$scope.chartTest.options.chart.width = 428;
 
 				if(!data.hidden)
-					if($scope.viewport.loading) {
-						$scope.viewport.current = $scope.viewport.origin
-						$scope.viewport.loading = false;
+					if($scope.view.loading) {
+						$scope.view.current = $scope.view.origin
+						$scope.view.loading = false;
 					}
 
 				$scope.module.hidden = data.hidden;
+				$scope.module.sortable = data.sortable;
+console.log(data.sortable);				
 				//$scope.load.complete = true;
 			}
 		});
@@ -252,7 +260,7 @@ Vocada
 			settings: angularFireCollection($scope.firebase.url + $scope.module.id+ '/settings/')
 		}
 
-		// setup viewport based on options (if any options)
+		// setup view based on options (if any options)
 		//var firebaseOptionsList = new Firebase(firebaseModuleUrl + '/settings/');
 		$scope.options = {};
 		$scope.firebase.connection.child($scope.module.id).child('settings').on('value', function (snapshot) {
@@ -264,23 +272,36 @@ Vocada
 		})
 
 
-		// handle management action
-		$scope.manage = { state: 'manage ' + module.name, partial: '/partials/modules/' + $scope.page.location + '/' + module.name + '/management'};
-		$scope.toggleManagement = function() {
-			$scope.viewport.current = $scope.manage.state === 'exit management window' ? $scope.viewport.origin : $scope.manage.partial;
-			$scope.manage.state = $scope.manage.state === 'exit management window' ? $scope.manage.state = 'manage ' + $scope.module.name: $scope.manage.state = 'exit management window';
+		// setup other module views
+		$scope.help = { state: 'help', partial: '/partials/modules/' + $scope.page.location + '/' + module.name + '/help', active: false};
+		$scope.manage = { state: 'manage ' + module.name, partial: '/partials/modules/' + $scope.page.location + '/' + module.name + '/management', active: false};
+		
+		// handle toggle actions
+		$scope.view.toggle = function(toggle) {
+			var active = {manage: $scope.manage.active, help: $scope.help.active}
+			$scope.view.toOrigin();
+
+			if(toggle === 'manage' && !active.manage) {
+				$scope.manage.state = 'exit management window';
+				$scope.view.current = $scope.manage.partial;
+				$scope.manage.active = true;
+			}
+
+			if(toggle === 'help' && !active.help) {
+				$scope.help.state = 'close help';
+				$scope.view.current = $scope.help.partial;
+				$scope.help.active = true;
+			}
 		};
 
-		// handle help action
-		$scope.help = { state: 'help', partial: '/partials/modules/' + $scope.page.location + '/' + module.name + '/help'};
-		$scope.toggleHelp = function() {
-			$scope.viewport.current = $scope.help.state === 'help' ? $scope.help.partial : $scope.viewport.origin;
-			$scope.help.state = $scope.help.state === 'help' ? $scope.help.state = 'close help' : $scope.help.state = 'help';
-		};
-
-		$scope.toOrigin = function() {
-			$scope.viewport.current = $scope.viewport.origin;
+		$scope.view.toOrigin = function() {
+			$scope.manage.state = 'manage ' + $scope.module.name;
+			$scope.help.state = 'help';
+			$scope.view.current = $scope.view.origin;
+			$scope.manage.active = $scope.help.active = false;
+			$scope.view.atOrigin = true;
 		}
+
 
 		// this is the load.complete finsihing based off all
 		// $includeContentLoaded firing. Its ugly but it works

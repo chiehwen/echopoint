@@ -198,6 +198,37 @@ Vocada
     }
   })
 
+.directive('sortable', function () {
+  return {
+    restrict: 'E',
+    template: '<div></div>',
+    //scope: {
+    //    chartData: "="
+    //},
+    transclude: false,
+    replace: true,
+
+    link: function (scope, element, attrs) {
+     console.log(scope, element, attrs);
+     
+     var packery = new Packery( document.querySelector('.sortables-container'), {
+        columnWidth: 480,
+        rowHeight: 495
+      });
+      var elements = packery.getItemElements();
+      console.log(elements);
+      // ugly timeout but I feel as if option are limited. see: http://stackoverflow.com/questions/11125078/is-there-a-post-render-callback-for-angular-js-directive
+      setTimeout(function() {
+        for (var i=0, l = elements.length; i < l; i++) {
+          // make element draggable with Draggabilly and bind Draggabilly events to Packery
+          packery.bindDraggabillyEvents( new Draggabilly( elements[i], {handle: '.header'}) );
+        }
+      }, 100);
+    }
+  };
+
+})
+
 .directive('chart', function () {
   return {
     restrict: 'E',

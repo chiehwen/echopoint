@@ -6,7 +6,7 @@ div.header
 		i.icon-cog
 	//-ul(class='dropdown-menu hide', ng-include='menu', ng-controller='MenuController')
 	ul(class='dropdown-menu hide', ng-show='menu.on')
-		li: a(ng-click='toggleManagement()')
+		li: a(ng-click='view.toggle("manage")')
 			i.icon-wrench
 			span {{manage.state}}
 		li: a(ng-click='module.toggleDashboardDisplay()')
@@ -17,17 +17,17 @@ div.header
 		li(ng-repeat='option in module.menu.custom', ng-class='{"top-divider":option.divider}'): a(ng-click='{{option.action}}')
 			i(class='{{"icon-"+option.icon}}')
 			span {{option.label}}
-		li(ng-repeat='time in module.menu.timeframes', ng-class='{"top-divider":option.divider}'): a(ng-click='changeTimeframe("{{time}}")')
+		li(ng-repeat='time in module.menu.timeframes | timeframe:menu.timeframe', ng-class='{"top-divider":option.divider}'): a(ng-click='module.changeTimeframe(time)')
 			i(class='icon-calendar')
 			span show {{time}}
 		li.top-divider: a(class='toggle-size', ng-click='module.toggleSize()', ng-show='module.sizing')
-			<i class='icon-resize-{{{true:"small",false:"horizontal"}[module.large]}}'></i>'
+			<i class='icon-resize-{{{true:"small",false:"horizontal"}[module.large]}}'></i>
 			span {{{true:'smaller',false:'larger'}[module.large]}} {{title}} box
 		li: a(class='toggle-display', ng-click='module.toggleDisplay()')
 			i.icon-eye-close
 			span hide {{title}} box
-		li.top-divider: a(ng-click='toggleHelp()')
+		li.top-divider: a(ng-click='view.toggle("help")')
 			i.icon-question-sign
 			span {{help.state}}	
 	
-div(class='content', ng-include='viewport.current')
+div(class='content', ng-include='view.current')
