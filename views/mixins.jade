@@ -33,8 +33,18 @@ mixin createBusinessForm
 		input(type="hidden", name="_method", value="POST")
 		fieldset
 			div(class="input text required")
-				label name
+				label business name
 				input(type="text", name="name", id="create-business-name", required)
+		div.submit
+			input(type="submit", value="Create")
+
+mixin createBusinessFormAngular
+	form(ng-submit='business.create()', id='create-business-form', accept-charset='utf-8')
+		input(type="hidden", name="_method", value="POST")
+		fieldset
+			div(class="input text required")
+				label business name
+				input(ng-model='business.name', type="text", name="name", id="create-business-name", required)
 		div.submit
 			input(type="submit", value="Create")
 

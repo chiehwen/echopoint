@@ -1,6 +1,6 @@
 div.header
 	h2(ng-bind-html-unsafe='module.header.icon+module.header.title')
-	a(class='close-tip', ng-show='closeable', ng-click='closeModule()')
+	a(class='close-tip', ng-show='closeable', ng-click='module.toggleDisplay()')
 		i.icon-remove-sign
 	a(data-toggle='dropdown', class='dropdown-toggle', ng-show='menu.on')
 		i.icon-cog

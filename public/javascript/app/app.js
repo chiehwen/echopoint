@@ -3,16 +3,32 @@
 var Vocada = angular.module('vocada', ['ngCookies', 'firebase'])
 .config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
 		$routeProvider
-		.when('/social/:network', {
+		.when('/:controller/:view/:action', {
+			controller: 'TemplateCtrl',
+			templateUrl: '/partials/template'
+		})
+		.when('/:controller/:view', {
+			controller: 'TemplateCtrl',
+			templateUrl: '/partials/template'
+		})
+		.when('/:controller', {
+			controller: 'TemplateCtrl',
+			templateUrl: '/partials/template'
+		})
+		/*.when('/:controller/:view/', {
+			controller: 'TemplateCtrl',
+			templateUrl: '/partials/template'
+		})*/
+		/*.when('/social/:network', {
 			controller: 'TemplateCtrl',
 			templateUrl: '/partials/template',
-			action: 'social'
+			base: 'social'
 		})
 		.when('/dashboard', {
 			controller: 'TemplateCtrl',
 			templateUrl: '/partials/template'
-		})
-		.otherwise({redirectTo: '/dashboard'});
+		})*/
+		.otherwise({redirectTo: '/logout'});
 
 		$locationProvider.html5Mode(true).hashPrefix('!');;
 	}]);

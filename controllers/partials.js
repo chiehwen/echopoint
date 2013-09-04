@@ -6,6 +6,7 @@ var Helper = require('../server/helpers'),
 		Model = Model || Object;
 
 var PartialsController = {
+	// primary partials
 	index: {
  		//restricted: false,
  		get: function(req, res) {
@@ -23,6 +24,30 @@ var PartialsController = {
  			res.render('partials/loading');
  		}
  	},
+
+ 	// account partials
+ 	account: {
+ 		path: '/partials/user/account',
+		get: function(req, res) {
+ 			res.render('partials/user/account');
+ 		}
+ 	},
+
+ 	//business partials
+	business_create: {
+ 		path: '/partials/business/create',
+ 		get: function(req, res) {
+ 			res.render('partials/business/create');
+ 		}
+ 	},
+ 	business_select: {
+ 		path: '/partials/business/select',
+ 		get: function(req, res) {
+ 			res.render('partials/business/select');
+ 		}
+ 	},
+
+ 	// social partials
  	social: {
  		path: '/partials/social/index',
  		get: function(req, res) {
@@ -41,6 +66,8 @@ var PartialsController = {
  			res.render('partials/social/select');
  		}
  	},
+
+ 	// core module partials 
  	module: {
  		restricted: false,
  		get: function(req, res) {

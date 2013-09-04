@@ -13,39 +13,137 @@ var Socket = (function() {
 
 	function constructor(io) {
 
+	var passportUserId = '',
+			currentBusinessId = '';
+
+	var packet = {
+		incoming: {
+			init: function(data, callback) {
+				var sid = data.sid.replace('s:','').split('.')[0];
+				passportUserId = JSON.parse(Session.store.sessions[sid]).passport.user;
+
+				if(passportUserId && passportUserId != '') {
+	 				Helper.getUser(passportUserId, function(err, user) {
+	 					if (err || !user) callback(false, null, '');
+	 					callback(true, passportUserId, user.id, user.Business, user.meta.Business.current.id);
+					});
+				} else {
+					callback(false, null, '');
+				}				
+			},
+			user: {
+				setUid: function(data, callback) {
+					if(passportUserId) {				
+		 				Helper.getUser(passportUserId, function(err, user) {
+		 					if (err || !user) callback({success: false, error: err});
+		 					user.id = data.uid;
+		 					
+		 					user.save(function(err){
+		 						if(err) callback({success: false, error: err});
+		 						callback(null);
+		 					});
+						});
+					} else {
+						callback({success: false, error: 'Not logged in'})
+					}				
+				},
+			},
+
+			business: {
+				setBid: function(data, callback) {
+					if(passportUserId) {				
+		 				Helper.getUser(passportUserId, function(err, user) {
+		 					if (err || !user) callback({success: false, error: err});
+		 					user.Business[data.index].id = data.bid;
+		 					
+		 					user.save(function(err){
+		 						if(err) callback({success: false, error: err});
+		 						callback(null);
+		 					});
+						});
+					} else {
+						callback({success: false, error: 'Not logged in'})
+					}				
+				},
+				select: function(data, callback) {
+					if(passportUserId) {				
+		 				Helper.getUser(passportUserId, function(err, user) {
+		 					for(var i=0,l=user.Business.length; i<l; i++) {
+		 						if(user.Business[i]._id == data.id) {
+		 							user.meta.Business.current = {
+		 								id: user.Business[i]._id,
+										bid: user.Business[i].id,
+										index: i
+		 							}
+		 							callback(null, {success: true, data: {bid: user.Business[i].id}})
+		 							break;
+		 						}
+		 					}
+		 				})
+		 			} else {
+						callback({success: false, error: 'Not logged in'})
+					}	
+				},
+				create: function(data, callback) {
+					if(passportUserId && data.bid) {
+						Helper.getUser(passportUserId, function(err, user) {
+							if(err || !user) callback({success: false, error: err || 'no user found!'});
+							
+							var timestamp = Helper.timestamp(true) + Helper.randomInt(10000, 99999),
+	 								newBusiness = {
+	 									id: data.bid,
+			 							name: data.name,
+			 							Analytics: {id: timestamp}
+			 						},
+			 						newAnalytics = new Model.Analytics({
+										id: timestamp,
+										name: data.name
+									});
+	 						
+	 						user.Business.push(newBusiness);
+
+	 						user.save(function(err, response){
+	 							if(err) callback({success: false, error: err});
+								newAnalytics.save(function(err){
+									if (err) callback({success: false, error: err});
+									callback(null, {success: true});
+								});
+	 						});
+	 					});
+					} else {
+						callback({success: false, error: 'Not logged in'})
+					}
+				}
+			}
+		},
+
+		outgoing: {
+
+		}
+	}
+
 	io.sockets.on('connection', function (socket) {
 		// init is called on initial page load 
 		// it checks to see if user is logged in
 		// and then returns the uid for firebase
 		socket.on('init', function(data, callback) {
-			var sid = data.sid.replace('s:','').split('.')[0],
-					passportUserId = JSON.parse(Session.store.sessions[sid]).passport.user;
-
-			if(passportUserId && passportUserId != '') {
- 				Helper.getUser(passportUserId, function(err, user) {
- 					if (err || !user) callback(false, null, '');
- 					callback(true, passportUserId, user.uid);
-				});
-			} else {
-				callback(false, null, '');
-			}
-			
+			packet.incoming.init(data, callback);
 		});
 
 		socket.on('setUid', function(data, callback) {
-			if(data.passport) {
- 				Helper.getUser(data.passport, function(err, user) {
- 					if (err || !user) callback(err);
- 					user.uid = data.uid;
- 					user.save(function(err){
- 						if(err) callback(err);
- 						console.log(data.uid);
- 						callback(null);
- 					});
-				});
-			} else {
-				callback('not logged in!');
-			}
+			packet.incoming.user.setUid(data, callback);
+		});
+
+		socket.on('setBid', function(data, callback) {
+			packet.incoming.business.setBid(data, callback);
+		});
+
+		socket.on('createBusiness', function(data, callback) {
+			packet.incoming.business.create(data, callback);
+		});
+
+		socket.on('setBusiness', function(data, callback) {
+			packet.incoming.business.select(data, callback);
 		});
 
 		//setTimeout(function() {

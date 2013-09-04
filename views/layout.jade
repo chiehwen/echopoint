@@ -39,6 +39,8 @@ html(ng-app='vocada', ng-controller='PageCtrl')
 		script(src='/javascript/app/filters.js')
 		script(src='/javascript/app/directives.js')
 		script
-			Vocada.constant('uid', '!{locals.uid}') 
+			Vocada.constant('uid', '!{locals.uid}')
+			Vocada.value('bid', '!{locals.bid}');
+			Vocada.value('returnTo', '!{locals.returnTo}');
 		//-script(src='/javascript/vocada.main.js')
 		//-script(src='/javascript/vocada.charts.js')	

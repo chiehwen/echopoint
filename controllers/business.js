@@ -70,6 +70,7 @@ var BusinessController = {
  					if(typeof user.Business !== 'undefined' && user.Business.length == 1) {
  						user.meta.Business.current = req.session.Business = {
 							id: user.Business[0]._id,
+							bid: user.Business[0].id,
 							index: 0
 						} 
 						user.save(function(err,res){});
@@ -83,8 +84,9 @@ var BusinessController = {
 							if(businessId == req.query.business) {
 								user.meta.Business.current = req.session.Business = {
 									id: businessId,
+									bid: user.Business[i].id,
 									index: i
-								} 
+								}
 								user.save(function(err,res){});
 								res.redirect(Helper.redirectToPrevious(req.session));
 							}

@@ -11,19 +11,19 @@ div(ng-controller='SocialCtrl')
 
 	footer.location
 		div.current-page
-			a(href='#', class='app-color facebook'): i.icon-facebook
-			span {{page.location}}
+			a(class='app-color facebook'): i.icon-facebook
+			span {{network.name}}
 		div(class='page-loading', ng-hide='load.complete')
 			span loading
 			img(src='/images/ng-load.gif')
 		div(class='hidden-modules', ng-show='load.complete')
 			div(ng-repeat='module in modules.data | filter:{hidden:true}', ng-click='module.toggleDisplay()') <i class='icon-plus-sign-alt'></i> {{module.name}}
 		div.page-options
-			a(href='#', data-toggle='dropdown', class='dropdown-toggle'): i.icon-cog
+			a(data-toggle='dropdown', class='dropdown-toggle'): i.icon-cog
 			ul(class='dropdown-menu dropup')
 				li: a(href='#')
 					i.icon-wrench
 					span load a new random tip
 				li.top-divider: a(href='#')
 					i.icon-wrench
-					span vocada {{page.location}} settings
+					span vocada {{network.name}} settings

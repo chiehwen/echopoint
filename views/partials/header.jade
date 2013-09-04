@@ -1,32 +1,24 @@
-div(id='open-popup-menu', ng-hide='navigation.active', ng-click='navigation.toggle()')
-	a
-		i.icon-list
+div(id='open-popup-menu', ng-hide='navigation.active', ng-click='navigation.toggle()'): a
+	i.icon-list
 div.logo
 	a(href="/") vocada
 	em 0.0.1
 div(id='user-navigation', ng-hide='navigation.active')
 	div(id='notification')
 		i.icon-exclamation-sign
-		a(href="#", class="dropdown-toggle", data-toggle="dropdown")
-			i.icon-info-sign
+		a(class="dropdown-toggle", data-toggle="dropdown"): i.icon-info-sign
 		div(class="dropdown-menu hide")
 			h2 All Notifications
 			ul
 				li.nav-header Notifications
-	//-script 
-		var socketTmp = io.connect('http://localhost');
-		socketTmp.emit('notifications', function (data) {
-			console.log(data);
-			//socket.emit('my other event', { my: 'data' });
-		});
 	div#user-menu
-		a(href="#", class='dropdown-toggle', data-toggle="dropdown") 
+		a(class='dropdown-toggle', data-toggle="dropdown") 
 			span Hello 
 				b Scott Carlson
 			i.icon-caret-down
 		ul(class="dropdown-menu")
 			li
-				a(href='#') 
+				a(href='/account/settings') 
 					i.icon-wrench
 					span Account Settings
 			li

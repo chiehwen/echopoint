@@ -3,9 +3,9 @@
 Vocada
 
 	// Page Controller
-	.controller('PageCtrl', ['$scope', 'uid', function ($scope, uid) {
+	.controller('PageCtrl', ['$scope', 'uid', 'bid', function ($scope, uid, bid) {
 
-		$scope.user = {uid:uid};
+		$scope.user = {uid:uid,bid:bid};
 
 		$scope.header = '/partials/header';
 		$scope.navigation = {
@@ -19,8 +19,19 @@ Vocada
 	}])
 
 	// Template Controller
-	.controller('TemplateCtrl', ['$scope', '$window', '$http', '$cookies', '$route', '$routeParams', '$location', 'angularFireCollection', 'localStorage', 'socket', 'uid', 'firebaseUrl', function ($scope, $window, $http, $cookies, $route, $routeParams, $location, angularFireCollection, localStorage, socket, uid, firebaseUrl) {
-		
+	.controller('TemplateCtrl', ['$scope', '$window', '$http', '$cookies', '$route', '$routeParams', '$location', 'angularFireCollection', 'localStorage', 'socket', 'uid', 'bid', 'firebaseUrl', function ($scope, $window, $http, $cookies, $route, $routeParams, $location, angularFireCollection, localStorage, socket, uid, bid, firebaseUrl) {
+
+		// page routing data
+		$scope.page = {
+			controller: $routeParams.controller,
+			view: $routeParams.view || false,
+			action: $routeParams.action || false
+		}
+console.log($scope.page);
+		// some secure routes are still run by the server, route these paths to the actual addresses
+		if($scope.page.controller === 'logout')
+			$window.location.href = '/logout';
+
 		$scope.template = '/partials/loading'
 		$scope.navigation.active = false;
 
@@ -28,50 +39,67 @@ Vocada
 		// not having a uid already created and connected to firebase
 		// causes load errors
 		if(uid === '')
-			$http.get('/user/settings').then(function(json) {
-				$scope.user.uid = new Firebase(firebaseUrl + 'users').push({settings: json['data']}).name();
-			});
+			$scope.user.uid = new Firebase(firebaseUrl + 'user').push({business: false}).name();
 
 		// first thing we do is get the data for the loading page
-		socket.emit('init', {sid: $cookies['connect.sid']}, function (loggedIn, passport, uidFromDatabase) {
+		socket.emit('init', {sid: $cookies['connect.sid']}, function (loggedIn, passport, uidFromDatabase, businesses, currentBusiness) {
 			//if(!loggedIn)
 				//$window.location.href = '/logout'
 			if(loggedIn) {
+				$scope.user.businesses = businesses;
 				$scope.user.passport = passport;
 
 				if(uidFromDatabase === '') {
-					socket.emit('setUid', {passport: passport, uid: $scope.user.uid}, function (err) {
+					socket.emit('setUid', {uid: $scope.user.uid}, function (err) {
 						if(err) console.log(err)
 						console.log('new uid has been saved to database');
 					});
 				}
+
+				//if(businesses.length) {
+					for(var i=0, l=businesses.length;i<l;i++) {
+						if(businesses[i].id === '') {
+							var index = i;
+							$http.get('/user/settings').then(function(json) {
+								var newBid = new Firebase(firebaseUrl + 'user/' + $scope.user.uid + '/business').push({settings: json['data']}).name();
+								socket.emit('setBid', {index: index, bid: newBid}, function (err) {
+									if(err) console.log(err)
+									console.log('new business id has been saved to database');
+								});
+								if(bid === '')
+									$scope.user.bid = newBid;
+							});
+						}
+					}
+				//}
 			}
 		});
-		//var model = $scope.model = $routeParams.model;
-		//var controller = $scope.controller = $routeParams.controller;
-
-		$scope.page = {location: $routeParams.network}
-
 		
-//console.log($route.current.action);
-		if($route.current.action === 'social') {
+		if($scope.page.controller === 'account')
+			$scope.template = '/partials/user/account';
+
+		if($scope.page.controller === 'business')
+			$scope.template = '/partials/business/'+$scope.page.view;
+
+		if($scope.page.controller  === 'social') {
+
 			$scope.network = {
-				name: $scope.page.location,
+				name: $scope.page.view,
 				yelp: {
 					setup: function() {
 						$scope.template = '/partials/social/yelp/setup';
 					}
+				},
+				selectBusiness: function(id) {
+					$scope.template = '/partials/loading';
+					$http.get('/social/'+$scope.network.name+'/connect?id='+id).success(function(res) {
+						if(res.success)
+							$scope.template = '/partials/social/index';
+						else
+							$scope.template = '/partials/social/connect';
+					})
 				}
 			}
-			$scope.network.selectBusiness = function(id) {
-				$scope.template = '/partials/loading';
-				$http.get('/connect/social/'+$scope.network.name+'?id='+id).success(function(res) {
-					if(res.success)
-						$scope.template = '/partials/social/index';
-					else
-						$scope.template = '/partials/social/connect';
-				})
-			};
 
 			$http.get('/social/'+$scope.network.name+'/connect').success(function(res) {
 				console.log(res);
@@ -94,19 +122,41 @@ Vocada
 				//$scope.$apply();
 			})
 		}
-		// some secure routes are still run by the server, route these paths to the actual addresses
-		//if(model == 'logout')
-			//$window.location.href = '/logout';	
 
 	}]) 
 
+
+	// Business Controller
+	.controller('BusinessCtrl', ['$scope', '$http', '$location', 'socket', 'uid', 'bid', 'firebaseUrl', 'returnTo', function ($scope, $http, $location, socket, uid, bid, firebaseUrl, returnTo) {
+		$scope.businesses = {
+			create: function() {
+				console.log($scope.business.name);
+				$http.get('/user/settings').then(function(json) {
+					$scope.user.bid = new Firebase(firebaseUrl + 'user/' + $scope.user.uid + '/business').push({settings: json['data']}).name();
+				
+					socket.emit('createBusiness', {uid: $scope.user.uid, bid: $scope.user.bid, name: $scope.business.name}, function (err, res) {
+						console.log(err, res);
+					})
+
+				});
+			},
+			select: function(id) {
+				socket.emit('setBusiness', {id: id}, function (err, res) {
+					if(err) console.log(err)
+					bid = $scope.user.bid = res.data.bid
+					if(returnTo && returnTo !== '')
+						$location.path(returnTo);
+				})
+			}
+		}
+	}])
 
 	// Social Pages Controller
 	.controller('SocialCtrl', ['$scope', '$window', 'angularFire', 'uid', 'firebaseUrl', function ($scope, $window, angularFire, uid, firebaseUrl) {
 		
 		// check that we have a uid connected to firebase
-		if($scope.user.uid === '') 
-			$window.location.href = '/social/'+$scope.page.location;
+		//if($scope.user.uid === '') 
+			//$window.location.href = '/social/'+$scope.network.name;
 
 		// intial settings and variables for our social pages
 		$scope.load = {complete: false}
@@ -116,9 +166,9 @@ Vocada
 		}
 
 		// firebase connection data
-		$scope.firebase = {url: firebaseUrl + 'users/' + $scope.user.uid + '/settings/' + $scope.page.location + '/modules/'}
+		$scope.firebase = {url: firebaseUrl + 'user/' + $scope.user.uid + '/business/' + $scope.user.bid + '/settings/' + $scope.network.name + '/modules/'}
 		$scope.firebase.connection = new Firebase($scope.firebase.url)
-
+console.log($scope.firebase);
 		// get individual module settings data from firebase
 		angularFire($scope.firebase.url, $scope, 'remoteModules', []).
 		then(function() {
@@ -175,9 +225,9 @@ Vocada
 
 		$scope.view = {current: '/partials/modules/loading', loading: true, atOrigin: true};
 
-		$scope.view.origin = '/partials/modules/' + $scope.page.location + '/' + module.name + '/index';
+		$scope.view.origin = '/partials/modules/' + $scope.network.name + '/' + module.name + '/index';
 
-		//var firebaseModuleUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + $scope.page.location + '/modules/' + $scope.title;
+		//var firebaseModuleUrl = firebaseUrl + 'user/' + $scope.$parent.user.uid + '/settings/' + $scope.network.name + '/modules/' + $scope.title;
 		//var firebaseModule = new Firebase(firebaseModuleUrl);
 		$scope.chartTest = {
 			options: {
@@ -255,7 +305,7 @@ console.log(data.sortable);
 //}
 
 		// get our users current module settings from firebase
-		//var firebaseSettingsUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + $scope.page.location + '/modules/' + $scope.module.name+'/settings/';
+		//var firebaseSettingsUrl = firebaseUrl + 'user/' + $scope.$parent.user.uid + '/settings/' + $scope.network.name + '/modules/' + $scope.module.name+'/settings/';
 		$scope.management = {
 			settings: angularFireCollection($scope.firebase.url + $scope.module.id+ '/settings/')
 		}
@@ -273,8 +323,8 @@ console.log(data.sortable);
 
 
 		// setup other module views
-		$scope.help = { state: 'help', partial: '/partials/modules/' + $scope.page.location + '/' + module.name + '/help', active: false};
-		$scope.manage = { state: 'manage ' + module.name, partial: '/partials/modules/' + $scope.page.location + '/' + module.name + '/management', active: false};
+		$scope.help = { state: 'help', partial: '/partials/modules/' + $scope.network.name + '/' + module.name + '/help', active: false};
+		$scope.manage = { state: 'manage ' + module.name, partial: '/partials/modules/' + $scope.network.name + '/' + module.name + '/management', active: false};
 		
 		// handle toggle actions
 		$scope.view.toggle = function(toggle) {
@@ -322,7 +372,7 @@ console.log(data.sortable);
 	// with firebase for user settings   
 	.controller('OptionCtrl', ['$scope', 'angularFire', 'firebaseUrl', function ($scope, angularFire, firebaseUrl) {
 		var option = $scope.$parent.option, // option is defined in partial (it is singulars from $scope.management)
-				firebaseSettingsUrl = firebaseUrl + 'users/' + $scope.$parent.user.uid + '/settings/' + 'facebook' + '/modules/' + $scope.module.id+'/settings/';
+				firebaseSettingsUrl = $scope.firebase.url + $scope.module.id+'/settings/';
 		$scope.icon = {
 			on: option.val ? '' : '-empty',
 			color: option.val ? 'green' : 'gray'

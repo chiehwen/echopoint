@@ -98,14 +98,14 @@ var UserController = {
 		}
 	},
 
-	profile: {
+	account: {
 
-		path: '/profile',
+		path: '/account/settings',
 		get: function(req, res) {
 			res.render(
 				Helper.bootstrapRoute, //'user/profile', 
 				{
-			  	title: 'Vocada | User Profile'
+			  	title: 'Vocada | User Account Settings'
 			 	}
 			)
 		},

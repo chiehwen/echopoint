@@ -9,13 +9,14 @@ var UserModel = {
 
   Architecture: {
     schema: {
+      // id is really only used as a unique identifier for firebase
+      id: {type: String, default: '', index: { unique: true } },
       name: {type: String},
       email: {type: String, required: true, index: { unique: true } },
       password: {type: String, required: true},
-      // uid is only used as a unique identifier for firebase
-      uid: {type: String, default: '', index: { unique: true } },
       role: {type: String, required: true, default: 'user' }, // current roles: admin, user
       Business: [{
+        id: {type: String, default: '', index: { unique: true } },
         name: { type: String, required: true},
         Analytics: { 
           id: {type: Number} 
@@ -123,6 +124,7 @@ var UserModel = {
           tokens: { type: Number, default: 1 },
           current: { 
             id: { type: String, default: null },
+            bid: { type: String, default: '' },
             index: { type: Number, default: 0 }
           }
         },

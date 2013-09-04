@@ -1,0 +1,15 @@
+div(ng-controller='BusinessCtrl')
+	div#login-logo
+		a(href='/') vocada
+		em 0.0.1
+		
+		div(class='simple-select-menu business-select-menu')
+			h4 SELECT A BUSINESS
+			ul
+				li(ng-repeat='business in user.businesses')
+					div.button
+						a(ng-click='businesses.select(business._id)')
+							i.icon-windows
+							span {{business.name}}
+	div#login-powered
+		img(src="http://speaksocial.tv/img/powered-by-speak-social.png")

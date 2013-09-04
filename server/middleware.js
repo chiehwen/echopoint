@@ -20,7 +20,9 @@ var Middleware = {
 		if(req.session.passport.user) {
  			Helper.getUser(req.session.passport.user, function(err, user) {
  				if(err) console.log(err);
- 				res.locals.uid = user.uid;
+ 				res.locals.uid = user.id;
+ 				if(req.session.Business)
+ 					res.locals.bid = user.Business[req.session.Business.index].id;
  				next();
  			});
  		} else {

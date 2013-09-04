@@ -262,6 +262,8 @@ var Auth = (function() {
 					req.session.messages = 'please login to continue';
 					res.redirect('/login');
 				}
+				if(req.session.returnTo)
+					res.locals.returnTo = req.session.returnTo;
 			}
 
 		} // end return object
