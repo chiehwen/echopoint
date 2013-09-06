@@ -7,7 +7,8 @@ var crypto = require('crypto'),
 		url = require('url'),
 		Auth = require('../server/auth').getInstance(),
 		Helper = require('../server/helpers'),
-		Model = Model || Object;
+		Model = Model || Object,
+		googleapis = require('googleapis');;
 
 var SocialController = {
 
@@ -26,7 +27,14 @@ var SocialController = {
 			res.render(Helper.bootstrapRoute);
 		}
  	},
- 	google: {
+ 	google_plus: {
+ 		path: '/social/google/plus',
+ 		get: function(req, res) {
+			res.render(Helper.bootstrapRoute);
+		}
+ 	},
+ 	google_places: {
+ 		path: '/social/google/places',
  		get: function(req, res) {
 			res.render(Helper.bootstrapRoute);
 		}
@@ -346,8 +354,94 @@ var SocialController = {
  		}
  	},
 
- 	 yelp_connect: {
- 	 	path: '/social/yelp/connect',
+ 	google_connect: {
+ 		path: '/social/google/connect',
+ 		json: function(req, res, next) {
+			Helper.getUser(req.session.passport.user, function(err, user) {
+ 				if (err || !user) return res.json({success: false, error: 'User is not logged in'});
+ 				
+ 				 	// process google
+ 					var indx = req.session.Business.index,
+ 							g = user.Business[indx].Social.google,
+ 							google = Auth.load('google');
+console.log(req.session.googleConnected);
+console.log(req.session.google);
+ 					if(req.session.googleConnected && req.session.google.oauthAccessToken && req.session.google.oauthRefreshToken && !req.query.login) {
+ 						if((req.session.google.created + req.session.google.expires) * 1000 <= Date.now())
+ 							res.redirect('/social/google/login');
+
+						google.setAccessTokens({
+							access_token: req.session.google.oauthAccessToken,
+							refresh_token: req.session.google.oauthRefreshToken
+						});
+
+						googleapis
+					    .discover('plus', 'v1')
+					    .execute(function(err, client) {
+console.log(client);
+								client
+									.plus.people.get({ userId: '102844684445225950503' })
+						    	.withAuthClient(google)
+						    	.execute(function(err, data) {
+console.log(err);
+console.log(data);
+							    	res.json({
+											success: true,
+											connected: true,
+											account: true,
+											data: data,
+				 					  	url: null
+										});
+									})
+
+					    });
+				} else if(
+					!req.query.login
+					&& typeof g.auth.oauthAccessToken !== 'undefined'
+					&& typeof g.auth.oauthRefreshToken !== 'undefined'
+					&& typeof g.auth.expires !== 'undefined'
+					&& typeof g.auth.created !== 'undefined'
+					&& g.auth.oauthAccessToken != ''
+					&& g.auth.oauthRefreshToken != ''
+					&& g.auth.expires != 0
+					&& g.auth.created != 0
+					&& g.auth.oauthAccessToken
+					&& g.auth.oauthRefreshToken
+					&& g.auth.expires
+					&& g.auth.created
+					&& ((g.auth.created + g.auth.expires) * 1000 > Date.now())
+				) {
+					
+					google.setAccessTokens({
+						access_token: g.auth.oauthAccessToken,
+						refresh_token: g.auth.oauthRefreshToken
+					});
+					req.session.google = {
+						oauthAccessToken: g.auth.oauthAccessToken,
+						oauthRefreshToken: g.auth.oauthRefreshToken,
+						expires: g.auth.expires,
+						created: g.auth.created
+					}
+					req.session.googleConnected = true;
+					res.redirect('/social/google/connect');
+				
+				} else {
+	 				req.session.googleState = crypto.randomBytes(10).toString('hex');
+					
+					res.json({
+						success: true,
+						connected: false,
+						venue: false,
+						data: null,
+						url: Auth.getOauthDialogUrl('google', {response_type: 'code', access_type: 'offline', state: req.session.googleState, approval_prompt: 'force'})
+					});
+				}
+ 			})
+ 		}
+ 	},
+
+ 	yelp_connect: {
+ 		path: '/social/yelp/connect',
  		get: function(req, res) {
  			Helper.getUser(req.session.passport.user, function(err, user) {
  				if (err || !user) return next(err);

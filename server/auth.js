@@ -13,10 +13,12 @@ var fs = require('fs'),
 		Facebook = null, //require('fbgraph'),
 		Twitter = null,
 		Foursquare = null, // require('node-foursquare'),
+		Google = null,
 		Instagram = null,
 		Yelp = null,
 		Bitly = null,
 		Twit = require('twit'),
+		GoogleOAuth = require('googleapis').OAuth2Client,
 		YelpApi = require('yelp');
 
 var Auth = (function() {
@@ -99,6 +101,23 @@ var Auth = (function() {
 				return Twitter;
 			},
 
+			google: function() {
+				if(!Google) {
+					Google = new GoogleOAuth(
+						Config.google.id,
+						Config.google.consumerSecret,
+						Config.google.callback 
+					);
+				}
+
+				Google.setAccessTokens = function(tokens) {
+					this.credentials = tokens;
+					return this;
+				}
+
+				return Google;
+			},
+
 			yelp: function() {
 				if(!Yelp) {
 					Yelp = YelpApi.createClient({
@@ -169,14 +188,17 @@ var Auth = (function() {
 
 		var oauthDialogUrl = function(type, params) {
 			
-			if(type == 'twitter')
+			if(type === 'twitter')
 					return Config.twitter.dialog + '?' + qs.stringify(params);
-
-			params.client_id = Config[type].id;
-			params.redirect_uri = Config[type].callback;
 
 			if(typeof Config[type].scope !== 'undefined')
 				params.scope = Config[type].scope;
+
+			if(type === 'google')
+				return Google.generateAuthUrl(params);
+
+			params.client_id = Config[type].id;
+			params.redirect_uri = Config[type].callback;
 
 			var api = strategy[type]();
 			return api.getOauthUrl(params);
@@ -276,7 +298,6 @@ var Auth = (function() {
 			return authInstance;
 		}
 	}
-
 })();
 
 module.exports = Auth;

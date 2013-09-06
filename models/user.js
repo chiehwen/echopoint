@@ -74,16 +74,7 @@ var UserModel = {
               }
             }
           },
-          yelp: {
-            id: {type: String},
-            auth: {
-              consumerKey: {type: String},
-              consumerSecret: {type: String},
-              oauthAccessToken: {type: String},
-              oauthAccessTokenSecret: {type: String}
-            },
-            business: {}
-          },
+          
           foursquare: {
             id: {type: String},
             auth: {
@@ -95,6 +86,34 @@ var UserModel = {
               name: {type: String},
               data: {}
             }
+          },
+          
+          google: {
+            id: {type: String},
+            auth: {
+              oauthAccessToken: {type: String},
+              oauthRefreshToken: {type: String},
+              idToken: {type: String}, 
+              expires: {type: Number},
+              created: {type: Number}
+            },
+
+            account: {
+              id: {type: String},
+              oauthAccessToken: {type: String},
+              data: {}
+            },
+          },
+
+          yelp: {
+            id: {type: String},
+            auth: {
+              consumerKey: {type: String},
+              consumerSecret: {type: String},
+              oauthAccessToken: {type: String},
+              oauthAccessTokenSecret: {type: String}
+            },
+            business: {}
           },
           instagram: {
             id: {type: String},

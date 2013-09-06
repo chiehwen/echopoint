@@ -67,14 +67,10 @@ var OauthController = {
 								req.session.facebookConnected = true;
 								res.redirect('/social/facebook');
 								//res.send('login-error: ' + JSON.stringify(result));
-							});
-							
+							});			
 						});
 					}
-
 			});
-			
-
 		}
  	},
 
@@ -179,6 +175,85 @@ var OauthController = {
 					});
 				});
 			}
+		}
+ 	},
+
+	google: {
+		get: function(req, res) {
+			Helper.getUser(req.session.passport.user, function(err, user) {
+ 					if (err || !user) return next(err);	
+
+					if(req.session.googleState && req.session.googleState == req.query.state) {
+					
+						//var code = req.query.code;
+						if(req.query.error) {
+							// user might have disallowed the app
+							res.send('login-error ' + req.query.error);
+						} else if(!req.query.code) {
+							res.redirect('/social/google');
+						}
+
+						google = Auth.load('google');
+
+						google.getToken(req.query.code, function(err, result) {
+							if(err || !result.access_token) res.send('login-error 2: ' + req.query.error_description); //res.redirect('/social/google');
+
+							var credentials = {
+										oauthAccessToken: result.access_token,
+										expires: result.expires_in,
+										created: Helper.timestamp()
+									},
+									tokens = {access_token: result.access_token}
+
+							if(result.refresh_token)
+								credentials.oauthRefreshToken = tokens.refresh_token = result.refresh_token;
+
+							req.session.google = credentials;
+
+							if(result.id_token)
+								credentials.idToken = result.id_token;
+
+							// Put access token into the database
+							user.Business[req.session.Business.index].Social.google.auth = credentials;
+
+							user.save(function(err) {
+								req.session.messages.push(err);
+							});
+
+							google.setAccessTokens(tokens);
+
+							req.session.googleConnected = true;
+							res.redirect('/social/google/plus');
+							/*facebook.authorize('get', "/oauth/access_token", {
+								client_id: facebook.client.id,
+								client_secret: facebook.client.secret,
+								grant_type: 'fb_exchange_token',
+								fb_exchange_token: result.access_token
+							}, function (err, result) {
+								if(err) res.send('login-error 3: ' + req.query.error_description); //req.session.messages.push(err);
+
+								var credentials = {
+									oauthAccessToken: result.access_token,
+									expires: 128000,//result.expires, // Seems they removed the expired endpoint, I swear you can never rely facebook
+									created: Helper.timestamp()
+								}
+
+								req.session.google = credentials;
+
+								// Put access token into the database
+								user.Business[req.session.Business.index].Social.facebook.auth = credentials;
+
+								user.save(function(err) {
+									req.session.messages.push(err);
+								});
+
+								req.session.facebookConnected = true;
+								res.redirect('/social/facebook');
+								//res.send('login-error: ' + JSON.stringify(result));
+							});	*/		
+						});
+					}
+			});
 		}
  	},
 

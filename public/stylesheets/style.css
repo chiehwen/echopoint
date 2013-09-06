@@ -16,7 +16,7 @@ body {
   background: #F5F5F5;
 }
 a {
-  color: #003D4C;
+  color: #546f8e;
   text-decoration: none;
   cursor: pointer;
 }
@@ -545,6 +545,9 @@ li.top-divider {
 .app-color.twitter {
   background: #3a92c8;
 }
+.app-color.google {
+  background: #bb4b39;
+}
 .app-color.yelp {
   background: #af0606;
 }
@@ -971,14 +974,15 @@ footer.location .page-options > a i {
   font-size: 14px;
   line-height: 26px;
 }
-i.google-places-icon {
+i.icon-google-places {
   margin: 2px 0 0 30px;
   height: 39px;
   width: 39px;
   float: left;
   background: url(../images/google-places-icon-sprite.png);
 }
-.icon:hover i.google-places-icon {
+i.icon-google-places.active,
+.icon:hover i.icon-google-places {
   background-position: -39px 0;
 }
 .module .content .module-options {

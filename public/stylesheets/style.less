@@ -12,7 +12,9 @@
 @instagram: #3f729b;
 @youtube: #bb0000;
 @google: #bb4b39;
+@google_plus : #dd4b39;
 @bitly: #ee6123;
+
 
 [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
   display: none !important;
@@ -680,6 +682,11 @@ li.top-divider {
 	background: @twitter;
 }
 
+
+.app-color.google {
+	background: @google;
+}
+
 .app-color.yelp {
 	background: @yelp;
 }
@@ -1187,7 +1194,7 @@ footer.location .page-options > a i {
 	line-height: 26px;
 }
 
-i.google-places-icon {
+i.icon-google-places {
 	margin: 2px 0 0 30px;
 	height: 39px;
 	width: 39px;
@@ -1195,7 +1202,8 @@ i.google-places-icon {
 	background: url(../images/google-places-icon-sprite.png);
 }
 
-.icon:hover i.google-places-icon {
+i.icon-google-places.active,
+.icon:hover i.icon-google-places {
 	background-position: -39px 0;
 }
 

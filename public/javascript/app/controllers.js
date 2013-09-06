@@ -116,6 +116,9 @@ console.log(user);
 				}
 			}
 
+			if($scope.page.action === 'plus') $scope.network.icon = 'google-plus-sign';
+			if($scope.page.action === 'places') $scope.network.icon = 'google-places';
+
 			$http.get('/social/'+$scope.network.name+'/connect').success(function(res) {
 				console.log(res);
 				
