@@ -46,7 +46,7 @@ var AppSetup = (function() {
 
 				// custom middleware
 				.use(Middleware.sessionMessages)
-				.use(Middleware.uidSessionVariable)
+				.use(Middleware.sessionVariables)
 				//.use(Middleware.loadBusiness)				
 			
 				// route conditions

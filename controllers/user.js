@@ -67,6 +67,7 @@ var UserController = {
 				if (err) return next(err);
 				if(!user) {
 					var newUser = new Model.User({
+						name: req.body.name,
 						email: req.body.email,
 						password: req.body.password
 					});

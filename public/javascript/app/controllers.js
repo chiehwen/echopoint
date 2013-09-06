@@ -5,7 +5,7 @@ Vocada
 	// Page Controller
 	.controller('PageCtrl', ['$scope', 'uid', 'bid', function ($scope, uid, bid) {
 
-		$scope.user = {uid:uid,bid:bid};
+		$scope.user = {uid:uid,bid:bid,business:{}};
 
 		$scope.header = '/partials/header';
 		$scope.navigation = {
@@ -25,7 +25,8 @@ Vocada
 		$scope.page = {
 			controller: $routeParams.controller,
 			view: $routeParams.view || false,
-			action: $routeParams.action || false
+			action: $routeParams.action || false,
+			loading: true
 		}
 console.log($scope.page);
 		// some secure routes are still run by the server, route these paths to the actual addresses
@@ -42,36 +43,50 @@ console.log($scope.page);
 			$scope.user.uid = new Firebase(firebaseUrl + 'user').push({business: false}).name();
 
 		// first thing we do is get the data for the loading page
-		socket.emit('init', {sid: $cookies['connect.sid']}, function (loggedIn, passport, uidFromDatabase, businesses, currentBusiness) {
+		socket.emit('init', {sid: $cookies['connect.sid']}, function (user) {
 			//if(!loggedIn)
 				//$window.location.href = '/logout'
-			if(loggedIn) {
-				$scope.user.businesses = businesses;
-				$scope.user.passport = passport;
+console.log(user);
+			if(user.loggedIn) {
+				if(!$scope.user.data) {
+					$scope.user.data = user;
+					$scope.user.businesses = user.businesses.list;
+					$scope.user.passport = user.passport;
+					for(var i=0,l=user.businesses.list.length;i<l;i++)
+						if(user.businesses.list[i].id == $scope.user.bid) {
+							$scope.user.business = {
+								name: user.businesses.list[i].name,
+								id: user.businesses.list[i]._id,
+								uid: user.businesses.list[i].id
+							}
+							break;
+						}
+					
+				}
 
-				if(uidFromDatabase === '') {
+				if(user.uid === '') {
 					socket.emit('setUid', {uid: $scope.user.uid}, function (err) {
 						if(err) console.log(err)
 						console.log('new uid has been saved to database');
 					});
 				}
 
-				//if(businesses.length) {
-					for(var i=0, l=businesses.length;i<l;i++) {
-						if(businesses[i].id === '') {
-							var index = i;
-							$http.get('/user/settings').then(function(json) {
-								var newBid = new Firebase(firebaseUrl + 'user/' + $scope.user.uid + '/business').push({settings: json['data']}).name();
-								socket.emit('setBid', {index: index, bid: newBid}, function (err) {
-									if(err) console.log(err)
-									console.log('new business id has been saved to database');
-								});
-								if(bid === '')
-									$scope.user.bid = newBid;
+				for(var i=0,l=user.businesses.list.length;i<l;i++) {
+					if(user.businesses.list[i].id === '') {
+						var index = i;
+						$http.get('/user/settings').then(function(json) {
+							var newBid = new Firebase(firebaseUrl + 'user/' + $scope.user.uid + '/business').push({settings: json['data']}).name();
+							socket.emit('setBid', {index: index, bid: newBid}, function (err) {
+								if(err) console.log(err)
+								console.log('new business id has been saved to database');
 							});
-						}
+							if(bid === '')
+								$scope.user.bid = newBid;
+						});
 					}
-				//}
+				}
+			} else {
+				$window.location.href = '/logout';
 			}
 		});
 		
@@ -125,6 +140,63 @@ console.log($scope.page);
 
 	}]) 
 
+	// User Controller
+	.controller('UserCtrl', ['$scope', '$http', '$location', 'socket', 'uid', 'bid', 'firebaseUrl', function ($scope, $http, $location, socket, uid, bid, firebaseUrl) {
+		$scope.page.loading = false;
+		$scope.account = {
+			user: {},
+			business: {},
+			update: function(type) {
+				$scope.page.loading = true;
+				if(type === 'user') {
+					var userUpdate = {
+								name: $scope.account.user.name !== $scope.user.data.name ? $scope.account.user.name : null,
+								email: $scope.account.user.email !== $scope.user.data.email ? $scope.account.user.email : null
+							}
+					if(userUpdate.name || userUpdate.email)
+						socket.emit('updateUser', userUpdate, function (err) {
+							if(err) console.log(err)
+
+							if(userUpdate.name)
+								$scope.user.data.name = userUpdate.name;
+							if(userUpdate.email)
+								$scope.user.data.email = userUpdate.email;
+
+							$scope.page.loading = false;
+						});
+					else
+						$scope.page.loading = false;
+				}
+
+				if(type === 'business') {
+					var businessUpdate = [];
+					for(var i=0, l=$scope.user.businesses.length;i<l;i++) {
+						var business = $scope.account.business[$scope.user.businesses[i]._id];
+						if(typeof business !== 'undefined' && business !== '')
+							businessUpdate.push({
+								id: $scope.user.businesses[i]._id,
+								index: i,
+								name: business,
+								current: $scope.user.businesses[i]._id === $scope.user.business.id ? true : false
+							})
+					}
+
+					if(businessUpdate.length)
+						socket.emit('updateBusiness', businessUpdate, function (err) {
+							if(err) console.log(err)
+							for(var i=0, l=businessUpdate.length;i<l;i++) {
+								$scope.user.businesses[businessUpdate[i].index].name = businessUpdate[i].name;
+								if(businessUpdate[i].current)
+									$scope.user.business.name = businessUpdate[i].name;
+							}
+							$scope.page.loading = false;
+						});
+					else 
+						$scope.page.loading = false;
+				}
+			}
+		}
+	}])
 
 	// Business Controller
 	.controller('BusinessCtrl', ['$scope', '$http', '$location', 'socket', 'uid', 'bid', 'firebaseUrl', 'returnTo', function ($scope, $http, $location, socket, uid, bid, firebaseUrl, returnTo) {

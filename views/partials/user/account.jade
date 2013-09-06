@@ -1,1 +1,36 @@
-div hi
+include ../../mixins
+
+div(ng-controller='UserCtrl', class='content')
+	div.modules-align
+		div(class='module')
+			div.header
+				h2 personal settings
+			div(class='content form')
+				form(name='account.user', ng-submit='account.update("user")')
+					fieldset
+						div(class='input text')
+							label your name
+							input(type='text', name='name', ng-init='account.user.name = "#{locals.username}"', ng-model='account.user.name')
+						div(class='input text')
+							label your email
+							input(type='text', name='email', ng-init='account.user.email = "#{locals.email}"', ng-model='account.user.email')
+						div(class='input text change-password')
+							label change password
+							input(type='password', name='current-password', placeholder='current')
+							input(type='password', name='new-password', placeholder='new')
+					div.submit
+						input(type='submit', value='update account')
+
+		div(class='module')
+			div.header
+				h2 your businesses 
+			div(class='content form')
+				form(name='account.business', ng-submit='account.update("business")')
+					fieldset
+						div(ng-repeat='business in user.businesses', class='input text')
+							label {{business.name}}
+							input(type='text', name='{{business._id}}', placeholder='new business name', ng-model='account.business[business._id]')
+					div.submit
+						input(type='submit', value='update businesses')
+
+mixin vocadaFooter						

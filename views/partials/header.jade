@@ -14,7 +14,7 @@ div(id='user-navigation', ng-hide='navigation.active')
 	div#user-menu
 		a(class='dropdown-toggle', data-toggle="dropdown") 
 			span Hello 
-				b Scott Carlson
+				b {{user.data.name || "!{locals.username}"}}
 			i.icon-caret-down
 		ul(class="dropdown-menu")
 			li

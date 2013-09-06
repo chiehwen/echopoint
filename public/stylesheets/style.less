@@ -1,6 +1,5 @@
 @primary-font: normal 13px "Helvetica Neue", Helvetica, Arial, sans-serif;
 @light-blue: #3399cc;
-@dark-blue: #546f8e;
 
 @blue: #546f8e;
 
@@ -27,11 +26,12 @@
 body {
   font: @primary-font;
   color: #2A2A29;
-  background: #F5F5F5;
+  background: #F5F5F5; //url('http://simonwebdesign.wpengine.netdna-cdn.com/wp-content/uploads/5-cool-backgrounds_0002_bg3.jpg') center 45px no-repeat
+  // background-attachment: fixed;
 }
 
 a {
-  color: #003D4C;
+  color: @blue; //#003D4C;
   text-decoration: none;
   cursor: pointer;
 }
@@ -112,28 +112,53 @@ li {
 	color: #367889;
 }
 
-#login-form-container form {
+.form form {
+	background: #FFF;
+	-moz-box-shadow: 1px 1px 7px 1px #bbb;
+	-webkit-box-shadow: 1px 1px 7px 1px #bbb;
+	box-shadow: 1px 1px 7px 1px #bbb;
+	border: 1px solid #E5E5E5;
 	width: 360px;
 	margin: 0 auto;
-	padding: 0;
+	padding: 12px 16px;
 }
 
-#login-form-container fieldset,
-.module > div {
+.module .form form {
+	-webkit-box-shadow: none;
+	box-shadow: none;
+	border: 0 none;
+	width: auto;
+}
+
+.form fieldset {
 	margin: 0 auto;
-	padding: 20px 16px 0 16px;
-	width: 320px;
-	background: #FFF;
-	-webkit-border-radius: 0;
+	border: none;
+}
+
+.module > div {
+	//margin: 0 auto;
+	//padding: 20px 16px 0 16px;
+	//width: 320px;
+	//background: #FFF;
+	/*-webkit-border-radius: 0;
 	-moz-border-radius: 0;
 	border-radius: 0;
 	-moz-box-shadow: 1px 1px 7px 1px #bbb;
 	-webkit-box-shadow: 1px 1px 7px 1px #bbb;
 	box-shadow: 1px 1px 7px 1px #bbb;
-	border: 1px solid #E5E5E5;
+	border: 1px solid #E5E5E5;*/
 }
 
-#login-form-container fieldset div.input {
+.module div fieldset {
+	width: auto;
+	padding: 0;
+	border: 0 none; 
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
+	box-shadow: none;
+}
+
+.form fieldset .input {
 	-webkit-border-radius: 0;
 	-moz-border-radius: 0;
 	border-radius: 0;
@@ -147,7 +172,7 @@ li {
 	margin: 0px 0px 10px;
 }
 
-#login-form-container fieldset label {
+.form fieldset label {
 	color: #777;
 	text-shadow: none;
 	-webkit-text-shadow: none;
@@ -159,52 +184,87 @@ li {
 	font-weight: bold;
 	font-size: 10px;
 	text-transform: lowercase;
+	letter-spacing: 1px;
+	cursor: default;
 }
 
-#login-form-container fieldset div.checkbox label {
+.form fieldset .checkbox label {
 	margin: 1px 0 0 2px;
 	padding: 0;
 	line-height: 20px;	
 }
 
-#login-form-container fieldset input {
+.form fieldset input {
+	font-size: 12px;
+	letter-spacing: 1px;
 	padding: 3px 0 3px 8px;
-	margin: 2px 0 0;
+	margin: 3px 0 0;
 	border-width: 1px;
 	border-style: solid;
-	border-color: #EEE;
+	border-color: #D1D1D1;
 	background: white;
 	color: #666;
 	width: 99%;
 	font-weight: bold;
+	height: 15px;
+	line-height: 16px;
 }
 
-#login-form-container fieldset input[type="checkbox"] {
+.module .form fieldset input {
+	font-weight: normal;
+}
+
+.form fieldset input[type="checkbox"] {
 	float: left;
 	margin: 5px 6px 7px 2px;
 	width: auto;	
 }
 
-#login-form-container form div.submit {
-	position: absolute;
+.form form .submit {
+	/*position: absolute;
 	margin: -49px 0 0 246px;
 	padding: .5em;
-	padding-left: 12px;
+	padding-left: 12px;*/
+	height: 28px;
 	border: 0;
+	padding-right: 3px;
 	vertical-align: text-top;
 }
 
-#login-form-container form div.submit input {
+.form form .submit input {
+	float: right;
 	width: auto;
 	font-weight: bold;
 	color: white;
-	background: #21759B; //url(/img/icons/button-grad.png) repeat-x scroll left top;
+	background: @blue; //#21759B; //url(/img/icons/button-grad.png) repeat-x scroll left top;
 	text-shadow: rgba(0, 0, 0, 0.3) 0 -1px 0;
 	cursor: pointer;
-	padding: 2px 10px;
+	padding: 3px 10px;
 	text-align: center;
-	border: 1px solid #298CBA;
-	border-radius: 0 4px 0 4px;
+	border: 3px outset buttonface;
+	//border: 1px solid #BBB;//#298CBA;
+	//border-radius: 0 4px 0 4px;
+}
+
+.form form .submit input:hover {
+	//border: 1px solid #888;
+}
+
+.form fieldset .change-password {
+ 	height: 35px;
+ 	padding-right: 3px;
+ }
+
+.form .change-password input {
+	width: 46%;
+	float: left;
+	font-size: 9px;
+	font-weight: normal;
+	letter-spacing: 2px;
+}
+
+.form .change-password input:last-child {
+	float: right;
 }
 
 #login-powered {
@@ -241,16 +301,12 @@ li {
 
 
 /*
-* content
+* template
 */
 
-#main {
-	//float: left;
-	//width: 86%;
-}
-
-#main > .content {
+body > div > div.template {
 	padding: 24px 0; // 1.5%
+	overflow: hidden;
 }
 
 /*
@@ -612,6 +668,10 @@ li.top-divider {
 	//background: @blue;
 }
 
+.app-color.vocada {
+	background: @blue;
+}
+
 .app-color.facebook {
 	background: @facebook;
 }
@@ -833,15 +893,22 @@ li.top-divider {
 	color: #444;	
 }
 
-.data-wrapper {
+.content {
 	width: 100%;
 	max-width: 960px;
 	margin: 0 auto;
 }
 
+.modules-align {
+	margin-left: -20px;
+}
+
 .module {
-	width: 480px;
-	margin: 0 auto 30px;
+	/*border: 1px solid #BBB;
+	box-shadow: 1px 1px 8px 1px #ccc;*/
+	//border: 3px outset buttonface;
+	width: 468px;
+	margin: 0 0 30px 20px;
 	float: left;
 }
 
@@ -862,7 +929,7 @@ li.top-divider {
 	background: @blue;
 	height: 28px;
 	padding: 4px 10px;
-	width: 440px;
+	width: 448px;
 	letter-spacing: 2px;
 	position: relative;
 }
@@ -872,7 +939,7 @@ li.top-divider {
 }
 
 .module.large-true .header {
-	width: 920px;
+	width: 938px;
 }
 
 .module h2 {
@@ -919,17 +986,19 @@ li.top-divider {
 }
  
 .module > div {
-	width: 460px;
+	width: 468px;
+	margin: 0 auto;
 	padding: 0;
+	background: #FFF;
+	border: 1px solid #BBB;
+	box-shadow: 1px 1px 8px 1px #ddd;
 	//moz-box-shadow: none;
 	//-webkit-box-shadow: none;
 	//box-shadow: none;
-	box-shadow: 1px 1px 12px 1px #ccc;
-	border: 1px solid #BBB;
 }
 
 .module.large-true > div {
-	width: 940px;
+	width: 958px;
 }
 
 .module .content {
@@ -1098,6 +1167,7 @@ footer.location .current-page > span {
 	font-size: 16px;
 	padding-left: 8px;
 	letter-spacing: 2px;
+	text-transform: lowercase;
 }
 
 footer.location .page-options {
@@ -1246,6 +1316,15 @@ footer.viewport > a {
 	/*
 	 * Analytic data boxes
 	 */
+	.module {
+		margin: 0 auto 25px;
+	}
+
+	.modules-align {
+		margin: 0;
+		overflow: hidden;
+	}
+
 	.module,
 	.module.large-true {
 		width: 100%;
@@ -1311,6 +1390,16 @@ footer.viewport > a {
 	/*
 	 * Analytic data boxes
 	 */
+
+	.module {
+		margin: 0 auto 25px;
+	}
+
+	.modules-align {
+		margin: 0;
+		overflow: hidden;
+	}
+
 	.module,
 	.module.large-true {
 		width: 100%;
@@ -1392,6 +1481,7 @@ footer.viewport > a {
 	.module > div,
 	.module.large-true > div{
 		width: 420px;
+		box-shadow: none;
 	}
 
 	.module .header,

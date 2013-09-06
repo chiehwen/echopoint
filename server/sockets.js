@@ -24,11 +24,23 @@ var Socket = (function() {
 
 				if(passportUserId && passportUserId != '') {
 	 				Helper.getUser(passportUserId, function(err, user) {
-	 					if (err || !user) callback(false, null, '');
-	 					callback(true, passportUserId, user.id, user.Business, user.meta.Business.current.id);
+	 					if (err || !user) callback({loggedIn: false, error: err});
+	 					var response = {
+	 						loggedIn: true,
+	 						id: user._id,
+	 						uid: user.id,
+	 						passport: passportUserId,
+	 						name: user.name,
+	 						email: user.email,
+	 						businesses: {
+	 							list: user.Business,
+	 							current: user.meta.Business.current
+	 						}
+	 					}
+	 					callback(response);
 					});
 				} else {
-					callback(false, null, '');
+					callback({loggedIn: false, error: 'not logged in'});
 				}				
 			},
 			user: {
@@ -46,6 +58,27 @@ var Socket = (function() {
 					} else {
 						callback({success: false, error: 'Not logged in'})
 					}				
+				},
+				update: function(data, callback) {
+					if(passportUserId) {
+						Helper.getUser(passportUserId, function(err, user) {
+							if(err || !user) callback({success: false, error: err || 'no user found!'});
+				
+							if(data.name)
+								user.name = data.name;
+
+							if(data.email)
+								user.email = data.email;
+
+							user.save(function(err,res){
+								if(err) callback({success: false, error: err});
+								callback(null, {success: true});
+							});
+
+	 					});
+					} else {
+						callback({success: false, error: 'not logged in'})
+					}
 				},
 			},
 
@@ -84,6 +117,29 @@ var Socket = (function() {
 						callback({success: false, error: 'Not logged in'})
 					}	
 				},
+				update: function(data, callback) {
+					if(passportUserId) {
+						Helper.getUser(passportUserId, function(err, user) {
+							if(err || !user) callback({success: false, error: err || 'no user found!'});
+						
+							for(var x=0, l=user.Business.length;x<l;x++) {
+								for(var y=0, len=data.length;y<len;y++) {
+									if(user.Business[x]._id == data[y].id) {
+										user.Business[x].name = data[y].name;
+										break;
+									}
+								}
+							}
+							user.save(function(err,res){
+								if(err) callback({success: false, error: err});
+								callback(null, {success: true});
+							});
+
+	 					});
+					} else {
+						callback({success: false, error: 'not logged in'})
+					}
+				},
 				create: function(data, callback) {
 					if(passportUserId && data.bid) {
 						Helper.getUser(passportUserId, function(err, user) {
@@ -111,7 +167,7 @@ var Socket = (function() {
 	 						});
 	 					});
 					} else {
-						callback({success: false, error: 'Not logged in'})
+						callback({success: false, error: 'not logged in'})
 					}
 				}
 			}
@@ -134,17 +190,26 @@ var Socket = (function() {
 			packet.incoming.user.setUid(data, callback);
 		});
 
+		socket.on('updateUser', function(data, callback) {
+			packet.incoming.user.update(data, callback);
+		});
+
 		socket.on('setBid', function(data, callback) {
 			packet.incoming.business.setBid(data, callback);
 		});
 
-		socket.on('createBusiness', function(data, callback) {
-			packet.incoming.business.create(data, callback);
+		socket.on('updateBusiness', function(data, callback) {
+			packet.incoming.business.update(data, callback);
 		});
 
 		socket.on('setBusiness', function(data, callback) {
 			packet.incoming.business.select(data, callback);
 		});
+
+		// not used yet, still handled by server page
+		/*socket.on('createBusiness', function(data, callback) {
+			packet.incoming.business.create(data, callback);
+		});*/
 
 		//setTimeout(function() {
 			socket.on('getModules', function(data, callback) {

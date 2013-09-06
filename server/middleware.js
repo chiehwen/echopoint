@@ -16,13 +16,17 @@ var Middleware = {
 			req.session.messages = [];
 	},
 
-	uidSessionVariable: function(req, res, next) {
+	sessionVariables: function(req, res, next) {
 		if(req.session.passport.user) {
  			Helper.getUser(req.session.passport.user, function(err, user) {
  				if(err) console.log(err);
+ 				res.locals.username = user.name;
  				res.locals.uid = user.id;
- 				if(req.session.Business)
+ 				res.locals.email = user.email;
+ 				if(req.session.Business) {
  					res.locals.bid = user.Business[req.session.Business.index].id;
+ 					res.locals.business = user.Business[req.session.Business.index].name;
+ 				}
  				next();
  			});
  		} else {
