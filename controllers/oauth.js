@@ -181,10 +181,10 @@ var OauthController = {
 	google: {
 		get: function(req, res) {
 			Helper.getUser(req.session.passport.user, function(err, user) {
- 					if (err || !user) return next(err);	
+ 					if (err || !user) console.log(err);	
 
 					if(req.session.googleState && req.session.googleState == req.query.state) {
-					
+			
 						//var code = req.query.code;
 						if(req.query.error) {
 							// user might have disallowed the app
@@ -195,7 +195,18 @@ var OauthController = {
 
 						google = Auth.load('google');
 
-						google.getToken(req.query.code, function(err, result) {
+						google.authorize('post', 'https://accounts.google.com/o/oauth2/token', {
+							code: req.query.code,
+							client_id: google.client.id,
+							client_secret: google.client.consumerSecret,
+							redirect_uri: google.client.redirect,
+							grant_type: 'authorization_code'
+						}, function(err, result) {
+console.log(err);
+console.log(result);
+						//})
+
+						/*google.getToken(req.query.code, function(err, result) {
 							if(err || !result.access_token) res.send('login-error 2: ' + req.query.error_description); //res.redirect('/social/google');
 
 							var credentials = {
@@ -223,7 +234,8 @@ var OauthController = {
 							google.setAccessTokens(tokens);
 
 							req.session.googleConnected = true;
-							res.redirect('/social/google/plus');
+							res.redirect('/social/google/plus');*/
+							
 							/*facebook.authorize('get', "/oauth/access_token", {
 								client_id: facebook.client.id,
 								client_secret: facebook.client.secret,

@@ -102,7 +102,7 @@ var Auth = (function() {
 			},
 
 			google: function() {
-				if(!Google) {
+				/*if(!Google) {
 					Google = new GoogleOAuth(
 						Config.google.id,
 						Config.google.consumerSecret,
@@ -113,6 +113,15 @@ var Auth = (function() {
 				Google.setAccessTokens = function(tokens) {
 					this.credentials = tokens;
 					return this;
+				}*/
+
+				if(!Google) {
+					Google = new Api('google');
+					Google.client = {
+						id: Config.google.id,
+						consumerSecret: Config.google.consumerSecret,
+						redirect: Config.google.callback
+					}
 				}
 
 				return Google;
@@ -194,8 +203,8 @@ var Auth = (function() {
 			if(typeof Config[type].scope !== 'undefined')
 				params.scope = Config[type].scope;
 
-			if(type === 'google')
-				return Google.generateAuthUrl(params);
+			//if(type === 'google')
+				//return Google.generateAuthUrl(params);
 
 			params.client_id = Config[type].id;
 			params.redirect_uri = Config[type].callback;
