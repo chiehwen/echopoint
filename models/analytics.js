@@ -11,7 +11,7 @@
 
       facebook: {
         updates: {
-          timestamp: {type: Number}, // this is time of last check used with the .since parameter of facebook graph
+          timestamp: {type: Number},
           changes: {}
         },
         tracking: {
@@ -84,6 +84,9 @@
               total: {type: Number}
             }
           }]
+        },
+        insights: {
+
         },
         notifications: {
           count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates

@@ -7,7 +7,6 @@ var Auth = require('./auth').getInstance(),
 		Cron = require('cron').CronJob,
 		Model = Model || Object;
 
-
 var CronJobs = {
 	facebook: new Cron({
 		cronTime: '0 * * * * *',

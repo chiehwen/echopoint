@@ -6,9 +6,10 @@ var crypto = require('crypto'),
 		oauth = require('oauth'),
 		url = require('url'),
 		Auth = require('../server/auth').getInstance(),
+		Api = require('../server/api').getInstance(),
 		Helper = require('../server/helpers'),
 		Model = Model || Object,
-		googleapis = require('googleapis');;
+		googleapis = require('googleapis');
 
 var SocialController = {
 
@@ -97,20 +98,39 @@ var SocialController = {
 			 				});
 												
 						} else if(typeof f.account.id !== 'undefined' && f.account.id != '' && typeof req.query.select === 'undefined') {
-							facebook.get(f.account.id, function(err, response) {
+							
+							Model.Analytics.findOne({id: user.Business[indx].Analytics.id}, function(err, Analytics) {
 
-								if(err || typeof response.error !== 'undefined') 
-									res.redirect('/social/facebook/connect?login=true');
+								// if this is the first time data is retrieved then load what we can from api
+								if(true || !Analytics.facebook.updates.changes) {
+									facebook.get(f.account.id, {fields: 'name,category,company_overview,description,likes,about,location,website,username,were_here_count,talking_about_count,checkins'}, function(err, response) {
 
-//								Analytics.getGraphData('facebook', 'days', 30);
-								res.json({
-									success: true,
-									connected: true,
-									account: true,
-									data: response,
-		 					  	url: null
-								});
+										if(err || typeof response.error !== 'undefined') 
+											res.redirect('/social/facebook/connect?login=true');				
 
+										Api.loadInitialData({
+											network: 'facebook',
+											user: user._id,
+											analytics_id: user.Business[indx].Analytics.id,
+											index: indx,
+											network_id: f.account.id,
+											network_auth_token: f.account.oauthAccessToken, 
+											business_information: response
+										}, function(err) {
+											res.json({success: true,connected: true,account: true,data: response,url: null});
+										});
+
+									});
+								} else {
+//								Graph.getGraphData('facebook', 'days', 30);
+									res.json({
+										success: true,
+										connected: true,
+										account: true,
+										data: null, //response,
+			 					  	url: null
+									});
+								}
 							});
 						} else {
 							facebook.get('me', {fields: 'accounts.fields(name,picture.type(square),id)'}, function(err, response) {

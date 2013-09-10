@@ -14,6 +14,7 @@ var fs = require('fs'),
 		Twitter = null,
 		Foursquare = null, // require('node-foursquare'),
 		Google = null,
+		GoogleDiscovery = null,
 		Instagram = null,
 		Yelp = null,
 		Bitly = null,
@@ -102,19 +103,6 @@ var Auth = (function() {
 			},
 
 			google: function() {
-				/*if(!Google) {
-					Google = new GoogleOAuth(
-						Config.google.id,
-						Config.google.consumerSecret,
-						Config.google.callback 
-					);
-				}
-
-				Google.setAccessTokens = function(tokens) {
-					this.credentials = tokens;
-					return this;
-				}*/
-
 				if(!Google) {
 					Google = new Api('google');
 					Google.client = {
@@ -125,6 +113,23 @@ var Auth = (function() {
 				}
 
 				return Google;
+			},
+
+			google_discovery: function() {
+				if(!GoogleDiscovery) {
+					GoogleDiscovery = new GoogleOAuth(
+						Config.google.id,
+						Config.google.consumerSecret,
+						Config.google.callback 
+					);
+				}
+
+				GoogleDiscovery.setAccessTokens = function(tokens) {
+					this.credentials = tokens;
+					return this;
+				}
+
+				return GoogleDiscovery
 			},
 
 			yelp: function() {
