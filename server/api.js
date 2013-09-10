@@ -26,34 +26,42 @@ var ApiController = (function() {
 						changes: data.business_information
 					}
 
-					facebook.get(data.network_id, {fields: 'insights'}, function(err, res) {
+					facebook.get(data.network_id, {fields: 'insights', date_format: 'U'}, function(err, res) {
 
 						var insights = res.insights.data,
 								initialFilteredResults = {};
-					
+	var counter = 1;				
 						for(var i=0, l=insights.length;i<l;i++) {
 						
-							if(insights[i].period != 'day' && i != l-1)
+							if(insights[i].period != 'day' )
 								continue;
 
 							var resultValues = [];
+
 							for(var y=0,len=insights[i].values.length;y<len;y++) {
+
 								resultValues.push({
-									count: insights[i].values[y].value,
+									value: JSON.parse(JSON.stringify(insights[i].values[y].value, function(key, value) {return key.toString().replace('.', '_', 'g')})),
 									end_time: insights[i].values[y].end_time
 								})
 							}
 
-							initialFilteredResults[insights[i].name] = {
-								timestamp: Helper.timestamp(),
-								data: resultValues
-							}
+							if(resultValues.length)
+								initialFilteredResults[insights[i].name] = {
+									timestamp: Helper.timestamp(),
+									data: resultValues
+								}
+							counter++;
+							//if(counter >= 60)
+							 //break;	
 						}
 
 						Analytics.facebook.insights = initialFilteredResults;
 						Analytics.save(function(err,response){
+							console.log(err);
+							console.log(response);
 							console.log(initialFilteredResults);
-							console.log(data.business_information);
+							//console.log(data.business_information);
 							callback(null);
 						});
 						
