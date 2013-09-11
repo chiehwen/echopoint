@@ -6,10 +6,11 @@ var crypto = require('crypto'),
 		oauth = require('oauth'),
 		url = require('url'),
 		Auth = require('../server/auth').getInstance(),
-		Api = require('../server/api').getInstance(),
+		Api = require('../server/harvest').getInstance(),
 		Helper = require('../server/helpers'),
 		Model = Model || Object,
-		googleapis = require('googleapis');
+		googleapis = require('googleapis'),
+		Facebook = require('../server/harvesters/facebook');
 
 var SocialController = {
 
@@ -102,32 +103,34 @@ var SocialController = {
 							Model.Analytics.findOne({id: user.Business[indx].Analytics.id}, function(err, Analytics) {
 
 								// if this is the first time data is retrieved then load what we can from api
-								if(true || !Analytics.facebook.updates.changes) {
-									facebook.get(f.account.id, {fields: 'name,category,company_overview,description,likes,about,location,website,username,were_here_count,talking_about_count,checkins'}, function(err, response) {
+								if(true || !Analytics.facebook.business.data) {
+									//facebook.get(f.account.id, {fields: 'name,category,company_overview,description,likes,about,location,website,username,were_here_count,talking_about_count,checkins'}, function(err, response) {
 
-										if(err || typeof response.error !== 'undefined') 
-											res.redirect('/social/facebook/connect?login=true');				
+										//if(err || typeof response.error !== 'undefined') 
+											//res.redirect('/social/facebook/connect?login=true');				
 
-										Api.loadInitialData({
+										Facebook.getData({
 											network: 'facebook',
+											methods: ['page', 'posts', 'page_insights', 'posts_insights'],
 											user: user._id,
 											analytics_id: user.Business[indx].Analytics.id,
 											index: indx,
 											network_id: f.account.id,
-											network_auth_token: f.account.oauthAccessToken, 
-											business_information: response
+											auth_token: f.account.oauthAccessToken, 
+											//business_information: response
 										}, function(err) {
-											res.json({success: true,connected: true,account: true,data: response,url: null});
+console.log('callbacks complete');							
+											res.json({success: true,connected: true,account: true,data: {businesses: null},url: null});
 										});
 
-									});
+									//});
 								} else {
 //								Graph.getGraphData('facebook', 'days', 30);
 									res.json({
 										success: true,
 										connected: true,
 										account: true,
-										data: null, //response,
+										data: {businesses: null}, //response,
 			 					  	url: null
 									});
 								}

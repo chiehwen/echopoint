@@ -51,18 +51,18 @@ var CronJobs = {
 								if(err || typeof response.error !== 'undefined')
 									console.log(response.error);// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
 
-									var cached = Analytics.facebook.updates.changes,
+									var cached = Analytics.facebook.business.changes,
 									update = false;
 
 									if(typeof cached === 'undefined') {
 										update = true;
-										Analytics.facebook.updates = {
+										Analytics.facebook.business = {
 											timestamp: Helper.timestamp(),
 											changes: response
 										}
 									} else if(response.name != cached.name || response.category != cached.category || response.description != cached.description || response.about != cached.about || response.location.street != cached.location.street || response.website != cached.website || response.username != cached.username) {
 										update = true;
-										Analytics.facebook.updates = {
+										Analytics.facebook.business = {
 											timestamp: Helper.timestamp(),
 											changes: {
 												name: (response.name != cached.name) ? response.name : null,
@@ -81,41 +81,41 @@ var CronJobs = {
 										user.save(function(err) {console.log(err)});
 									}
 
-									if(response.likes != Analytics.facebook.tracking.likes.total) {
-										Analytics.facebook.tracking.likes.meta.push({
+									if(response.likes != Analytics.facebook.tracking.page.likes.total) {
+										Analytics.facebook.tracking.page.likes.meta.push({
 											timestamp: Helper.timestamp(),
 											total: response.likes
 										});
-										Analytics.facebook.tracking.likes.total = response.likes;
-										Analytics.facebook.tracking.likes.timestamp = Helper.timestamp();
+										Analytics.facebook.tracking.page.likes.total = response.likes;
+										Analytics.facebook.tracking.page.likes.timestamp = Helper.timestamp();
 									}
 
-									if(response.checkins != Analytics.facebook.tracking.checkins.total) {
-										Analytics.facebook.tracking.checkins.meta.push({
+									if(response.checkins != Analytics.facebook.tracking.page.checkins.total) {
+										Analytics.facebook.tracking.page.checkins.meta.push({
 											timestamp: Helper.timestamp(),
 											total: response.checkins
 										});
-										Analytics.facebook.tracking.checkins.total = response.checkins;
-										Analytics.facebook.tracking.checkins.timestamp = Helper.timestamp();
+										Analytics.facebook.tracking.page.checkins.total = response.checkins;
+										Analytics.facebook.tracking.page.checkins.timestamp = Helper.timestamp();
 									}
 
-									//if(response.talking != Analytics.facebook.tracking.talking.total) {
+									//if(response.talking != Analytics.facebook.tracking.page.talking.total) {
 										//update = true;
-										Analytics.facebook.tracking.talking.meta.push({
+										Analytics.facebook.tracking.page.talking.meta.push({
 											timestamp: Helper.timestamp(),
 											total: response.talking_about_count
 										});
-										//Analytics.facebook.tracking.talking.total = response.talking_about_count;
-										Analytics.facebook.tracking.talking.timestamp = Helper.timestamp();
+										//Analytics.facebook.tracking.page.talking.total = response.talking_about_count;
+										Analytics.facebook.tracking.page.talking.timestamp = Helper.timestamp();
 									//}
 
-									if(response.were_here_count != Analytics.facebook.tracking.were_here.total) {
-										Analytics.facebook.tracking.were_here.meta.push({
+									if(response.were_here_count != Analytics.facebook.tracking.page.were_here.total) {
+										Analytics.facebook.tracking.page.were_here.meta.push({
 											timestamp: Helper.timestamp(),
 											total: response.were_here_count
 										});
-										Analytics.facebook.tracking.were_here.total = response.were_here_count;
-										Analytics.facebook.tracking.were_here.timestamp = Helper.timestamp();
+										Analytics.facebook.tracking.page.were_here.total = response.were_here_count;
+										Analytics.facebook.tracking.page.were_here.timestamp = Helper.timestamp();
 									}
 
 									Analytics.save(function(err,response){});
@@ -131,9 +131,7 @@ console.log('saved updated business info and initial tracking info');
 								if(typeof response.feed !== 'undefined' && typeof response.feed.data !== 'undefined' && response.feed.data.length) {
 									var results = response.feed.data;
 
-									//response.feed.data.forEach(function(element, index, array) {
 									for(var i = 0, l = results.length; i < l; i++) {
-										//data.posts.push(results[i]);
 
 										var post = {
 											id: results[i].id,

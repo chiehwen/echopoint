@@ -25,7 +25,7 @@ var Model = Model || Object;
 //console.log(Model.User.schema);`
 Model.Analytics.find(function(err, analytic) {
 	analytic.forEach(function(user) {
-		console.log(user);
+		console.log(user.facebook.tracking);
 
 		//console.log(user.facebook.tracking);
 	});

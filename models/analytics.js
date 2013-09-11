@@ -10,42 +10,48 @@
       name: { type: String, required: true},
 
       facebook: {
-        updates: {
+        business: {
           timestamp: {type: Number},
-          changes: {}
+          data: {}
         },
         tracking: {
-          likes: {
-            meta: [{
+          page: {
+            likes: {
+              meta: [{
+                timestamp: {type: Number},
+                total: {type: Number}
+              }],
+              total: {type: Number},
+              timestamp: {type: Number}
+            },
+            talking: {
+              meta: [{
+                timestamp: {type: Number},
+                total: {type: Number}
+              }],
+              total: {type: Number},
+              timestamp: {type: Number}
+            },
+            checkins: {
+              meta: [{
+                timestamp: {type: Number},
+                total: {type: Number}
+              }],
+              total: {type: Number},
+              timestamp: {type: Number}
+            },
+            were_here: {
+              meta: [{
+                timestamp: {type: Number},
+                total: {type: Number}
+              }],
+              total: {type: Number},
+              timestamp: {type: Number}
+            },
+            insights: {
               timestamp: {type: Number},
-              total: {type: Number}
-            }],
-            total: {type: Number},
-            timestamp: {type: Number}
-          },
-          talking: {
-            meta: [{
-              timestamp: {type: Number},
-              total: {type: Number}
-            }],
-            total: {type: Number},
-            timestamp: {type: Number}
-          },
-          checkins: {
-            meta: [{
-              timestamp: {type: Number},
-              total: {type: Number}
-            }],
-            total: {type: Number},
-            timestamp: {type: Number}
-          },
-          were_here: {
-            meta: [{
-              timestamp: {type: Number},
-              total: {type: Number}
-            }],
-            total: {type: Number},
-            timestamp: {type: Number}
+              data: {}
+            },
           },
 
           posts: [{
@@ -82,11 +88,12 @@
               }],
               timestamp: {type: Number},
               total: {type: Number}
+            },
+            insights: {
+              timestamp: {type: Number},
+              data: {}
             }
           }]
-        },
-        insights: {
-
         },
         notifications: {
           count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
