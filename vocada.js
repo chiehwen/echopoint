@@ -25,14 +25,17 @@ var Model = Model || Object;
 //console.log(Model.User.schema);`
 Model.Analytics.find(function(err, analytic) {
 	analytic.forEach(function(user) {
-		console.log(user.facebook.tracking);
+		//console.log(user.facebook.tracking.posts[0]);
+		for(var x=0,l=user.facebook.tracking.posts.length;x<l;x++)
+			if(user.facebook.tracking.posts[x].insights)
+				console.log(user.facebook.tracking.posts[x].insights);
 
 		//console.log(user.facebook.tracking);
 	});
 });
 
 Model.User.findOne({email: "123"}, function(err, user) {
-	console.log(user);
+	//console.log(user.Business[0].Social.facebook.account.data);
 	//user.Business[0].Social.facebook = {}
 	//user.Business[0].Social.facebook = {}
 	//user.uid = '';

@@ -79,11 +79,8 @@ var SocialController = {
 			 					//response.accounts.data.forEach(function(account, index) {
 			 					for(var i = 0, l = accounts.length; i < l; i++) {
 			 						if(accounts[i].id == req.query.id) {
-			 							user.Business[indx].Social.facebook.account = {
-											id: req.query.id,
-											oauthAccessToken: accounts[i].access_token,
-											data: accounts[i]
-										}
+			 							user.Business[indx].Social.facebook.account.id = req.query.id;
+										user.Business[indx].Social.facebook.account.oauthAccessToken = accounts[i].access_token;
 
 										user.save(function(err) {
 											req.session.messages.push(err);
@@ -94,16 +91,17 @@ var SocialController = {
 			 					}
 
 			 					//res.redirect('/social/facebook/connect' + (found ? '' : '?login=true'));
-								res.json({success: found});
+								//res.json({success: found});
+								res.redirect('/social/facebook/connect');
 
 			 				});
 												
 						} else if(typeof f.account.id !== 'undefined' && f.account.id != '' && typeof req.query.select === 'undefined') {
 							
-							Model.Analytics.findOne({id: user.Business[indx].Analytics.id}, function(err, Analytics) {
+//							Model.Analytics.findOne({id: user.Business[indx].Analytics.id}, function(err, Analytics) {
 
 								// if this is the first time data is retrieved then load what we can from api
-								if(true || !Analytics.facebook.business.data) {
+								if(!user.Business[indx].Social.facebook.account.data) {
 									//facebook.get(f.account.id, {fields: 'name,category,company_overview,description,likes,about,location,website,username,were_here_count,talking_about_count,checkins'}, function(err, response) {
 
 										//if(err || typeof response.error !== 'undefined') 
@@ -134,7 +132,7 @@ console.log('callbacks complete');
 			 					  	url: null
 									});
 								}
-							});
+//							});
 						} else {
 							facebook.get('me', {fields: 'accounts.fields(name,picture.type(square),id)'}, function(err, response) {
 

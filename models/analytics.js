@@ -48,10 +48,7 @@
               total: {type: Number},
               timestamp: {type: Number}
             },
-            insights: {
-              timestamp: {type: Number},
-              data: {}
-            },
+            insights: {},
           },
 
           posts: [{
@@ -89,10 +86,7 @@
               timestamp: {type: Number},
               total: {type: Number}
             },
-            insights: {
-              timestamp: {type: Number},
-              data: {}
-            }
+            insights: {}
           }]
         },
         notifications: {
