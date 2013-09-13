@@ -76,13 +76,13 @@ var Auth = (function() {
 					var credentials = {
 						consumer_key: Config.twitter.consumerKey,
 						consumer_secret: Config.twitter.consumerSecret,
-						access_token: typeof oauthAccessToken !== 'undefined' ? oauthAccessToken : 'faux',
-						access_token_secret: typeof oauthAccessTokenSecret !== 'undefined' ? oauthAccessTokenSecret : 'faux',
+						access_token: oauthAccessToken ? oauthAccessToken : 'faux',
+						access_token_secret: oauthAccessTokenSecret ? oauthAccessTokenSecret : 'faux',
 					}
 
 					Twitter = new Twit(credentials);
 
-					Twitter.oauth = new oauth.OAuth(
+					/*Twitter.oauth = new oauth.OAuth(
 						Config.twitter.requestUrl,
 						Config.twitter.accessUrl, 
 						Config.twitter.consumerKey,
@@ -96,7 +96,7 @@ var Auth = (function() {
 						this.auth.config.access_token = oauthAccessToken;
 						this.auth.config.access_token_secret = oauthAccessTokenSecret;
 						return this;
-					}
+					}*/
 				}
 
 				return Twitter;
@@ -240,7 +240,7 @@ var Auth = (function() {
 		return {
 			// public getter functions
 			load: function(type) {
-				return strategy[type]();
+				return strategy[type](arguments[1], arguments[2]);
 			},
 
 			loadStrategy: function(type) {

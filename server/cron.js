@@ -6,7 +6,8 @@ var Auth = require('./auth').getInstance(),
 		Cron = require('cron').CronJob,
 		Model = Model || Object,
 		Harvester = {
-			facebook: require('./harvesters/facebook')
+			facebook: require('./harvesters/facebook'),
+			twitter: require('./harvesters/twitter')
 		};
 
 var CronJobs = {
@@ -52,10 +53,10 @@ var CronJobs = {
 								});
 
 							}
-						})
-					})
-				})
-			},
+						}); // End of business forEach
+					}); // End of users forEach
+				}); // End of Model users array
+			}, // End of onTick Cron function
 
 			start: false
 		}),
@@ -65,7 +66,7 @@ var CronJobs = {
 			onTick: function() {
 				Model.User.find(function(err, users) {
 					users.forEach(function(user) {
-						user.Business.forEach(function(business, indx) {
+						user.Business.forEach(function(business, index) {
 
 						var f = business.Social.facebook;
 						if (
@@ -91,20 +92,20 @@ var CronJobs = {
 									network: 'facebook',
 									methods: ['page_insights', 'posts_insights'],
 									user: user._id,
-									analytics_id: user.Business[indx].Analytics.id,
-									index: indx,
+									analytics_id: user.Business[index].Analytics.id,
+									index: index,
 									network_id: f.account.id,
 									auth_token: f.account.oauthAccessToken
 								}, function(err) {
-									//console.log('callbacks complete');							
+									console.log('callbacks complete');							
 									//res.json({success: true,connected: true,account: true,data: {businesses: null},url: null});
 								});
 
 							}
-						})
-					})
-				})
-			},
+						}); // End of business forEach
+					}); // End of users forEach
+				}); // End of Model users array
+			}, // End of onTick Cron function
 
 			start: false
 		}),
@@ -116,7 +117,7 @@ var CronJobs = {
 		onTick: function() {
 			Model.User.find(function(err, users) {
 				users.forEach(function(user) {
-					user.Business.forEach(function(business) {
+					user.Business.forEach(function(business, index) {
 
 					var t = business.Social.twitter;
 					if (
@@ -130,156 +131,24 @@ var CronJobs = {
 							&& t.id
 						) {
 
-							Model.Analytics.findOne({id: business.Analytics.id}, function(err, Analytics) {
-
-							var twitter = Auth.load('twitter'),
-									sorted = {
-										timeline: Analytics.twitter.timeline.sort(Helper.sortBy('since_id', false, parseInt)),
-										mentions: Analytics.twitter.tracking.mentions.sort(Helper.sortBy('since_id', false, parseInt)),
-										messages: Analytics.twitter.tracking.messages.sort(Helper.sortBy('since_id', false, parseInt))
-									},
-									since = {
-										timeline: Analytics.twitter.timeline.since_id, //sorted.timeline.length ? sorted.timeline[0].since_id : 1,
-										mentions: Analytics.twitter.tracking.mentions.since_id,
-										messages: Analytics.twitter.tracking.messages.since_id
-									};
-
-							twitter.setAccessTokens(t.auth.oauthAccessToken, t.auth.oauthAccessTokenSecret);
-	/*
-							var params = {
-								q: '@speaksocial',
-								count: 100,
-								since_id: since,
-								result_type: 'recent', 
-								include_entities: true
-							};
-	*/
-							//if(Analytics.length)
-								//params.since_id = analytics[0].since_id;
-							//twitter.get('search/tweets', params, function(err, response) {
-
-							twitter.get('statuses/user_timeline', {user_id: t.id, since_id: since.timeline, count: 100, contributor_details: true}, function(err, response) {
-								if(err || typeof response.errors !== 'undefined')
-									console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
-								
-								if(response.length) {
-									update = localUpdate = true;
-									for(var i = 0, l = response.length; i < l; i++) {
-										response[i].timestamp = Helper.timestamp();
-										Analytics.twitter.timeline.tweets.push(response[i]);
-									}
-
-									Analytics.twitter.timeline.since_id = response[0].id_str;
-									Analytics.twitter.timeline.timestamp = Helper.timestamp();
-
-									if(localUpdate)
-										console.log('saved twitter user timeline...');
-									//Analytics.twitter.timeline.push(data);
-									//Analytics.save(function(err,res){});
-								}
+							Harvester.twitter.getData({
+								network: 'twitter',
+								methods: ['post_test'],
+								user: user._id,
+								analytics_id: user.Business[index].Analytics.id,
+								index: index,
+								network_id: t.id,
+								auth_token: t.auth.oauthAccessToken,
+								token_secret: t.auth.oauthAccessTokenSecret
+							}, function(err) {
+								console.log('Twitter callbacks complete');							
+								//res.json({success: true,connected: true,account: true,data: {businesses: null},url: null});
 							});
-
-							// @ mentions tracking
-							twitter.get('statuses/mentions_timeline', {since_id: since.mentions, count: (since.timeline === 1 ? 1 : 200), contributor_details: true, include_rts: true}, function(err, response) {
-								if(err || typeof response.errors !== 'undefined')
-									console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
-								
-								if(response.length) {
-									update = localUpdate = true;
-									for(var i = 0, l = response.length; i < l; i++) {
-										response[i].timestamp = Helper.timestamp();
-										Analytics.twitter.tracking.mentions.list.push(response[i]);
-									}
-
-									Analytics.twitter.tracking.mentions.since_id = response[0].id_str;
-									Analytics.twitter.tracking.mentions.timestamp = Helper.timestamp();
-									
-									if(localUpdate)
-										console.log('saved user @ mentions...');
-									next(itr, cb);
-								} else {
-									next(itr, cb);
-								}
-							});
-
-
-							// Retweets tracking
-							twitter.get('statuses/retweets_of_me', {count: 100, trim_user: true, include_entities: false, include_user_entities: false}, function(err, response) {
-								if(err || typeof response.errors !== 'undefined')
-									console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
-								
-								if(!response.length)
-									return next(itr, cb);
-
-								//if(response.length) {
-									update = true;
-									for(var x = 0, l = response.length; x < l; x++) {
-										var found = false;
-										for(var y = 0, len = Analytics.twitter.tracking.retweets.length; y < len; y++) {
-											if(Analytics.twitter.tracking.retweets[y].tweet_id == response[x].id_str) {
-												found = true;
-												var count = parseInt(response[x].retweet_count, 10);
-												if(Analytics.twitter.tracking.retweets[y].total != count) {
-													//update = localUpdate = true;
-													Analytics.twitter.tracking.retweets[y].meta.push({
-														timestamp: Helper.timestamp(),
-														new: (count - Analytics.twitter.tracking.retweets[y].total)
-													});
-													Analytics.twitter.tracking.retweets[y].total = count;
-												}
-												break;
-											}
-										}
-
-										if(!found) {
-											//update = localUpdate = true;
-											var count = parseInt(response[x].retweet_count, 10),
-													retweet = {
-														tweet_id: response[x].id_str,
-														meta: [{
-															timestamp: Helper.timestamp(),
-															new: count
-														}],
-														timestamp: Helper.timestamp(),
-														total: count
-													}
-											Analytics.twitter.tracking.retweets.push(retweet);
-										}
-									};
-
-									//if(localUpdate)
-									console.log('saved retweets count...');
-									
-									next(itr, cb);
-								//}
-							});
-
-	/*
-							// Direct message tracking
-							twitter.get('direct_messages', {since_id: since.messages, count: (since.timeline === 1 ? 1 : 200)}, function(err, response) {
-								if(err || typeof response.errors !== 'undefined')
-									console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
-
-								if(response.length) {
-									var data = {
-										since_id: response[0].id_str,
-										timestamp: Helper.timestamp(),
-										messages: []
-									}
-
-									for(var i = 0, l = response.length; i < l; i++) {
-										data.messages.push(response[i]);
-									}
-	console.log('saved new DM\'s...');
-									Analytics.twitter.tracking.messages.push(data);
-									Analytics.save(function(err,res){});
-								}
-							});
-	*/
-						
-						}); // End of Analytics model array
+	
+						} else {
+							console.log('credentials problem');
 						} // End of twitter credentials if statement
-					
+
 					}); // End of business forEach
 				}); // End of users forEach
 			}); // End of Model users array

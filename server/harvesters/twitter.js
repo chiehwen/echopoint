@@ -275,12 +275,147 @@ var TwitterHarvester = (function() {
 			})
 		},
 
-		// find new followers, only keep 20 newest
+		// check for dropped followers, only run every 24 at night
+		dropped_followers: function(itr, cb, cursor) {
+
+			// check if enough time has passed to load new data
+			//if(!Analytics.twitter.tracking.followers.change)
+				//return next(itr, cb);
+
+			Model.Followers.findOne({id: data.analytics_id}, function(err, Followers) {
+				if(err)
+					console.log(err);
+
+				twitter.get('followers/ids', {user_id: data.network_id, cursor: (cursor ? cursor : -1), stringify_ids: true, count: 2}, function(err, response) {
+					if(err || response.errors)
+						console.log(err, response);
+
+					if(!Followers.twitter.length) {
+						Followers.twitter = response;
+						Followers.save(function(err, success) {
+							return next(itr, cb);
+						})
+					} else {
+
+						var newFollowers = true,
+								newFollowersArray = [],
+								droppedFollowersArray = [];
+						
+						for(var x = 0, l = Followers.twitter.length; x < l; x++) {
+							var found = false;
+							for(var y = 0, len = response.ids.length; y < len; y++)
+								if(newFollowers && response.ids[y] !== Followers.twitter[x]) {
+									newFollowersArray = response.ids[y];
+									break;
+								} else if(response.ids[y] === Followers.twitter[x]) {
+									if(newFollowers)
+										newFollowers = false, x = 0;
+									else
+										found = true;
+
+									break;
+								}
+
+							// these are dropped followers
+							if(!newFollowers && !found)
+								droppedFollowersArray = Followers.twitter[x];
+							
+						}
+
+						// add dropped followers to database
+						if(droppedFollowersArray.length) {
+							var callString = '';
+							update = localUpdate = true;
+
+							for(var a=0,length=droppedFollowersArray.length; a<length; a++)
+								usersIdString += droppedFollowersArray[a] + ','
+
+							twitter.get('users/lookup', {user_id: usersIdString, include_entities: false}, function(err, leavers) {
+								if(err || leavers.errors)
+									console.log(err, leavers);
+
+								var timestamp = Helper.timestamp();
+
+								for(var c=leavers.length-1;c>=0;c--) {
+									droppedFollowersArray[a].timestamp = timestamp;
+									Analytics.twitter.tracking.followers.dropped.unshift(leavers[c]);
+								}
+							})
+							
+						}
+
+						// add new followers to database followers array
+						if(newFollowersArray.length) {
+							update = true; // don't local update this since we don't care about new followers here
+
+							for(var b=newFollowersArray.length-1; b>=0; b--)
+								Followers.twitter.unshift(newFollowersArray[b]);
+							
+							Followers.save(function(err, success) {
+
+							})
+						}
+
+						if(localUpdate) console.log('we have have dropped twitter followers!');
+						next(itr, cb);
+					}
+				})
+			})
+		},
+
+		post_test: function(itr, cb) {
+			twitter.post('users/lookup', {user_id: '892550918,543937651', include_entities: false}, function(err, users) {
+				if(err || users.errors)
+					console.log(err, users);
+
+				console.log(users),
+				next(itr, cb);
+			})
+		},
+
+		// this one needs some explaining 
+		// this is only called on the actual Twitter 
+		// page load (not in cron). We grab the newest
+		// followers always, but compare it to the previous
+		// list saved from last page view. Always show 20 
+		// newest followers but highlight the true new 
+		// followers since previous login. Use timestamp 
+		// to only check every 15 minutes but
+		// only when user is logged in!
 		newest_followers: function(itr, cb) {
+
+			// check if enough time has passed to load new data
+			if(Analytics.twitter.tracking.followers.newest.timestamp > Helper.timestamp() - 900)
+				return next(itr, cb);
 
 			twitter.get('followers/list', {user_id: data.network_id, skip_status: true, include_user_entities: false}, function(err, response) {
 				if(err || response.errors)
 					console.log(err);
+				var users = {
+							data: [],
+							new: 0
+						}
+
+				response_loop:
+					for(var x = 0, l = response.users.length; x < l; x++) {
+						for(var y = 0, l = Analytics.twitter.tracking.followers.newest.list.length; y < l; y++)
+							if(Analytics.twitter.tracking.followers.newest.list.id == response.users[x].id_str)
+								break response_loop;
+					
+						users.data.push(response.users[x]);
+						// TODO: rate the user based on stats such as followers, followers/friends ratio, status count, klout checkup, favorites count, age of account, # of lists featured in, is verfied, etc
+						// and also rate a good follower fit based on the users location and language (gen 2) 
+						users.new++; 
+					}
+
+				if(users.new < response.users.length)
+					for(var i = 0, l = (response.users.length - users.new); i < l; i++) 
+						users.data.push(Analytics.twitter.tracking.followers.newest.list[i]);
+
+				// always update to correct newest.true_new variable
+				update = true;
+				Analytics.twitter.tracking.followers.newest.true_new = users.new;
+			
 			})
 		}
 
@@ -288,7 +423,7 @@ var TwitterHarvester = (function() {
 
 	return {
 		getData: function(params, callback) {
-			twitter = Auth.load('twitter').setAccessTokens(params.oauthAccessToken, params.oauthAccessTokenSecret),
+			twitter = Auth.load('twitter', params.auth_token, params.token_secret),
 			data = params,
 			update = false;
 
@@ -301,6 +436,8 @@ var TwitterHarvester = (function() {
 							console.log('saved twitter analytic data');
 							callback(null);
 						})
+					else
+						callback(null);//callback({err: 'error occured'});
 				});
 			})
 		}

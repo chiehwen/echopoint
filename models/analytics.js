@@ -7,7 +7,7 @@
   Architecture: {
     schema: {
       id: { type: Number, required: true},
-      name: { type: String, required: true},
+      //name: { type: String, required: true},
 
       facebook: {
         business: {
@@ -170,10 +170,12 @@
             }],
             timestamp: {type: Number},
             total: {type: Number},
-            previous_new: {
+            newest: {
               timestamp: {type: Number},
+              true_new: {type: Number}, // this is the number [0 -20] of the actual new followers since last login (within the list variable)
               list: []
-            }
+            },
+            dropped: []
           },
 
           // tweets of yours that other users have favorited

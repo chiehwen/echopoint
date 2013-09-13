@@ -72,8 +72,9 @@ Model.User.findOne({email: "123"}, function(err, user) {
 	// !!!! IMPORTANT: BELOW IS THE TOGGLE FOR 
 	// !!!! CRON TESTING !!!
 	
-Cron.facebook.feed.start();
-Cron.facebook.insights.start();
+//Cron.facebook.feed.start();
+//Cron.facebook.insights.start();
+Cron.twitter.start();
 
 	// !!!!!
 
