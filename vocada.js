@@ -26,15 +26,17 @@ var Model = Model || Object;
 Model.Analytics.find(function(err, analytic) {
 	analytic.forEach(function(user) {
 		//console.log(user.facebook.tracking.posts[0]);
-		for(var x=0,l=user.facebook.tracking.posts.length;x<l;x++)
-			if(user.facebook.tracking.posts[x].insights)
-				console.log(user.facebook.tracking.posts[x].insights);
+		
+		for(var x=0,l=user.facebook.tracking.page.talking.meta.length;x<l;x++)
+			//if(user.facebook.tracking.posts[x].insights)
+			console.log(user.facebook.tracking.page.talking.meta[x]);
 
 		//console.log(user.facebook.tracking);
 	});
 });
 
 Model.User.findOne({email: "123"}, function(err, user) {
+	console.log(user);
 	//console.log(user.Business[0].Social.facebook.account.data);
 	//user.Business[0].Social.facebook = {}
 	//user.Business[0].Social.facebook = {}
@@ -70,7 +72,8 @@ Model.User.findOne({email: "123"}, function(err, user) {
 	// !!!! IMPORTANT: BELOW IS THE TOGGLE FOR 
 	// !!!! CRON TESTING !!!
 	
-//Cron.facebook.start();
+Cron.facebook.feed.start();
+Cron.facebook.insights.start();
 
 	// !!!!!
 

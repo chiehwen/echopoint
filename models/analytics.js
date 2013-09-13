@@ -49,7 +49,7 @@
               timestamp: {type: Number}
             },
             insights: {},
-          },
+          }, // end page
 
           posts: [{
             id: {type: String},
@@ -88,7 +88,8 @@
             },
             insights: {}
           }]
-        },
+        }, // end tracking
+
         notifications: {
           count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
           timestamp: {type: Number, default: 0} // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID 
@@ -97,61 +98,137 @@
 
 
       twitter: {
-        updates: [{
-              since_id: {type: String}, // this is time of last check used with the .since parameter of facebook graph
-              timestamp: {type: Number},
-              tweets: {}
-            }],
-            search: [{
-              since_id: {type: String}, // this is time of last check used with the .since parameter of facebook graph
-              timestamp: {type: Number},
-              tweets: {}
-            }],
-            tracking: {
-              mentions: [{
-                since_id: {type: String},
-                timestamp: {type: Number},
-                mentions: {}
-              }],
-              retweets: [{
-                id: {type: String},
-                meta: [{
-                  timestamp: {type: Number},
-                  new: {type: Number},
-                }],
-                timestamp: {type: Number},
-                total: {type: Number},
-                //new: {type: Number}
-                //data: {}
-              }],
-              messages: [{
-                since_id: {type: String},
-                timestamp: {type: Number},
-                messages: {}
-              }],
-            },
-          notifications: {
-            mentions: {
-              count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
-              since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
-              last_checked: {type: Number} // timestamp
-            },
+        account: {
+          id: {type: Number},
+          timestamp: {type: Number},
+          data: {}
+        },
+        timeline: {
+          since_id: {type: String, default: '1'}, // this is time of last check used with the .since parameter of facebook graph
+          timestamp: {type: Number},
+          tweets: [
+          // these are added to the tweets object field within 
+          // the harvester, but here are the schema references
+            /*
             retweets: {
-              count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
-              since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
-              last_checked: {type: Number} // timestamp
+              history: [{
+                timestamp: {type: Number},
+                total: {type: Number}
+              }],
+              timestamp: {type: Number},
+              total: {type: Number}
             },
-            messages: {
-              count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
-              since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
-              last_checked: {type: Number} // timestamp              
-            },
-            search: {
-              count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
-              since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
-              last_checked: {type: Number} // timestamp
+            favorited_count: {
+              history: [{
+                timestamp: {type: Number},
+                total: {type: Number}
+              }],
+              timestamp: {type: Number},
+              total: {type: Number}
             }
+            */
+          ]
+        },
+        search: {
+          since_id: {type: String, default: '1'}, // this is time of last check used with the .since parameter of facebook graph
+          timestamp: {type: Number},
+          tweets: []
+        },
+        mentions: {
+          since_id: {type: String, default: '1'},
+          timestamp: {type: Number},
+          list: []
+        },
+        /*retweets: [{
+          tweet_id: {type: String},
+          meta: [{
+            timestamp: {type: Number},
+            new: {type: Number},
+          }],
+          timestamp: {type: Number},
+          total: {type: Number}
+        }],*/
+        messages: {
+          since_id: {type: String, default: '1'},
+          timestamp: {type: Number},
+          list: []
+        },
+
+        tracking: {
+          friends: {
+            history: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+            }],
+            timestamp: {type: Number},
+            total: {type: Number}
+          },
+          followers: {
+            history: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+            }],
+            timestamp: {type: Number},
+            total: {type: Number},
+            previous_new: {
+              timestamp: {type: Number},
+              list: []
+            }
+          },
+
+          // tweets of yours that other users have favorited
+          // if this increases we need to look for favorited tweet
+          favorited_count: {
+            history: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+            }],
+            timestamp: {type: Number},
+            total: {type: Number},
+            change: {type: Boolean, default: false}
+          },
+          total_tweets: {
+            history: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+            }],
+            timestamp: {type: Number},
+            total: {type: Number}
+          },
+          // im assuming listed_count is number of lists your are on?
+          list_count: {
+            history: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+            }],
+            timestamp: {type: Number},
+            total: {type: Number}
+          } 
+        },
+
+
+        notifications: {
+          mentions: {
+            count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+            since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
+            last_checked: {type: Number} // timestamp
+          },
+          retweets: {
+            count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+            since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
+            last_checked: {type: Number} // timestamp
+          },
+          messages: {
+            count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+            since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
+            last_checked: {type: Number} // timestamp              
+          },
+          search: {
+            count: {type: Number, default: 0}, // this is the array length of analytic data last time user checked notification updates, if Analytic.facebook array length is larger than we have updates
+            since_id: {type: String, default: '0'}, // this is the timestamp of the last analytic data that a user was updated about, we are using the timestamp as an ID
+            last_checked: {type: Number} // timestamp
           }
+        }
       },
 
           foursquare: {

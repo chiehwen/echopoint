@@ -97,42 +97,35 @@ var SocialController = {
 			 				});
 												
 						} else if(typeof f.account.id !== 'undefined' && f.account.id != '' && typeof req.query.select === 'undefined') {
-							
-//							Model.Analytics.findOne({id: user.Business[indx].Analytics.id}, function(err, Analytics) {
 
-								// if this is the first time data is retrieved then load what we can from api
-								if(!user.Business[indx].Social.facebook.account.data) {
-									//facebook.get(f.account.id, {fields: 'name,category,company_overview,description,likes,about,location,website,username,were_here_count,talking_about_count,checkins'}, function(err, response) {
+							// if this is the first time loading Facebook
+							// initilize the data Facebook harvester
+							if(!user.Business[indx].Social.facebook.account.data) {
 
-										//if(err || typeof response.error !== 'undefined') 
-											//res.redirect('/social/facebook/connect?login=true');				
-
-										Facebook.getData({
-											network: 'facebook',
-											methods: ['page', 'posts', 'page_insights', 'posts_insights'],
-											user: user._id,
-											analytics_id: user.Business[indx].Analytics.id,
-											index: indx,
-											network_id: f.account.id,
-											auth_token: f.account.oauthAccessToken, 
-											//business_information: response
-										}, function(err) {
+									Facebook.getData({
+										network: 'facebook',
+										methods: ['page', 'posts', 'page_insights', 'posts_insights'],
+										user: user._id,
+										analytics_id: user.Business[indx].Analytics.id,
+										index: indx,
+										network_id: f.account.id,
+										auth_token: f.account.oauthAccessToken
+									}, function(err) {
 console.log('callbacks complete');							
-											res.json({success: true,connected: true,account: true,data: {businesses: null},url: null});
-										});
-
-									//});
-								} else {
-//								Graph.getGraphData('facebook', 'days', 30);
-									res.json({
-										success: true,
-										connected: true,
-										account: true,
-										data: {businesses: null}, //response,
-			 					  	url: null
+										res.json({success: true,connected: true,account: true,data: {businesses: null},url: null});
 									});
-								}
-//							});
+
+							} else {
+//								Graph.getGraphData('facebook', 'days', 30);
+								res.json({
+									success: true,
+									connected: true,
+									account: true,
+									data: {businesses: null}, //response,
+		 					  	url: null
+								});
+							}
+
 						} else {
 							facebook.get('me', {fields: 'accounts.fields(name,picture.type(square),id)'}, function(err, response) {
 
@@ -202,6 +195,7 @@ console.log('callbacks complete');
 
 				if(req.session.twitterConnected && req.session.twitter.oauthAccessToken && req.session.twitter.oauthAccessTokenSecret && req.session.twitter.id && !req.query.login) {
 
+					//twitter.get('statuses/user_timeline', {user_id: req.session.twitter.id, count: 2, contributor_details: false, trim_user: true, exclude_replies: false, include_rts: true}, function(err, response) {
 					//twitter.get('account/verify_credentials', {include_entities: false, skip_status: true}, function(err, response) {
 					//twitter.get('statuses/user_timeline', {user_id: req.session.twitter.id, contributor_details: true, include_rts: false}, function(err, response) {
 					twitter.get('statuses/retweets_of_me', {count: 20, trim_user: true, include_entities: false, include_user_entities: false}, function(err, response) {
@@ -209,6 +203,7 @@ console.log('callbacks complete');
 							req.session.messages.push("Error verifying twitter credentials");
 							res.redirect('/social/twitter/connect?login=true');
 						} 
+console.log(response);
 		 				res.json({
 							success: true,
 							connected: true,
