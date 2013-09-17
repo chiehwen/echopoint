@@ -25,7 +25,7 @@ var TwitterHarvester = (function() {
 		// this is used to gather new follower count, 
 		// profile updates, favorites data, friends data, # of statuses(tweets) ever posted, etc 
 		credentials: function(itr, cb) {
-			twitter.get('account/verify_credentials', {include_entities: false, skip_status: true}, function(err, credentials) {
+			twitter.get('/account/verify_credentials.json', {include_entities: false, skip_status: true}, function(err, credentials) {
 
 				var timestamp = Helper.timestamp(),
 						localUpdate = false;
@@ -88,13 +88,14 @@ var TwitterHarvester = (function() {
 
 				if(localUpdate) console.log('updates to Twitter user tracking stats [friends, followers, favorited, total tweets, and list count]');
 
+				next(itr, cb);
 			})
 		},
 
 		// new tweets 
 		timeline: function(itr, cb) {
 
-			twitter.get('statuses/user_timeline', {user_id: data.network_id, since_id: Analytics.twitter.timeline.since_id, count: 100, contributor_details: true, include_rts: true}, function(err, response) {
+			twitter.get('/statuses/user_timeline.json', {user_id: data.network_id, since_id: Analytics.twitter.timeline.since_id, count: 100, contributor_details: true, include_rts: true}, function(err, response) {
 				if(err || response.errors)
 					console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
 				
@@ -103,6 +104,8 @@ var TwitterHarvester = (function() {
 
 				update = true;
 				for(var i = 0, l = response.length; i < l; i++) {
+					//response[i].retweets = {history:[{timestamp:timestamp,total:parseInt(response[i].retweet_count, 10)}],total:parseInt(response[i].retweet_count, 10), timestamp: timestamp};
+					//response[i].favorited_count = {};
 					response[i].timestamp = Helper.timestamp();
 					Analytics.twitter.timeline.tweets.push(response[i]);
 				}
@@ -119,7 +122,7 @@ var TwitterHarvester = (function() {
 		// @ mentions tracking
 		mentions: function(itr, cb) {
 
-			twitter.get('statuses/mentions_timeline', {since_id: Analytics.twitter.tracking.mentions.since_id, count: 200, contributor_details: true, include_rts: true}, function(err, response) {
+			twitter.get('/statuses/mentions_timeline.json', {since_id: Analytics.twitter.mentions.since_id, count: 200, contributor_details: true, include_rts: true}, function(err, response) {
 				if(err || response.errors)
 					console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
 				
@@ -143,43 +146,45 @@ var TwitterHarvester = (function() {
 
 		// retweets tracking
 		retweets: function(itr, cb) {
-			twitter.get('statuses/retweets_of_me', {count: 100, trim_user: true, include_entities: false, include_user_entities: false}, function(err, response) {
+			twitter.get('/statuses/retweets_of_me.json', {count: 100, trim_user: true, include_entities: false, include_user_entities: false}, function(err, response) {
 				if(err || response.errors)
 					console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
 				
 				if(!response.length)
 					return next(itr, cb);
 
-				var timestamp = Helper.timestamp();
+				var timestamp = Helper.timestamp(),
+						localUpdate = false;
 
 				for(var x = 0, l = response.length; x < l; x++) {
 					for(var y = 0, len = Analytics.twitter.timeline.tweets.length; y < len; y++) {
 
-						if(Analytics.twitter.timeline.tweets[y].id == response[x].id_str) {
+						if(Analytics.twitter.timeline.tweets[y].id != response[x].id_str)
+							continue;
 
-							var count = parseInt(response[x].retweet_count, 10);
-							if(!Analytics.twitter.timeline.tweets[y].retweets) {
-								update = true;
-								Analytics.twitter.timeline.tweets[y].retweets = {
-									history: [{
-										timestamp: timestamp,
-										total: count // parseInt(response[x].retweet_count, 10),
-									}],
+						var count = parseInt(response[x].retweet_count, 10);
+							
+						if(!Analytics.twitter.timeline.tweets[y].retweets) {
+							update = localUpdate = true;
+							Analytics.twitter.timeline.tweets[y].retweets = {
+								history: [{
 									timestamp: timestamp,
-									total: count
-								}
-							} else {
-								if(Analytics.twitter.timeline.tweets[y].retweets.total != count) {
-									update = true;
-									Analytics.twitter.timeline.tweets[y].retweets.history.push({
-										timestamp: timestamp,
-										total: count
-									});
-									Analytics.twitter.timeline.tweets[y].retweets.total = count;
-								}
+									total: count // parseInt(response[x].retweet_count, 10),
+								}],
+								timestamp: timestamp,
+								total: count
 							}
-							break;
+							Analytics.markModified('twitter.timeline.tweets');
+						} else if(Analytics.twitter.timeline.tweets[y].retweets.total != count) {
+							update = localUpdate = true;
+							Analytics.twitter.timeline.tweets[y].retweets.history.push({
+								timestamp: timestamp,
+								total: count
+							});
+							Analytics.twitter.timeline.tweets[y].retweets.total = count;
 						}
+						break;
+
 					}
 				}
 
@@ -192,7 +197,7 @@ var TwitterHarvester = (function() {
 
 		// direct message tracking
 		dm: function(itr, cb) {
-			twitter.get('direct_messages', {since_id: since.messages, count: 200}, function(err, response) {
+			twitter.get('/direct_messages.json', {since_id: Analytics.twitter.messages.since_id, count: 200}, function(err, response) {
 				if(err || response.errors)
 					console.log(err);
 				
@@ -218,11 +223,7 @@ var TwitterHarvester = (function() {
 		// find new favorited tweets
 		favorited: function(itr, cb) {
 
-			// check if this call is needed (aka favorited count has changed)
-			if(!Analytics.twitter.tracking.favorited_count.change)
-				return next(itr, cb);
-
-			twitter.get('statuses/user_timeline', {user_id: data.network_id, since_id: Analytics.twitter.timeline.since_id, count: 200, contributor_details: false, trim_user: true, exclude_replies: false, include_rts: true}, function(err, response) {
+			twitter.get('/statuses/user_timeline.json', {user_id: data.network_id, since_id: Analytics.twitter.timeline.since_id, count: 200, contributor_details: false, trim_user: true, exclude_replies: false, include_rts: true}, function(err, response) {
 				if(err || response.errors)
 					console.log(err);
 				
@@ -235,64 +236,64 @@ var TwitterHarvester = (function() {
 				for(var x = 0, l = response.length; x < l; x++) {
 					for(var y = 0, len = Analytics.twitter.timeline.tweets.length; y < len; y++) {
 
-						if(Analytics.twitter.timeline.tweets[y].id == response[x].id_str) {
+						if(Analytics.twitter.timeline.tweets[y].id != response[x].id_str)
+							continue;
 
-							var count = parseInt(response[x].favorite_count, 10);
-							if(!Analytics.twitter.timeline.tweets[y].favorited_count) {
-								update = localUpdate = true;
-								Analytics.twitter.timeline.tweets[y].favorited_count = {
-									history: [{
-										timestamp: timestamp,
-										total: count // parseInt(response[x].retweet_count, 10),
-									}],
+						var count = parseInt(response[x].favorite_count, 10);
+						if(!Analytics.twitter.timeline.tweets[y].favorited_count) {
+							update = localUpdate = true;
+							Analytics.twitter.timeline.tweets[y].favorited_count = {
+								history: [{
 									timestamp: timestamp,
 									total: count
-								}
-							} else {
-								if(Analytics.twitter.timeline.tweets[y].favorited_count.total != count) {
-									update = localUpdate = true;
-									Analytics.twitter.timeline.tweets[y].favorited_count.history.push({
-										timestamp: timestamp,
-										total: count
-									});
-									Analytics.twitter.timeline.tweets[y].favorited_count.total = count;
-								}
+								}],
+								timestamp: timestamp,
+								total: count
 							}
-							break;
+							Analytics.markModified('twitter.timeline.tweets');
+						} else if(Analytics.twitter.timeline.tweets[y].favorited_count.total != count) {
+							update = localUpdate = true;
+							Analytics.twitter.timeline.tweets[y].favorited_count.history.push({
+								timestamp: timestamp,
+								total: count
+							});
+							Analytics.twitter.timeline.tweets[y].favorited_count.timestamp = timestamp;
+							Analytics.twitter.timeline.tweets[y].favorited_count.total = count;
 						}
+						break;
 					}
 				}
 
-				// no matter what set this back to false, we are iterating through 200 so if its past that update won't set to true and the favorited.change boolena flag will stay true!
-				Analytics.twitter.tracking.favorited_count.change = false;
-
-				if(localUpdate) {
-					
+				if(localUpdate)
 					console.log('saved tweet favorited count update...');
-				}
 
 				next(itr, cb);
 			})
 		},
 
 		// check for dropped followers, only run every 24 at night
-		dropped_followers: function(itr, cb, cursor) {
+		// note these accounts may also have been deleted
+		dropped_followers: function(itr, cb, cursor, callCount) {
 
 			// check if enough time has passed to load new data
 			//if(!Analytics.twitter.tracking.followers.change)
 				//return next(itr, cb);
 
+			// we'll stop after 5 calls, that's 25000 followers! 
+			callCount = callCount + 1 || 1;
 			Model.Followers.findOne({id: data.analytics_id}, function(err, Followers) {
 				if(err)
 					console.log(err);
 
-				twitter.get('followers/ids', {user_id: data.network_id, cursor: (cursor ? cursor : -1), stringify_ids: true, count: 2}, function(err, response) {
-					if(err || response.errors)
-						console.log(err, response);
-
+				twitter.get('/followers/ids.json', {user_id: data.network_id, cursor: (cursor ? cursor : -1), stringify_ids: true, count: 1000}, function(err, followers) {
+					if(err || followers.errors)
+						console.log(err, followers);
+console.log(followers);
+return;
 					if(!Followers.twitter.length) {
-						Followers.twitter = response;
+						Followers.twitter = followers.ids;
 						Followers.save(function(err, success) {
+							console.log('saved first round of followers to Followers Model');
 							return next(itr, cb);
 						})
 					} else {
@@ -303,11 +304,11 @@ var TwitterHarvester = (function() {
 						
 						for(var x = 0, l = Followers.twitter.length; x < l; x++) {
 							var found = false;
-							for(var y = 0, len = response.ids.length; y < len; y++)
-								if(newFollowers && response.ids[y] !== Followers.twitter[x]) {
-									newFollowersArray = response.ids[y];
+							for(var y = 0, len = followers.ids.length; y < len; y++)
+								if(newFollowers && followers.ids[y] !== Followers.twitter[x]) {
+									newFollowersArray = followers.ids[y];
 									break;
-								} else if(response.ids[y] === Followers.twitter[x]) {
+								} else if(followers.ids[y] === Followers.twitter[x]) {
 									if(newFollowers)
 										newFollowers = false, x = 0;
 									else
@@ -316,61 +317,69 @@ var TwitterHarvester = (function() {
 									break;
 								}
 
-							// these are dropped followers
+							// these are dropped/deleted followers
 							if(!newFollowers && !found)
-								droppedFollowersArray = Followers.twitter[x];
+								droppedFollowersArray.push(Followers.twitter[x]);				
+						}
+
+						// add new followers to database followers array
+						if(newFollowersArray.length) {
+							for(var b=newFollowersArray.length-1; b>=0; b--)
+								Followers.twitter.unshift(newFollowersArray[b]);
 							
+							Followers.save(function(err, success) {
+								console.log('we have saved new followers from the dropped followers twitter function');
+							})
 						}
 
 						// add dropped followers to database
 						if(droppedFollowersArray.length) {
-							var callString = '';
-							update = localUpdate = true;
+							var usersIdString = '';
+							update = true;
 
 							for(var a=0,length=droppedFollowersArray.length; a<length; a++)
 								usersIdString += droppedFollowersArray[a] + ','
 
-							twitter.get('users/lookup', {user_id: usersIdString, include_entities: false}, function(err, leavers) {
+							twitter.get('/users/lookup.json', {user_id: usersIdString.toString().slice(0,-1), include_entities: false}, function(err, leavers) {
 								if(err || leavers.errors)
 									console.log(err, leavers);
 
 								var timestamp = Helper.timestamp();
 
-								for(var c=leavers.length-1;c>=0;c--) {
-									droppedFollowersArray[a].timestamp = timestamp;
-									Analytics.twitter.tracking.followers.dropped.unshift(leavers[c]);
-								}
+								for(var c=leavers.length-1;c>=0;c--)
+									// check if user has been removed from twitter, don't log them
+									for(var d=0,lengthy=droppedFollowersArray.length;d<lengthy;d++)
+										if(droppedFollowersArray[d] === leavers[c].id_str) {
+											droppedFollowersArray[d].timestamp = timestamp;
+											Analytics.twitter.tracking.followers.dropped.unshift(droppedFollowersArray[d]);
+											break;
+										}
+
+								console.log('we have dropped twitter followers! Call: ' + callCount);
+						
+								var cursorInt = parseInt(followers.next_cursor_str, 10);
+								if(cursorInt > 0 && callCount < 6)
+									Harvest.dropped_followers(itr, cb, cursorInt, callCount);
+								else
+									next(itr, cb);
+
 							})
-							
 						}
 
-						// add new followers to database followers array
-						if(newFollowersArray.length) {
-							update = true; // don't local update this since we don't care about new followers here
-
-							for(var b=newFollowersArray.length-1; b>=0; b--)
-								Followers.twitter.unshift(newFollowersArray[b]);
-							
-							Followers.save(function(err, success) {
-
-							})
-						}
-
-						if(localUpdate) console.log('we have have dropped twitter followers!');
-						next(itr, cb);
 					}
 				})
 			})
 		},
 
 		post_test: function(itr, cb) {
-			twitter.post('users/lookup', {user_id: '892550918,543937651', include_entities: false}, function(err, users) {
+			twitter.post('/users/lookup.json', {user_id: '892550918,543937651', include_entities: false}, function(err, users) {
 				if(err || users.errors)
 					console.log(err, users);
 
 				console.log(users),
 				next(itr, cb);
 			})
+
 		},
 
 		// this one needs some explaining 
@@ -388,7 +397,7 @@ var TwitterHarvester = (function() {
 			if(Analytics.twitter.tracking.followers.newest.timestamp > Helper.timestamp() - 900)
 				return next(itr, cb);
 
-			twitter.get('followers/list', {user_id: data.network_id, skip_status: true, include_user_entities: false}, function(err, response) {
+			twitter.get('/followers/list.json', {user_id: data.network_id, skip_status: true, include_user_entities: false}, function(err, response) {
 				if(err || response.errors)
 					console.log(err);
 				var users = {
@@ -431,9 +440,9 @@ var TwitterHarvester = (function() {
 				Analytics = analytics;
 				Harvest[data.methods[0]](0, function() {
 					if(update)
-						Analytics.save(function(err,response){
+						Analytics.save(function(err,r){
 							// TODO: handle err 
-							console.log('saved twitter analytic data');
+							//console.log('saved all twitter analytic data from multiple methods');
 							callback(null);
 						})
 					else

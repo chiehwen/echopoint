@@ -9,8 +9,8 @@
 		"scope": "manage_pages,read_stream,publish_stream,read_insights,read_page_mailboxes"
 	},
 	"twitter": {
-		"consumerKey": "9DFn7r4ir7Z4uPSy7ZEQbA",
-		"consumerSecret": "W94Yo4iCRvltpktHCvsAUWD3qBNdyD0bBwk9r34",
+		"consumerKey": "ymPfLoyL7T53O5vPRByMA",
+		"consumerSecret": "QrMG1wV0Pn3SmuNyXoHaDCdbCK3CsEIm0pDoSg3U",
 		"requestUrl": "https://twitter.com/oauth/request_token",
 		"accessUrl": "https://twitter.com/oauth/access_token",
 		"version": "1.0A",

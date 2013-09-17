@@ -21,19 +21,29 @@ Boot.start(function(app) {
 // TEMP: removes all users from User collection
 var Model = Model || Object;
 //console.log(Model.User.Business);
-//Model.User.remove(function(err){if(err) throw err});Model.Analytics.remove(function(err){if(err) throw err});
+//Model.User.remove(function(err){if(err) throw err});Model.Analytics.remove(function(err){if(err) throw err});Model.Followers.remove(function(err){if(err) throw err});
 //console.log(Model.User.schema);`
 Model.Analytics.find(function(err, analytic) {
 	analytic.forEach(function(user) {
 		//console.log(user.facebook.tracking.posts[0]);
 		
-		for(var x=0,l=user.facebook.tracking.page.talking.meta.length;x<l;x++)
+		for(var x=0,l=user.twitter.timeline.tweets.length;x<l;x++)
+			//console.log(x);
+			console.log(user.twitter.timeline.tweets[x].retweets);
+
 			//if(user.facebook.tracking.posts[x].insights)
-			console.log(user.facebook.tracking.page.talking.meta[x]);
+		//console.log(user.twitter.tracking.followers.dropped);
+
+			Model.Followers.findOne({id: user.id},function(err, followers) {
+				//console.log(followers);
+				//followers.twitter = [];followers.save(function(err){})
+			})
 
 		//console.log(user.facebook.tracking);
 	});
 });
+
+
 
 Model.User.findOne({email: "123"}, function(err, user) {
 	console.log(user);
@@ -74,6 +84,7 @@ Model.User.findOne({email: "123"}, function(err, user) {
 	
 //Cron.facebook.feed.start();
 //Cron.facebook.insights.start();
+
 Cron.twitter.start();
 
 	// !!!!!

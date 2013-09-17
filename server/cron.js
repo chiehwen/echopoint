@@ -113,7 +113,7 @@ var CronJobs = {
 
 
 	twitter: new Cron({
-		cronTime: '0 * * * * *',
+		cronTime: '45 * * * * *',
 		onTick: function() {
 			Model.User.find(function(err, users) {
 				users.forEach(function(user) {
@@ -132,8 +132,7 @@ var CronJobs = {
 						) {
 
 							Harvester.twitter.getData({
-								network: 'twitter',
-								methods: ['post_test'],
+								methods: ['credentials', 'timeline', 'mentions', 'retweets', 'dm', 'favorited'],
 								user: user._id,
 								analytics_id: user.Business[index].Analytics.id,
 								index: index,
@@ -146,7 +145,7 @@ var CronJobs = {
 							});
 	
 						} else {
-							console.log('credentials problem');
+							console.log('no credenttials or credentials problem');
 						} // End of twitter credentials if statement
 
 					}); // End of business forEach

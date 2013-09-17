@@ -160,68 +160,69 @@ console.log('at posts [new] method...');
 		posts_update: function(itr, cb) {
 console.log('at the posts [update] method...');
 
-			if(since) {
-				facebook.get(data.network_id, {fields: 'feed.until(' + since + ').limit(200).fields(likes,comments,shares,updated_time,created_time,status_type,type)'}, function(err, response) {
-					if(response.feed && response.feed.data && response.feed.data.length) {
-						
-						var results = response.feed.data,
-								localUpdate = false;
+			if(!since)
+				return next(itr, cb);
 
-						for(var x = 0, l = results.length; x < l; x++) {
-							for(var y = 0, len = Analytics.facebook.tracking.posts.length; y < len; y++) {
-								var timestamp = Helper.timestamp();
+			facebook.get(data.network_id, {fields: 'feed.until(' + since + ').limit(200).fields(likes,comments,shares,updated_time,created_time,status_type,type)'}, function(err, response) {
+				if(err || response.error)
+					console.log(response.error);
 
-								if(Analytics.facebook.tracking.posts[y].id == results[x].id) {
-									
-									if(results[x].likes && results[x].likes.data.length != Analytics.facebook.tracking.posts[y].likes.total) {
-										Analytics.facebook.tracking.posts[y].likes.meta.push({
-											timestamp: timestamp,
-											total: results[x].likes.data.length
-											//new: (typeof Analytics.facebook.tracking.posts[y].likes.total !== 'undefined') ? (results[x].likes.data.length - Analytics.facebook.tracking.posts[y].likes.total) : results[x].likes.data.length
-										});
-										Analytics.facebook.tracking.posts[y].likes.timestamp = timestamp;
-										Analytics.facebook.tracking.posts[y].likes.total = results[x].likes.data.length,
-										Analytics.facebook.tracking.posts[y].likes.data = results[x].likes.data;
-										update = localUpdate = true;
-									}
+				if(response.feed && response.feed.data && response.feed.data.length) {
+					
+					var results = response.feed.data,
+							localUpdate = false;
 
-									if(results[x].comments && results[x].comments.data.length != Analytics.facebook.tracking.posts[y].comments.total) {
-										Analytics.facebook.tracking.posts[y].comments.meta.push({
-											timestamp: timestamp,
-											total: results[x].comments.data.length
-											//new: (typeof Analytics.facebook.tracking.posts[y].comments.total !== 'undefined') ? (results[x].comments.data.length - Analytics.facebook.tracking.posts[y].comments.total) : results[x].comments.data.length
-										});
-										Analytics.facebook.tracking.posts[y].comments.timestamp = timestamp;
-										Analytics.facebook.tracking.posts[y].comments.total = results[x].comments.data.length,
-										Analytics.facebook.tracking.posts[y].comments.data = results[x].comments.data;
-										update = localUpdate = true;
-									}
+					for(var x = 0, l = results.length; x < l; x++) {
+						for(var y = 0, len = Analytics.facebook.tracking.posts.length; y < len; y++) {
+							var timestamp = Helper.timestamp();
 
-									if(results[x].shares && parseInt(results[x].shares.count, 10) != Analytics.facebook.tracking.posts[y].shares.total) {
-										Analytics.facebook.tracking.posts[y].shares.meta.push({
-											timestamp: timestamp,
-											total: parseInt(results[x].shares.count, 10)
-											//new: (typeof Analytics.facebook.tracking.posts[y].shares.total !== 'undefined') ? (parseInt(results[x].shares.count, 10) - Analytics.facebook.tracking.posts[y].shares.total) : parseInt(results[x].shares.count, 10)
-										});
-										Analytics.facebook.tracking.posts[y].shares.timestamp = timestamp;
-										Analytics.facebook.tracking.posts[y].shares.total = parseInt(results[x].shares.count, 10);
-										update = localUpdate = true;
-									}
-
-									break;
+							if(Analytics.facebook.tracking.posts[y].id == results[x].id) {
+								
+								if(results[x].likes && results[x].likes.data.length != Analytics.facebook.tracking.posts[y].likes.total) {
+									Analytics.facebook.tracking.posts[y].likes.meta.push({
+										timestamp: timestamp,
+										total: results[x].likes.data.length
+										//new: (typeof Analytics.facebook.tracking.posts[y].likes.total !== 'undefined') ? (results[x].likes.data.length - Analytics.facebook.tracking.posts[y].likes.total) : results[x].likes.data.length
+									});
+									Analytics.facebook.tracking.posts[y].likes.timestamp = timestamp;
+									Analytics.facebook.tracking.posts[y].likes.total = results[x].likes.data.length,
+									Analytics.facebook.tracking.posts[y].likes.data = results[x].likes.data;
+									update = localUpdate = true;
 								}
+
+								if(results[x].comments && results[x].comments.data.length != Analytics.facebook.tracking.posts[y].comments.total) {
+									Analytics.facebook.tracking.posts[y].comments.meta.push({
+										timestamp: timestamp,
+										total: results[x].comments.data.length
+										//new: (typeof Analytics.facebook.tracking.posts[y].comments.total !== 'undefined') ? (results[x].comments.data.length - Analytics.facebook.tracking.posts[y].comments.total) : results[x].comments.data.length
+									});
+									Analytics.facebook.tracking.posts[y].comments.timestamp = timestamp;
+									Analytics.facebook.tracking.posts[y].comments.total = results[x].comments.data.length,
+									Analytics.facebook.tracking.posts[y].comments.data = results[x].comments.data;
+									update = localUpdate = true;
+								}
+
+								if(results[x].shares && parseInt(results[x].shares.count, 10) != Analytics.facebook.tracking.posts[y].shares.total) {
+									Analytics.facebook.tracking.posts[y].shares.meta.push({
+										timestamp: timestamp,
+										total: parseInt(results[x].shares.count, 10)
+										//new: (typeof Analytics.facebook.tracking.posts[y].shares.total !== 'undefined') ? (parseInt(results[x].shares.count, 10) - Analytics.facebook.tracking.posts[y].shares.total) : parseInt(results[x].shares.count, 10)
+									});
+									Analytics.facebook.tracking.posts[y].shares.timestamp = timestamp;
+									Analytics.facebook.tracking.posts[y].shares.total = parseInt(results[x].shares.count, 10);
+									update = localUpdate = true;
+								}
+
+								break;
 							}
 						}
+					}
 
-						if(localUpdate) console.log('saved updated post data...');
-					} 
+					if(localUpdate) console.log('saved updated post data...');
+				} 
 
-					next(itr, cb);
-				})
-
-			} else {
 				next(itr, cb);
-			}
+			})
 		},
 
 		page_insights: function(itr, cb) {
@@ -276,7 +277,7 @@ console.log('at posts_insights method');
 
 			facebook.get(data.network_id, {fields: 'posts.fields(insights).since('+timeframe+').limit(200)', date_format: 'U'}, function(err, res) {
 				var timestamp = Helper.timestamp()
-				
+
 				for(var x=0,l=res.posts.data.length;x<l;x++) {
 					
 					var posts = Analytics.facebook.tracking.posts;

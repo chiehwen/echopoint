@@ -18,7 +18,7 @@ var fs = require('fs'),
 		Instagram = null,
 		Yelp = null,
 		Bitly = null,
-		Twit = require('twit'),
+		nTwitter = require('ntwitter'),
 		GoogleOAuth = require('googleapis').OAuth2Client,
 		YelpApi = require('yelp');
 
@@ -76,11 +76,11 @@ var Auth = (function() {
 					var credentials = {
 						consumer_key: Config.twitter.consumerKey,
 						consumer_secret: Config.twitter.consumerSecret,
-						access_token: oauthAccessToken ? oauthAccessToken : 'faux',
+						access_token_key: oauthAccessToken ? oauthAccessToken : 'faux',
 						access_token_secret: oauthAccessTokenSecret ? oauthAccessTokenSecret : 'faux',
 					}
 
-					Twitter = new Twit(credentials);
+					Twitter = new nTwitter(credentials);
 
 					/*Twitter.oauth = new oauth.OAuth(
 						Config.twitter.requestUrl,
@@ -90,13 +90,13 @@ var Auth = (function() {
 						Config.twitter.version,
 						Config.twitter.callback,
 						Config.twitter.signature
-					);
+					);*/
 
 					Twitter.setAccessTokens = function(oauthAccessToken, oauthAccessTokenSecret) {
-						this.auth.config.access_token = oauthAccessToken;
-						this.auth.config.access_token_secret = oauthAccessTokenSecret;
+						this.options.access_token_key = oauthAccessToken;
+						this.options.access_token_secret = oauthAccessTokenSecret;
 						return this;
-					}*/
+					}
 				}
 
 				return Twitter;

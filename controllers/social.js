@@ -195,10 +195,10 @@ console.log('callbacks complete');
 
 				if(req.session.twitterConnected && req.session.twitter.oauthAccessToken && req.session.twitter.oauthAccessTokenSecret && req.session.twitter.id && !req.query.login) {
 
-					//twitter.get('statuses/user_timeline', {user_id: req.session.twitter.id, count: 2, contributor_details: false, trim_user: true, exclude_replies: false, include_rts: true}, function(err, response) {
-					//twitter.get('account/verify_credentials', {include_entities: false, skip_status: true}, function(err, response) {
-					//twitter.get('statuses/user_timeline', {user_id: req.session.twitter.id, contributor_details: true, include_rts: false}, function(err, response) {
-					twitter.get('statuses/retweets_of_me', {count: 20, trim_user: true, include_entities: false, include_user_entities: false}, function(err, response) {
+					//twitter.get('/statuses/user_timeline.json', {user_id: req.session.twitter.id, count: 2, contributor_details: false, trim_user: true, exclude_replies: false, include_rts: true}, function(err, response) {
+					//twitter.get('/account/verify_credentials.json', {include_entities: false, skip_status: true}, function(err, response) {
+					//twitter.get('/statuses/user_timeline.json', {user_id: req.session.twitter.id, contributor_details: true, include_rts: false}, function(err, response) {
+					twitter.get('/statuses/retweets_of_me.json', {count: 20, trim_user: true, include_entities: false, include_user_entities: false}, function(err, response) {
 						if(err) {
 							req.session.messages.push("Error verifying twitter credentials");
 							res.redirect('/social/twitter/connect?login=true');

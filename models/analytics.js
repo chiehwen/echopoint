@@ -115,6 +115,20 @@
                 timestamp: {type: Number},
                 total: {type: Number}
               }],
+              retweeters: [{
+                id:
+                name:
+                screen_name:
+                picture:
+                location:
+                listed_count:
+                followers:
+                friends:
+                favorited_count:
+                varified:
+                tweets_count:
+                currently_following:
+              }],
               timestamp: {type: Number},
               total: {type: Number}
             },
@@ -241,7 +255,7 @@
             },
             tracking: {
               checkins: {
-                meta: [{
+                history: [{
                   timestamp: {type: Number},
                   total: {type: Number}
                   //new: {type: Number},
@@ -257,7 +271,7 @@
                 timestamp: {type: Number}
               },
               unique: { // this is the number of unique checkins
-                meta: [{
+                history: [{
                   timestamp: {type: Number},
                   total: {type: Number}
                 }],
@@ -265,7 +279,7 @@
                 timestamp: {type: Number}
               },
               mayor: {
-                meta: [{
+                history: [{
                   timestamp: {type: Number},
                   count: {type: Number}, // I think this is the number of times the mayor has checked in since becoming mayor. Not 100% sure
                   user: {}
@@ -275,7 +289,7 @@
                 timestamp: {type: Number}
               },
               shares: {
-                meta: [{
+                history: [{
                   timestamp: {type: Number},
                   total: {
                     facebook: {type: Number},
@@ -286,15 +300,13 @@
                   //  twitter: {type: Number}
                   //}
                 }],
-                // Instead use meta.length - 1 to get last in array
-                // * actually that may be less efficient since its an array look up 
                 facebook: {type: Number},
                 twitter: {type: Number},
                 timestamp: {type: Number}
               },
 
               gender: {
-                meta: [{
+                history: [{
                   timestamp: {type: Number},
                   total: {
                     male: {type: Number},
@@ -311,7 +323,7 @@
               },
 
               age: {
-                meta: [{
+                history: [{
                   timestamp: {type: Number},
                   data: {}
                 }],
@@ -319,7 +331,7 @@
               },
 
               hourBreakdown: {
-                meta: [{
+                history: [{
                   timestamp: {type: Number},
                   data: {}
                 }],
@@ -327,7 +339,7 @@
               },
 
               visitsHistogram: {
-                meta: [{
+                history: [{
                   timestamp: {type: Number},
                   data: {}
                 }],
@@ -341,7 +353,7 @@
 
               // these don't rely on checkins
               likes: {
-                meta: [{
+                history: [{
                   timestamp: {type: Number},
                   total: {type: Number}
                   //new: {type: Number}
@@ -351,7 +363,7 @@
               },
 
               tips: {
-                meta: [{
+                history: [{
                   timestamp: {type: Number},
                   total: {type: Number}
                   //new: {type: Number}
@@ -361,7 +373,7 @@
               },
 
               photos: {
-                meta: [{
+                history: [{
                   timestamp: {type: Number},
                   total: {type: Number}
                   //new: {type: Number}

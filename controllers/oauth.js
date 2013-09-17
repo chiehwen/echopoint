@@ -90,7 +90,7 @@ var OauthController = {
 
 							twitter
 								.setAccessTokens(oauthAccessToken, oauthAccessTokenSecret)
-								.get('account/verify_credentials', {include_entities: false, skip_status: true}, function(err, response) {
+								.get('/account/verify_credentials.json', {include_entities: false, skip_status: true}, function(err, response) {
 									if(err) {
 										req.session.messages.push("Error connecting to Twitter!");
 										req.session.messages.push(err);

@@ -19,8 +19,10 @@
     "connect-ensure-login": "*",
     "fbgraph": "*",
     "twit": "*",
+    "ntwitter": "*",
     "googleapis": "*",
     "yelp": "*",
-    "cron": "*"
+    "cron": "*",
+    "winston": "*"
   }
 }
