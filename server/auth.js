@@ -3,7 +3,7 @@
  */
 var fs = require('fs'),
 		qs = require('querystring'),
-		bcrypt = require('bcrypt'),
+		bcrypt = require('bcrypt-nodejs'),
 		passport = require('passport'),
 		oauth = require('oauth'),
 		Helper = require('./helpers'),

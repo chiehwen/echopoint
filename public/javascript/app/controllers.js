@@ -129,6 +129,7 @@ console.log(user);
 						$scope.template = '/partials/social/connect';		
 					} else if(res.connected && res.data.businesses) {
 						$scope.network.businesses = res.data.businesses;
+console.log(res.data.businesses);						
 						$scope.template = '/partials/social/select';
 					} else if(res.connected && $scope.network.name === 'yelp') {
 					

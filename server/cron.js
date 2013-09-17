@@ -7,7 +7,8 @@ var Auth = require('./auth').getInstance(),
 		Model = Model || Object,
 		Harvester = {
 			facebook: require('./harvesters/facebook'),
-			twitter: require('./harvesters/twitter')
+			twitter: require('./harvesters/twitter'),
+			foursquare: require('./harvesters/foursquare')
 		};
 
 var CronJobs = {
@@ -70,21 +71,16 @@ var CronJobs = {
 
 						var f = business.Social.facebook;
 						if (
-								typeof f.auth.oauthAccessToken !== 'undefined'
-								&& typeof f.auth.expires !== 'undefined'
-								&& typeof f.auth.created !== 'undefined'
-								&& typeof f.account.id !== 'undefined'
-								&& typeof f.account.oauthAccessToken !== 'undefined'
+								f.auth.oauthAccessToken
+								&& f.auth.expires
+								&& f.auth.created
+								&& f.account.id
+								&& f.account.oauthAccessToken
 								&& f.auth.oauthAccessToken != ''
 								&& f.auth.expires != 0
 								&& f.auth.created != 0
 								&& f.account.id != ''
 								&& f.account.oauthAccessToken != ''
-								&& f.auth.oauthAccessToken
-								&& f.auth.expires
-								&& f.auth.created
-								&& f.account.id
-								&& f.account.oauthAccessToken
 								&& ((f.auth.created + f.auth.expires) * 1000 > Date.now())
 							) {
 
@@ -121,14 +117,12 @@ var CronJobs = {
 
 					var t = business.Social.twitter;
 					if (
-							typeof t.auth.oauthAccessToken !== 'undefined'
-							&& typeof t.auth.oauthAccessTokenSecret !== 'undefined'
-							&& typeof t.id !== 'undefined'
-							&& t.auth.oauthAccessToken != ''
-							&& t.auth.oauthAccessTokenSecret != ''
-							&& t.auth.oauthAccessToken
+							t.auth.oauthAccessToken
 							&& t.auth.oauthAccessTokenSecret
 							&& t.id
+							&& t.auth.oauthAccessToken != ''
+							&& t.auth.oauthAccessTokenSecret != ''
+							&& t.id != ''
 						) {
 
 							Harvester.twitter.getData({
@@ -162,27 +156,32 @@ var CronJobs = {
 		cronTime: '0 */15 * * * *',
 		onTick: function() {
 
-			//console.log('You will see this message every hour');
 			Model.User.find(function(err, users) {
 				users.forEach(function(user) {
-
-					user.Business.forEach(function(business, indx) {
-
+					user.Business.forEach(function(business, index) {
 						var f = business.Social.foursquare;
 						if (
-								typeof f.auth.oauthAccessToken !== 'undefined'
-								//&& typeof f.id !== 'undefined'
-								&& typeof f.venue.id !== 'undefined'
-								&& f.auth.oauthAccessToken != ''
-								//&& f.id != ''
-								&& f.venue.id != ''
-								&& f.auth.oauthAccessToken
-								//&& f.id
+								f.auth.oauthAccessToken
 								&& f.venue.id
+								&& f.auth.oauthAccessToken != ''
+								&& f.venue.id != ''
 							) {
 
-								Model.Analytics.findOne({id: business.Analytics.id}, function(err, Analytics) {
+								Harvester.foursquare.getData({
+									methods: ['test'],
+									user: user._id,
+									analytics_id: user.Business[index].Analytics.id,
+									index: index,
+									network_id: f.venue.id,
+									auth_token: f.auth.oauthAccessToken
+								}, function(err) {
+									console.log('Foursquare callbacks complete');							
+									//res.json({success: true,connected: true,account: true,data: {businesses: null},url: null});
+								});
 
+
+								Model.Analytics.findOne({id: business.Analytics.id}, function(err, Analytics) {
+/*
 									var foursquare = Auth.load('foursquare'),
 											//updates = Analytics.foursquare.updates.sort(Helper.sortBy('timestamp', false, parseInt)),
 											//since = updates.length ? updates[0].timestamp : 0;
@@ -207,7 +206,7 @@ var CronJobs = {
 											console.log(response.meta.code);// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
 
 											// TODO: build into a for loop
-											if(response.response.responses[0].response.venue !== 'undefined') { // really foursquare? you couldn't add a few more 'reponses' in there?
+											if(response.response.responses[0].response.venue) { // really foursquare? you couldn't add a few more 'reponses' in there?
 												venue = response.response.responses[0].response.venue;
 												stats = response.response.responses[1].response.stats
 
@@ -406,7 +405,7 @@ var CronJobs = {
 										}
 
 									});
-
+*/
 								}); // end Analytics model
 						} // End of foursquare credentials if statement
 

@@ -268,7 +268,7 @@ console.log(response);
  					if(req.session.foursquareConnected && req.session.foursquare.oauthAccessToken && !req.query.login) {
  						foursquare = Auth.load('foursquare');
 
-						if(typeof req.query.venue !== 'undefined' && typeof req.query.select === 'undefined') {
+						if(req.query.id && !req.query.select) {
 
 							foursquare.get('venues/managed', {v: foursquare.client.verified}, function(err, response) {
 			 					if(err || response.meta.code != 200) res.redirect('/social/foursquare?login=true');
@@ -279,9 +279,9 @@ console.log(response);
 			 							found = false;
 
 			 					for(var i = 0, l = venues.length; i < l; i++) {
-			 						if(venues[i].id == req.query.venue) {
+			 						if(venues[i].id == req.query.id) {
 			 							user.Business[req.session.Business.index].Social.foursquare.venue = {
-											id: req.query.venue,
+											id: req.query.id,
 											name: venues[i].name,
 											data: venues[i]
 										}
@@ -349,8 +349,7 @@ console.log(response);
 						&& f.auth.oauthAccessToken != ''
 						&& f.auth.oauthAccessToken
 	 				) {
-	 					var foursquare = Auth.load('foursquare');
-						foursquare.setAccessToken(f.auth.oauthAccessToken);
+	 					var foursquare = Auth.load('foursquare').setAccessToken(f.auth.oauthAccessToken);
 						req.session.foursquare = {
 							oauthAccessToken: f.auth.oauthAccessToken
 						}

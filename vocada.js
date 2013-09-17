@@ -85,7 +85,9 @@ Model.User.findOne({email: "123"}, function(err, user) {
 //Cron.facebook.feed.start();
 //Cron.facebook.insights.start();
 
-Cron.twitter.start();
+//Cron.twitter.start();
+
+Cron.foursquare.start();
 
 	// !!!!!
 

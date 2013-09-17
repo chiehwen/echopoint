@@ -1,8 +1,15 @@
 var Auth = require('../auth').getInstance(),
 		Helper = require('../helpers'),
-		Model = Model || Object;
+		Model = Model || Object,
+		winston = require('winston');
 
 var FoursquareHarvester = (function() {
+
+	winston.add(winston.transports.File, 
+		{ filename: 'foursquareUpdates.log' 
+			, json: true
+		})
+	.remove(winston.transports.Console);
 
 	var Analytics,
 			foursquare,
@@ -18,14 +25,56 @@ var FoursquareHarvester = (function() {
 			};
 
 	var Harvest = {
+		test: function() {
+
+			multi =		'/venues/' + f.venue.id +
+								',/venues/' + f.venue.id + '/stats',
+								//',/venues/' + f.venue.id + '/likes' +
+								//',/venues/' + f.venue.id + '/tips?limit=25' +
+								//',/venues/' + f.venue.id + '/photos?group=venue&limit=20',
+			params = {
+				v: foursquare.client.verified,
+				requests: multi
+			},
+			venue = null,
+			stats = null;
+
+			foursquare.post('multi', params, function(err, response) {
+				if(err || response.meta.code != 200) 
+					console.log(response.meta.code);// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
+
+					// TODO: build into a for loop
+					if(response.response.responses[0].response.venue) { // really foursquare? you couldn't add a few more 'reponses' in there?
+						venue = response.response.responses[0].response.venue;
+						stats = response.response.responses[1].response.stats
+
+					} else {
+						venue = response.response.responses[1].response.venue;
+						stats = response.response.responses[0].response.stats;
+					}
+
+				if(venue && stats) {
+
+					if(previousVenueUpdateData != JSON.stringify(venue))
+						winston.info(venue);
+
+					if(previousStatsUpdateData != JSON.stringify(stats))
+						winston.warn(stats);
+
+					previousVenueUpdateData = JSON.stringify(venue);
+					previousStatsUpdateData = JSON.stringify(stats);
+				}
+			})
+		},
 
 		// new tweets 
 		venue: function(itr, cb) {
 
-			twitter.get('/statuses/user_timeline.json', {user_id: data.network_id, since_id: Analytics.twitter.timeline.since_id, count: 100, contributor_details: true, include_rts: true}, function(err, response) {
-				if(err || response.errors)
-					console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
-				
+			foursquare.get('venues/' + data.network_id, {v: foursquare.client.verified}, function(err, response) {
+				if(err || response.meta.code != 200)
+					console.log(err, response.meta); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
+
+return;		
 				if(!response.length)
 					return next(itr, cb);
 
@@ -46,15 +95,18 @@ var FoursquareHarvester = (function() {
 			})
 		},
 
+		stats: function() {
+
+		},
+
 		here_now: function(itr, cb) {
 
 		},
 
-		businesses_list: function(itr, cb) {
-
-		},
-
 	} // End Harvest
+
+	var previousVenueUpdateData,
+			previousStatsUpdateData;
 
 	return {
 		getData: function(params, callback) {

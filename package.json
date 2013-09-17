@@ -13,7 +13,7 @@
     "mongodb": "*",
     "mongoose": "*",
     "oauth": "*",
-    "bcrypt": "*",
+    "bcrypt-nodejs": "*",
     "passport": "*",
     "passport-local": "*",
     "connect-ensure-login": "*",
