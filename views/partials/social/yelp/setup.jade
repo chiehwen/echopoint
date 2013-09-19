@@ -1,0 +1,18 @@
+form(ng-submit='network.yelp.save()', id="yelp-business-id-form", accept-charset="utf-8")
+	fieldset
+		div(class="input text")
+			label business name
+			input(ng-model='network.yelp.name', type="text", name="name", id="yelp-business-name")
+		div(class="input text")
+			label city
+			input(ng-model='network.yelp.city', type="text", name="name", id="yelp-business-name")
+		div(class="input text")
+			label state
+			input(ng-model='network.yelp.state', type="text", name="name", id="yelp-business-name")
+	div - OR -
+	fieldset
+		div(class="input text")
+			label business yelp url
+			input(ng-model='network.yelp.url', type="text", name="url", id="yelp-business-url", placeholder='http://')
+	div.submit
+		input(type='submit', value='submit') 

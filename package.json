@@ -17,6 +17,8 @@
     "passport": "*",
     "passport-local": "*",
     "connect-ensure-login": "*",
+    "requester": "*",
+    "cheerio": "*",
     "fbgraph": "*",
     "twit": "*",
     "ntwitter": "*",

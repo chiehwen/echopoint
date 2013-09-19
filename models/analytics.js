@@ -249,9 +249,9 @@
 
           foursquare: {
             // this is venue updates (such as change of operating hours, new address, new business category, etc)
-            update: {
+            business: {
               timestamp: {type: Number},
-              changes: {}
+              data: {}
             },
             tracking: {
               checkins: {
@@ -286,6 +286,14 @@
                 }],
                 //total: {type: Number},
                 user_id: {type: String},
+                timestamp: {type: Number}
+              },
+              rating: {
+                history: [{
+                  timestamp: {type: Number},
+                  score: {type: Number}
+                }],
+                score: {type: Number},
                 timestamp: {type: Number}
               },
               shares: {
@@ -385,9 +393,9 @@
           },
 
           yelp: {
-            update: {
+            business: {
               timestamp: {type: Number},
-              changes: {
+              data: {
                 id: {type: String},
                 name: {type: String},
                 is_claimed: {type: Boolean},
@@ -406,27 +414,20 @@
             },
             tracking: {
               reviews: {
-                meta: [{
+                history: [{
                   timestamp: {type: Number},
-                  total: {type: Number},
-                  data: {}
+                  total: {type: Number}
+                  //data: {}
                 }],
                 total: {type: Number},
                 timestamp: {type: Number}
               },
-              ratings: {
-                meta: [{
+              rating: {
+                history: [{
                   timestamp: {type: Number},
-                  rating: {type: Number},
-                  data: {
-                    image: {
-                      small: {type: String},
-                      medium: {type: String},
-                      large: {type: String}
-                    }
-                  }
+                  score: {type: Number}
                 }],
-                rating: {type: Number},
+                score: {type: Number},
                 timestamp: {type: Number}
               }
             }

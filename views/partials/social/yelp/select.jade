@@ -1,0 +1,32 @@
+div.page-notice
+	h1 Please select a Yelp business account page
+	p This needs to match the Vocada business you are currently logged into
+div(class='simple-select-menu yelp-account-select-menu')
+	ul
+		li(ng-repeat='business in network.businesses')
+			div
+				a(ng-click='network.yelp.save(business.id)')
+					img(src='{{business.image_url}}')
+					span {{business.name}}
+
+//-for setting up the list, here is all the returned data
+	{
+	is_claimed: true,
+	rating: 4,
+	mobile_url: 'http://m.yelp.com/biz/roll-on-sushi-diner-austin',
+	rating_img_url: 'http://s3-media4.ak.yelpcdn.com/assets/2/www/img/c2f3dd9799a5/ico/stars/v1/stars_4.png',
+	review_count: 231,
+	name: 'Roll On Sushi Diner',
+	snippet_image_url: 'http://s3-media2.ak.yelpcdn.com/photo/_0HoNaOmi9OEkc0ZY_s8xg/ms.jpg',
+	rating_img_url_small: 'http://s3-media4.ak.yelpcdn.com/assets/2/www/img/f62a5be2f902/ico/stars/v1/stars_small_4.png',
+	url: 'http://www.yelp.com/biz/roll-on-sushi-diner-austin',
+	phone: '5124547655',
+	snippet_text: 'Roll-On is the perfect place to take someone who is curious about trying sushi, but thinks they won\'t like it.  They offer a great selection of creative...',
+	image_url: 'http://s3-media3.ak.yelpcdn.com/bphoto/bdfIfJvZyT1qoBpi0XGpfg/ms.jpg',
+	categories: [Object],
+	display_phone: '+1-512-454-7655',
+	rating_img_url_large: 'http://s3-media2.ak.yelpcdn.com/assets/2/www/img/ccf2b76faa2c/ico/stars/v1/stars_large_4.png',
+	id: 'roll-on-sushi-diner-austin',
+	is_closed: false,
+	location: [Object]
+	}

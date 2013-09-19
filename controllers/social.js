@@ -129,8 +129,10 @@ console.log('callbacks complete');
 						} else {
 							facebook.get('me', {fields: 'accounts.fields(name,picture.type(square),id)'}, function(err, response) {
 
-								if(err || typeof response.error !== 'undefined') 
+								if(err || response.error) {
 									res.redirect('/social/facebook/connect?login=true');
+									return;
+								}
 
 								res.json({
 									success: true,
@@ -462,7 +464,7 @@ console.log(data);
  				if (err || !user) return next(err);
 
 				var y = user.Business[req.session.Business.index].Social.yelp;
-				if (typeof req.query.url !== 'undefined') {
+				if (req.query.url) {
 
 					var page = decodeURIComponent(req.query.url);
 
@@ -486,7 +488,7 @@ console.log(data);
 						res.redirect('/social/yelp/connect?setup=true');
 					}
 
-				} else if (typeof y.id !== 'undefined' && y.id != '' && y.id && typeof req.query.setup === 'undefined')	{
+				} else if (y.id && y.id != '' && y.id && !req.query.setup)	{
 				
 					yelp = Auth.load('yelp');
 					yelp.business(y.id, function(err, response) {
@@ -503,12 +505,18 @@ console.log(data);
 					});
 
 				} else {
-					res.json({
-						success: true,
-						connected: false,
-						setup: typeof req.query.setup !== 'undefined' ? true : false,
-						data: null
-					});
+
+					yelp = Auth.load('yelp');
+					yelp.search({term: 'Roll On Sushi Diner', location: 'Austin'}, function(err, response){
+console.log(err, response);
+
+						res.json({
+							success: true,
+							connected: false,
+							setup: req.query.setup ? true : false,
+							data: null
+						});
+					})
 				}
  			});
  		}

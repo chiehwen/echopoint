@@ -170,6 +170,93 @@ var Socket = (function() {
 						callback({success: false, error: 'not logged in'})
 					}
 				}
+			},
+			social: {
+				yelp: {
+					save: function(data, callback) {
+						if(!passportUserId) 
+							return callback({success: false, error: err || 'user id error!'});
+						
+						Helper.getUser(passportUserId, function(err, user) {
+							if(err || !user) callback({success: false, error: err || 'no user found!'});
+
+							var yelp = Auth.load('yelp'),
+									error = false;
+
+							if(data.id) {
+								checkYelpId(data.id, function(success) {
+									if(success) {
+										user.Business[data.businessIndex].Social.yelp = {id: data.id}
+										user.save(function(err) {
+											if(err) console.log(err);
+										});
+										callback(null, {success: true})
+										return;
+									} else {
+										error = 'Invalid Yelp Business ID'
+							
+									}
+								})
+							} else {
+
+								if(data.url) {
+									var yelpId = processYelpUrl(data.url);
+									if(!yelpId) {
+										error = 'Invalid Yelp Business URL'
+									} else {
+										checkYelpId(yelpId, function(success) {
+											if(success) {
+												user.Business[data.businessIndex].Social.yelp = {id: yelpId}
+												user.save(function(err) {
+													if(err) console.log(err);
+												});
+											} else {
+												error = 'Invalid Yelp Business URL'
+											}
+										})
+									}
+								}
+								
+								if(data.name && data.city) {
+									var location = data.state ? (data.city + ', ' + data.state) : data.city;
+
+									yelp.search({term: data.name.trim(), location: location.trim()}, function(err, response) {
+										if(err || response.error) 
+											console.log(err, response);
+										if(response.businesses && response.businesses.length)
+											callback(null, {list: response});
+										else
+											error = 'No businesses were found'
+										return;
+									})
+								} else {
+									error = 'Business name and city are required for search'
+								}
+							}
+							if(error)
+								callback(error);
+
+							function processYelpUrl(url) {
+								var page = decodeURIComponent(url);
+								if (page.indexOf('yelp.com/') == -1)
+									return false;
+
+								if (page.indexOf('http://') != -1 || page.indexOf('https://') != -1)
+									page = 'http://' + page;
+
+								var path = url.parse(page).pathname;
+								return path.substring(path.lastIndexOf('/') + 1);
+							}
+
+							function checkYelpId(id, callback) {
+								yelp.business(id, function(err, response) {
+									callback(err||response.error ? false : true);
+								})
+							}
+						})
+						
+					}
+				}
 			}
 		},
 
@@ -211,7 +298,11 @@ var Socket = (function() {
 			packet.incoming.business.create(data, callback);
 		});*/
 
-		//setTimeout(function() {
+		socket.on('saveYelp', function(data, callback) {
+			packet.incoming.social.yelp.save(data, callback);
+		});
+
+
 			socket.on('getModules', function(data, callback) {
 console.log(data);
 				if(callback) {			
@@ -296,7 +387,7 @@ console.log(data);
 					});
 				}
 			});
-		//}, 5000);
+
   	//socket.on('my other event', function (data) {
 			//console.log(data);
 		//});

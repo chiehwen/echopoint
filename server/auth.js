@@ -229,7 +229,7 @@ var Auth = (function() {
 			_salt(function(err, salt){
 				if (err) callback(err);
 				// hash the password using our salt
-				bcrypt.hash(password, salt, function(err, hash) {
+				bcrypt.hash(password, salt, function(progress){}, function(err, hash) {
 					if (err) callback(err);
 					callback(null, hash);
 				});

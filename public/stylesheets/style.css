@@ -13,7 +13,7 @@
 body {
   font: normal 13px "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: #2A2A29;
-  background: #F5F5F5;
+  background: url('../images/vocada_squares_bg.png') #f5f5f5;
 }
 a {
   color: #546f8e;

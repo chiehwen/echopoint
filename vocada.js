@@ -27,9 +27,9 @@ Model.Analytics.find(function(err, analytic) {
 	analytic.forEach(function(user) {
 		//console.log(user.facebook.tracking.posts[0]);
 		
-		for(var x=0,l=user.twitter.timeline.tweets.length;x<l;x++)
+		//for(var x=0,l=user.twitter.timeline.tweets.length;x<l;x++)
 			//console.log(x);
-			console.log(user.twitter.timeline.tweets[x].retweets);
+			//console.log(user.twitter.timeline.tweets[x].retweets);
 
 			//if(user.facebook.tracking.posts[x].insights)
 		//console.log(user.twitter.tracking.followers.dropped);
@@ -87,7 +87,9 @@ Model.User.findOne({email: "123"}, function(err, user) {
 
 //Cron.twitter.start();
 
-Cron.foursquare.start();
+//Cron.foursquare.start();
+
+//Cron.yelp.start();
 
 	// !!!!!
 

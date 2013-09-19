@@ -113,7 +113,11 @@ var UserModel = {
               oauthAccessToken: {type: String},
               oauthAccessTokenSecret: {type: String}
             },
-            business: {}
+            business: {},
+            update: {
+              scraped: { type: Boolean, default: false},
+              timestamp: {type: Number, default: 0}
+            }
           },
           instagram: {
             id: {type: String},

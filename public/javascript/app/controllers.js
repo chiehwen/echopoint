@@ -57,7 +57,8 @@ console.log(user);
 							$scope.user.business = {
 								name: user.businesses.list[i].name,
 								id: user.businesses.list[i]._id,
-								uid: user.businesses.list[i].id
+								uid: user.businesses.list[i].id,
+								index: i
 							}
 							break;
 						}
@@ -103,6 +104,21 @@ console.log(user);
 				yelp: {
 					setup: function() {
 						$scope.template = '/partials/social/yelp/setup';
+					},
+					save: function(id) {
+console.log(id);
+						socket.emit('saveYelp', {businessIndex: $scope.user.business.index, id: id || null, name: $scope.network.yelp.name, city: $scope.network.yelp.city, state: $scope.network.yelp.state, url: $scope.network.yelp.url}, function (err, res) {
+							if(err) 
+								return console.log(err)
+							if(res.success) {								
+								$scope.template = '/partials/social/index';
+							} else if(res.list.businesses) {
+								$scope.network.businesses = res.list.businesses;
+								$scope.template = '/partials/social/yelp/select';
+							} else {
+								$scope.template = '/partials/social/connect';
+							}
+						})
 					}
 				},
 				selectBusiness: function(id) {
@@ -124,16 +140,14 @@ console.log(user);
 				
 				if(res.success){
 
-					if(res.url) {
+					if(res.url || (!res.connected && $scope.network.name === 'yelp')) {
 						$scope.network.url = res.url
 						$scope.template = '/partials/social/connect';		
 					} else if(res.connected && res.data.businesses) {
 						$scope.network.businesses = res.data.businesses;
-console.log(res.data.businesses);						
 						$scope.template = '/partials/social/select';
-					} else if(res.connected && $scope.network.name === 'yelp') {
-					
 					} else {
+		console.log(res.data);
 						$scope.template = '/partials/social/index';
 					}
 					
