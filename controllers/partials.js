@@ -104,12 +104,18 @@ var PartialsController = {
 	},
 
 	// social network specific setup partials
-	/*yelp_login: {
-		path: '/partials/social/yelp/index',
+	google_setup: {
+		path: '/partials/social/google/setup',
 		get: function(req, res) {
-			res.render('partials/social/yelp/index');
+			res.render('partials/social/google/setup');
 		}
-	},*/
+	},
+	google_select: {
+		path: '/partials/social/google/select',
+		get: function(req, res) {
+			res.render('partials/social/google/select');
+		}
+	},
 	yelp_setup: {
 		path: '/partials/social/yelp/setup',
 		get: function(req, res) {

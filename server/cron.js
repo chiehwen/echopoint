@@ -9,6 +9,7 @@ var Auth = require('./auth').getInstance(),
 			facebook: require('./harvesters/facebook'),
 			twitter: require('./harvesters/twitter'),
 			foursquare: require('./harvesters/foursquare'),
+			google: require('./harvesters/google'),
 			yelp: require('./harvesters/yelp'),
 		};
 
@@ -189,9 +190,46 @@ var CronJobs = {
 		start: false
 	}),
 
+	google: new Cron({
+		cronTime: '30 * * * * *',
+		onTick: function() {
+
+			Model.User.find(function(err, users) {
+
+				for(var i=0,l=users.length;i<l;i++) {
+					if(!users[i].Business.length || users[i].Business[0].Social.yelp.update.scraped === true)
+						continue;
+
+					users[i].Business.forEach(function(business, index) {
+
+						var g = business.Social.google.business;
+						if (g.id && g.id != '' && g.data.reference && g.data.reference != '') {
+
+							Harvester.google.getData({
+								methods: ['cheer'],
+								user: users[i]._id,
+								analytics_id: business.Analytics.id,
+								index: index,
+								network_id: g.id,
+								network_ref: g.data.reference
+							}, function(err) {
+								console.log('Google callbacks complete');							
+								//res.json({success: true,connected: true,account: true,data: {businesses: null},url: null});
+							});
+						} // End of Google credentials if statement
+
+					})
+					break;
+				}
+			})
+		},
+
+		start: false
+	}),
+
 
 	yelp: new Cron({
-		cronTime: '30 * * * * *',
+		cronTime: '40 * * * * *',
 		onTick: function() {
 
 			Model.User.find(function(err, users) {
@@ -207,7 +245,7 @@ var CronJobs = {
 						if (y.id && y.id != '') {
 
 								Harvester.yelp.getData({
-									methods: ['test'],
+									methods: ['cheer'],
 									user: users[i]._id,
 									analytics_id: business.Analytics.id,
 									index: index,

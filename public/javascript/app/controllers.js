@@ -46,7 +46,7 @@ console.log($scope.page);
 		socket.emit('init', {sid: $cookies['connect.sid']}, function (user) {
 			//if(!loggedIn)
 				//$window.location.href = '/logout'
-console.log(user);
+//console.log(user);
 			if(user.loggedIn) {
 				if(!$scope.user.data) {
 					$scope.user.data = user;
@@ -101,13 +101,29 @@ console.log(user);
 
 			$scope.network = {
 				name: $scope.page.view,
+				google: {
+					save: function(ref) {
+console.log(ref);
+						socket.emit('saveGoogle', {index: $scope.user.business.index, ref: ref || null, name: $scope.network.google.name, city: $scope.network.google.city, state: $scope.network.google.state, zipcode: $scope.network.google.zipcode, url: $scope.network.google.url}, function (err, res) {
+							if(err) 
+								return console.log(err)
+							if(res.success) {								
+								$scope.template = '/partials/social/index';
+							} else if(res.list) {
+								$scope.network.businesses = res.list;
+								$scope.template = '/partials/social/google/select';
+							} else {
+								$scope.template = '/partials/social/connect';
+							}
+						})
+					}
+				},
 				yelp: {
 					setup: function() {
 						$scope.template = '/partials/social/yelp/setup';
 					},
 					save: function(id) {
-console.log(id);
-						socket.emit('saveYelp', {businessIndex: $scope.user.business.index, id: id || null, name: $scope.network.yelp.name, city: $scope.network.yelp.city, state: $scope.network.yelp.state, url: $scope.network.yelp.url}, function (err, res) {
+						socket.emit('saveYelp', {index: $scope.user.business.index, id: id || null, name: $scope.network.yelp.name, city: $scope.network.yelp.city, state: $scope.network.yelp.state, url: $scope.network.yelp.url}, function (err, res) {
 							if(err) 
 								return console.log(err)
 							if(res.success) {								
@@ -132,26 +148,28 @@ console.log(id);
 				}
 			}
 
-			if($scope.page.action === 'plus') $scope.network.icon = 'google-plus-sign';
-			if($scope.page.action === 'places') $scope.network.icon = 'google-places';
+			//if($scope.page.action === 'plus') $scope.network.icon = 'google-plus-sign';
+			//if($scope.page.action === 'places') $scope.network.icon = 'google-places';
+			if($scope.network.name === 'google') 
+				$scope.network.icon = 'google-places';
 
 			$http.get('/social/'+$scope.network.name+'/connect').success(function(res) {
 				console.log(res);
 				
-				if(res.success){
-
+				if(res.success)
 					if(res.url || (!res.connected && $scope.network.name === 'yelp')) {
 						$scope.network.url = res.url
 						$scope.template = '/partials/social/connect';		
 					} else if(res.connected && res.data.businesses) {
 						$scope.network.businesses = res.data.businesses;
 						$scope.template = '/partials/social/select';
+					} else if(res.setup){
+						console.log('here');
+						$scope.template = '/partials/social/' + $scope.network.name + '/setup';
 					} else {
-		console.log(res.data);
 						$scope.template = '/partials/social/index';
 					}
 					
-				}
 				//$scope.$apply();
 			})
 		}

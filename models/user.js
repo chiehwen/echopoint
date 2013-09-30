@@ -97,8 +97,11 @@ var UserModel = {
               expires: {type: Number},
               created: {type: Number}
             },
-
-            account: {
+            user: {
+              id: {type: String},
+              data: {}
+            },
+            business: {
               id: {type: String},
               oauthAccessToken: {type: String},
               data: {}

@@ -4,7 +4,7 @@ var Auth = require('../auth').getInstance(),
 		Requester = require('requester'),
 		cheerio = require('cheerio'),
 		winston = require('winston');
-
+var yelpPageData = require('./tmpPageData/yelpPage'); // TEMP
 var YelpHarvester = (function() {
 
 	/*winston.add(winston.transports.File, 
@@ -16,14 +16,12 @@ var YelpHarvester = (function() {
 	var Analytics,
 			requester = new Requester({
 				debug: 1,
-				//proxies: [{ip: '184.82.95.37', port: 80}]
+				//proxies: [{ip: '107.17.100.254', port: 8080}]
 			}),
 			yelp,
 			response,
 			data,
 			update = false,
-			reviews_update = false,
-			rating_update = false,
 			url = false,
 			next = function(i, cb, err) {
 				var i = i+1
@@ -76,7 +74,6 @@ var YelpHarvester = (function() {
 
 				if(response.review_count != Analytics.yelp.tracking.reviews.total) {
 					update = localUpdate = true;
-					reviews_update = true;
 					Analytics.yelp.tracking.reviews.history.push({
 						timestamp: timestamp,
 						total: response.review_count
@@ -85,9 +82,8 @@ var YelpHarvester = (function() {
 					Analytics.yelp.tracking.reviews.timestamp = timestamp;
 				}
 
-				if(response.rating != Analytics.yelp.tracking.rating.score) {
+				if(parseFloat(response.rating) != Analytics.yelp.tracking.rating.score) {
 					update = localUpdate = true;
-					rating_update = true;
 					Analytics.yelp.tracking.rating.history.push({
 						timestamp: timestamp,
 						score: parseFloat(response.rating)
@@ -104,7 +100,8 @@ var YelpHarvester = (function() {
 		},
 
 		reviews: function(itr, cb) {
-			//if(!reviews_update && !rating_update)
+			/// only scrape if something has changed from the API data
+			//if(!update)
 			//	return next(itr, cb);
 
 			requester.get((url || Analytics.yelp.business.data.url) + '?sort_by=date_desc', function(body) {
@@ -113,13 +110,80 @@ var YelpHarvester = (function() {
 				//console.log(body);
 				//console.log(this);
 
+				var reviewsArray = [];
+
 				$ = cheerio.load(body);
 
 				$('#reviews-other ul li.review').each(function(key, value) {
-					console.log($(value).find('.review_comment').text());
+					//console.log($(value).find('.review_comment').text());
+					
+					//var userData = $(value).find('.reviewTopBar .user-info'),
+					//		userStats = 
+
+//console.log($(value).html());
+					var reviewObject = {
+						id: $(value).attr('id'),
+						user: {
+							name: $(value).find('.media-block .media-avatar .user-passport .user-name a').text().trim(),
+							location: $(value).find('.media-block .media-avatar p.reviewer_info').text().trim(),
+							friend_count: $(value).find('.media-block .media-avatar .user-passport .user-stats .friend-count > span').text().trim(),
+							review_count: $(value).find('.media-block .media-avatar .user-passport .user-stats .review-count > span').text().trim(),
+						},
+
+					}
+
+					//reviewObject.id = $(value).attr('id');
+//console.log(reviewObject);
 				})
 
 				next(itr, cb);
+			})
+		},
+
+		cheer: function(itr, cb) {
+			$ = cheerio.load(yelpPageData.html);
+			$('#reviews-other ul li.review').each(function(key, value) {
+
+				var date = $(value).find('.media-block .media-story .review-meta > meta').attr('content'),
+						elite = $(value).find('.media-block .media-avatar .user-passport .user-stats li.is-elite'),
+						reviewAttributes = {
+							useful: $(value).find('.media-block .media-story .extra-actions .rateReview ul li.useful a span.count').text(),
+							funny: $(value).find('.media-block .media-story .extra-actions .rateReview ul li.funny a span.count').text(),
+							cool: $(value).find('.media-block .media-story .extra-actions .rateReview ul li.cool a span.count').text()
+						};
+				
+				var reviewObject = {
+					id: $(value).attr('id'),
+					date: {
+						standard: date,
+						timestamp: new Date(date).getTime()
+					},
+					user: {
+						name: $(value).find('.media-block .media-avatar .user-passport .user-name a').text().trim(),
+						id: $(value).find('.media-block .media-avatar .user-passport .user-name a').attr('href').toString().trim().replace('http://www.yelp.com/user_details?userid=', ''),
+						location: $(value).find('.media-block .media-avatar p.reviewer_info').text().trim(),
+						photo: $(value).find('.media-block .media-avatar .user-passport .photo-box a img').attr('src').trim(),
+						link: $(value).find('.media-block .media-avatar .user-passport .user-name a').attr('href').trim(),
+						friend_count: $(value).find('.media-block .media-avatar .user-passport .user-stats .friend-count > span').text().trim(),
+						review_count: $(value).find('.media-block .media-avatar .user-passport .user-stats .review-count > span').text().trim(),
+						is_elite: (elite && elite != '') ? true : false
+					},
+					rating: {
+						score: parseFloat($(value).find('.media-block .media-story .review-meta .rating meta').attr('content')),
+					},
+					review: {
+						text: $(value).find('.media-block .media-story .review_comment').text().trim(),
+						useful_count: reviewAttributes.useful != '' ? parseInt(reviewAttributes.useful, 10) : 0,
+						funny_count: reviewAttributes.funny != '' ? parseInt(reviewAttributes.funny, 10) : 0,
+						cool_count: reviewAttributes.cool != '' ? parseInt(reviewAttributes.cool, 10) : 0
+					},
+					links: {
+						owner_comment: $(value).find('.media-block .media-story .extra-actions .externalReviewActions li a.add-owner-comment').attr('href').trim(),
+						to_review: 'http://www.yelp.com/' + $(value).find('.media-block .media-story .extra-actions .externalReviewActions li a.i-orange-link-common-wrap').attr('href').trim()
+					} 
+				}
+
+console.log(reviewObject);
 			})
 		},
 

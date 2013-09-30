@@ -28,7 +28,8 @@
 		"id": "655772512265.apps.googleusercontent.com",
 		"consumerSecret": "764bveaXAiUKD296afTHs7OI",
 		"scope": "https://www.googleapis.com/auth/plus.login",
-		"callback": "http://127.0.0.1:3000/oauth/google"
+		"callback": "http://127.0.0.1:3000/oauth/google",
+		"key": "AIzaSyBzMNY_wEXSSBhJyOF7kY-LtLf2ALgKs9A"
 	},
 	"yelp": {
 		"consumerKey": "ZlOg0OA8NlTYHDlmAkJ1Ig",

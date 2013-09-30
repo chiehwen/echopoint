@@ -46,8 +46,11 @@ Model.Analytics.find(function(err, analytic) {
 
 
 Model.User.findOne({email: "123"}, function(err, user) {
-	console.log(user);
-	//console.log(user.Business[0].Social.facebook.account.data);
+//	console.log(user);
+	//console.log(user.Business[0].Social.google.business);
+	//console.log(user.Business[0].Social.google.auth.oauthAccessToken);
+	//user.Business[0].Social.google.auth.oauthAccessToken = '';
+	//user.Business[0].Social.yelp.id = '';
 	//user.Business[0].Social.facebook = {}
 	//user.Business[0].Social.facebook = {}
 	//user.uid = '';
@@ -89,8 +92,39 @@ Model.User.findOne({email: "123"}, function(err, user) {
 
 //Cron.foursquare.start();
 
+//Cron.google.start();
+
 //Cron.yelp.start();
 
-	// !!!!!
+
+var googlePageData = require('./server/harvesters/tmpPageData/googlePage'); // TEMP
+
+//console.log(googlePageData.json[0][1][11][0][1][5]);
+
+		var reviews = googlePageData.json[0][1][11][0],
+				reviewObjects = [];
+
+		for(var i=0, l=reviews.length; i<l;i++) {
+			reviewObjects.push({
+				user: {
+					name: reviews[i][0][0][1],
+					page: reviews[i][0][0][3][0] || reviews[i][0][0][0],
+					photo: reviews[i][0][1]
+				},
+				review: {
+					complete: reviews[i][3],
+					summary: reviews[i][4]
+				},
+				lang_code: reviews[i][30],
+				relative_time:reviews[i][5],
+				reference: reviews[i][33],
+				//timestamp: Helper.timestamp()
+			});
+		}
+
+//console.log(reviewObjects);
+
+
+	// !!!!0
 
 // END TEMP

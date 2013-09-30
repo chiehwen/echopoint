@@ -3,6 +3,7 @@ var Auth = require('./auth').getInstance(),
 		Helper = require('./helpers'),
 		Notification = require('./notification'),
 		Session = require('./session'),
+		Url = require('url'),
 		Model = Model || Object;
 
 
@@ -175,82 +176,223 @@ var Socket = (function() {
 				yelp: {
 					save: function(data, callback) {
 						if(!passportUserId) 
-							return callback({success: false, error: err || 'user id error!'});
+							return callback(err || 'user id error!');
 						
 						Helper.getUser(passportUserId, function(err, user) {
-							if(err || !user) callback({success: false, error: err || 'no user found!'});
+							if(err || !user) return callback(err || 'no user found!');
 
-							var yelp = Auth.load('yelp'),
-									error = false;
+							var yelp = Auth.load('yelp');
 
-							if(data.id) {
+							if(data.id)
 								checkYelpId(data.id, function(success) {
-									if(success) {
-										user.Business[data.businessIndex].Social.yelp = {id: data.id}
-										user.save(function(err) {
-											if(err) console.log(err);
-										});
-										callback(null, {success: true})
-										return;
-									} else {
-										error = 'Invalid Yelp Business ID'
-							
-									}
+									if(!success)
+										return callback('Invalid Yelp Business ID');
+									user.Business[data.index].Social.yelp = {id: data.id}
+									user.save(function(err) {
+										if(err) console.log(err);
+									});
+									callback(null, {success: true})
 								})
-							} else {
+							else 
+								checkYelpUrl(function(err, found, message) {
+									if(found)
+										return callback(null, {success: true});
 
-								if(data.url) {
-									var yelpId = processYelpUrl(data.url);
-									if(!yelpId) {
-										error = 'Invalid Yelp Business URL'
-									} else {
-										checkYelpId(yelpId, function(success) {
-											if(success) {
-												user.Business[data.businessIndex].Social.yelp = {id: yelpId}
-												user.save(function(err) {
-													if(err) console.log(err);
-												});
-											} else {
-												error = 'Invalid Yelp Business URL'
-											}
-										})
-									}
-								}
-								
-								if(data.name && data.city) {
-									var location = data.state ? (data.city + ', ' + data.state) : data.city;
-
-									yelp.search({term: data.name.trim(), location: location.trim()}, function(err, response) {
-										if(err || response.error) 
-											console.log(err, response);
-										if(response.businesses && response.businesses.length)
-											callback(null, {list: response});
-										else
-											error = 'No businesses were found'
-										return;
+									processYelpSearch(message, function(err, found, msg) {
+										if(err || !found)
+											return callback(err || msg || 'No results we\'re returned');
+										callback(null, found);
 									})
-								} else {
-									error = 'Business name and city are required for search'
-								}
-							}
-							if(error)
-								callback(error);
+								});
+								
+							function checkYelpUrl(cb) {
+								if(!data.url)
+									return cb(null, false)
 
-							function processYelpUrl(url) {
-								var page = decodeURIComponent(url);
-								if (page.indexOf('yelp.com/') == -1)
+								if(!parseYelpUrl(data.url)) 
+									return cb(null, false, 'Invalid Yelp Business URL')
+								
+								checkYelpId(yelpId, function(success) {
+									if(!success) 
+										return cb(null, false, 'Invalid Yelp Business URL')
+
+									user.Business[data.index].Social.yelp = {id: yelpId}
+									user.save(function(err) {
+										if(err) callback(err);
+										cb(null, true, 'Invalid Yelp Business URL')
+									});
+								})
+							}
+
+							function processYelpSearch(msg, cb) {
+								if(!data.name || !data.city)
+									cb(msg || 'No search parameters provided')
+
+								var location = data.state ? (data.city + ', ' + data.state) : data.city;
+
+								yelp.search({term: data.name.trim(), location: location.trim()}, function(err, response) {
+									if(err || response.error)
+										return cb(err || response.error)
+
+									if(response.businesses && response.businesses.length)
+										cb(null, {list: response})
+									else
+										cb('No businesses were found')
+								})
+							}
+
+							function parseYelpUrl(url) {
+								var address = decodeURIComponent(url);
+								if (address.indexOf('yelp.com/') == -1)
 									return false;
 
-								if (page.indexOf('http://') != -1 || page.indexOf('https://') != -1)
-									page = 'http://' + page;
+								if (address.indexOf('http://') != -1 || address.indexOf('https://') != -1)
+									address = 'http://' + address;
 
-								var path = url.parse(page).pathname;
+								var path = Url.parse(address).pathname;
 								return path.substring(path.lastIndexOf('/') + 1);
 							}
 
-							function checkYelpId(id, callback) {
+							function checkYelpId(id, cb) {
 								yelp.business(id, function(err, response) {
-									callback(err||response.error ? false : true);
+									cb(err||response.error ? false : true);
+								})
+							}
+						})
+						
+					}
+				},
+
+
+				google: {
+					save: function(data, callback) {
+						if(!passportUserId) 
+							return callback(err || 'user id error!');
+						
+						Helper.getUser(passportUserId, function(err, user) {
+							if(err || !user) 
+								return callback(err || 'no user found!');
+
+							var g = user.Business[data.index].Social.google;
+
+							if(data.ref)
+								checkGooglePlacesDetails(data.ref, function(err, result) {									
+									if(err)
+										return callback('Invalid Google details reference');
+					console.log(result);
+									//console.log(url.parse(result.url));
+									user.Business[data.index].Social.google.business = {
+										// TODO use url parse to get cid
+										id: parseGoogleUrl(result.url),
+										data: result
+									}
+									user.save(function(err) {
+										if(err) console.log(err);
+									});
+									callback(null, {success: true})
+								})
+							else 
+								checkGoogleUrl(function(err, found, message) {
+									if(found)
+										return callback(null, {success: true});
+
+									processGoogleSearch(message, function(err, found, msg) {
+										if(err || !found)
+											return callback(err || msg || 'No results we\'re returned');
+										callback(null, found);
+									})
+								});
+								
+							function checkGoogleUrl(cb) {
+								if(!data.url)
+									return cb(null, false)
+
+								var googleId = parseGoogleUrl(data.url);
+								if(!googleId) 
+									return cb(null, false, 'Invalid Google Business URL')
+								
+								checkGoogleId(googleId, function(results) {
+									if(!results) 
+										return cb(null, false, 'Invalid Google Business URL')
+
+									user.Business[data.index].Social.google.business = {
+										id: googleId,
+										data: results
+									}
+									user.save(function(err) {
+										if(err) callback(err);
+										cb(null, true, 'Invalid Google Business URL')
+									});
+								})
+							}
+
+							function processGoogleSearch(msg, cb) {
+								if(!data.name || !data.city)
+									cb(msg || 'No search parameters provided')
+
+								var google = Auth.load('google'),
+										location = data.state ? (data.city + ', ' + data.state) : data.city;
+							
+								//google.oauth.setAccessTokens({
+									//access_token: g.auth.oauthAccessToken,
+									//refresh_token: g.auth.oauthRefreshToken
+								//});
+
+								google.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {key: google.client.key, query: data.name.trim() + ' ,' + location.trim(), sensor: false}, function(err, response) {
+									if(err || response.error)
+										return cb(err || response.error)
+
+									if(response.results && response.results.length)
+										cb(null, {list: response.results})
+									else
+										cb('No businesses were found')
+								})
+							}
+
+							function parseGoogleUrl(url) {
+								var address = decodeURIComponent(url);
+								if (address.indexOf('plus.google.com/') == -1)
+									return false;
+
+								if (address.indexOf('http://') != -1 || address.indexOf('https://') != -1)
+									address = 'https://' + address;
+
+								var path = Url.parse(address).pathname.replace('/about', '');
+								return path.substring(path.lastIndexOf('/') + 1);
+							}
+
+							function checkGoogleId(id, cb) {
+								var google = Auth.load('google_discovery');
+
+								google.oauth.setAccessTokens({
+									access_token: g.auth.oauthAccessToken,
+									refresh_token: g.auth.oauthRefreshToken
+								});
+
+								google
+									.discover('plus', 'v1')
+									.execute(function(err, client) {
+										client
+											.plus.people.get({ userId: 'me' })
+											.withAuthClient(google.oauth)
+											.execute(function(err, results) {
+		console.log(results);
+												cb(err||response.error ? false : results);
+											})
+									})
+							}
+
+							function checkGooglePlacesDetails(ref, cb) {
+								var google = Auth.load('google');
+
+								google.get('https://maps.googleapis.com/maps/api/place/details/json', {key: google.client.key, reference: ref, sensor: false, review_summary: true}, function(err, response) {
+									if(err || response.error)
+										return cb(err || response.error)
+console.log(response);
+									if(response.result)
+										cb(null, response.result)
+									else
+										cb('No businesses was found by search reference')
 								})
 							}
 						})
@@ -297,6 +439,10 @@ var Socket = (function() {
 		/*socket.on('createBusiness', function(data, callback) {
 			packet.incoming.business.create(data, callback);
 		});*/
+
+		socket.on('saveGoogle', function(data, callback) {
+			packet.incoming.social.google.save(data, callback);
+		});
 
 		socket.on('saveYelp', function(data, callback) {
 			packet.incoming.social.yelp.save(data, callback);

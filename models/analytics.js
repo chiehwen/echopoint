@@ -247,191 +247,226 @@
         }
       },
 
-          foursquare: {
-            // this is venue updates (such as change of operating hours, new address, new business category, etc)
-            business: {
+      foursquare: {
+        // this is venue updates (such as change of operating hours, new address, new business category, etc)
+        business: {
+          timestamp: {type: Number},
+          data: {}
+        },
+        tracking: {
+          checkins: {
+            history: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+              //new: {type: Number},
+              //foursquare_new: {type: Number},
+              //unique_visitors: {type: Number},
+            }],
+            total: {type: Number},
+            // This stats is added because foursquare reports different total checkin numbers  (I can't explain why) and the stats data is not updated as often as venue data.
+            // We therefore use this variable to determine when stats has updated and then populate new stats data
+            stats: {
+              total: {type: Number}
+            },
+            timestamp: {type: Number}
+          },
+          unique: { // this is the number of unique checkins
+            history: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+            }],
+            total: {type: Number},
+            timestamp: {type: Number}
+          },
+          mayor: {
+            history: [{
+              timestamp: {type: Number},
+              count: {type: Number}, // I think this is the number of times the mayor has checked in since becoming mayor. Not 100% sure
+              user: {}
+            }],
+            //total: {type: Number},
+            user_id: {type: String},
+            timestamp: {type: Number}
+          },
+          rating: {
+            history: [{
+              timestamp: {type: Number},
+              score: {type: Number}
+            }],
+            score: {type: Number},
+            timestamp: {type: Number}
+          },
+          shares: {
+            history: [{
+              timestamp: {type: Number},
+              total: {
+                facebook: {type: Number},
+                twitter: {type: Number}
+              }
+              //new: {
+              //  facebook: {type: Number},
+              //  twitter: {type: Number}
+              //}
+            }],
+            facebook: {type: Number},
+            twitter: {type: Number},
+            timestamp: {type: Number}
+          },
+
+          gender: {
+            history: [{
+              timestamp: {type: Number},
+              total: {
+                male: {type: Number},
+                female: {type: Number}
+              }
+              //new: {
+              //  male: {type: Number},
+              //  female: {type: Number}
+              //}
+            }],
+            male: {type: Number},
+            female: {type: Number},
+            timestamp: {type: Number}    
+          },
+
+          age: {
+            history: [{
               timestamp: {type: Number},
               data: {}
-            },
-            tracking: {
-              checkins: {
-                history: [{
-                  timestamp: {type: Number},
-                  total: {type: Number}
-                  //new: {type: Number},
-                  //foursquare_new: {type: Number},
-                  //unique_visitors: {type: Number},
-                }],
-                total: {type: Number},
-                // This stats is added because foursquare reports different total checkin numbers  (I can't explain why) and the stats data is not updated as often as venue data.
-                // We therefore use this variable to determine when stats has updated and then populate new stats data
-                stats: {
-                  total: {type: Number}
-                },
-                timestamp: {type: Number}
-              },
-              unique: { // this is the number of unique checkins
-                history: [{
-                  timestamp: {type: Number},
-                  total: {type: Number}
-                }],
-                total: {type: Number},
-                timestamp: {type: Number}
-              },
-              mayor: {
-                history: [{
-                  timestamp: {type: Number},
-                  count: {type: Number}, // I think this is the number of times the mayor has checked in since becoming mayor. Not 100% sure
-                  user: {}
-                }],
-                //total: {type: Number},
-                user_id: {type: String},
-                timestamp: {type: Number}
-              },
-              rating: {
-                history: [{
-                  timestamp: {type: Number},
-                  score: {type: Number}
-                }],
-                score: {type: Number},
-                timestamp: {type: Number}
-              },
-              shares: {
-                history: [{
-                  timestamp: {type: Number},
-                  total: {
-                    facebook: {type: Number},
-                    twitter: {type: Number}
-                  }
-                  //new: {
-                  //  facebook: {type: Number},
-                  //  twitter: {type: Number}
-                  //}
-                }],
-                facebook: {type: Number},
-                twitter: {type: Number},
-                timestamp: {type: Number}
-              },
-
-              gender: {
-                history: [{
-                  timestamp: {type: Number},
-                  total: {
-                    male: {type: Number},
-                    female: {type: Number}
-                  }
-                  //new: {
-                  //  male: {type: Number},
-                  //  female: {type: Number}
-                  //}
-                }],
-                male: {type: Number},
-                female: {type: Number},
-                timestamp: {type: Number}    
-              },
-
-              age: {
-                history: [{
-                  timestamp: {type: Number},
-                  data: {}
-                }],
-                timestamp: {type: Number}
-              },
-
-              hourBreakdown: {
-                history: [{
-                  timestamp: {type: Number},
-                  data: {}
-                }],
-                timestamp: {type: Number}
-              },
-
-              visitsHistogram: {
-                history: [{
-                  timestamp: {type: Number},
-                  data: {}
-                }],
-                timestamp: {type: Number}
-              },
-
-              // just plugin data from JSON response, also cool because it often contains emails and facebook pages for businesses owners to thank patrons
-              topVisitors: {},
-
-              recentVisitors: {},
-
-              // these don't rely on checkins
-              likes: {
-                history: [{
-                  timestamp: {type: Number},
-                  total: {type: Number}
-                  //new: {type: Number}
-                }],
-                total: {type: Number},
-                timestamp: {type: Number}
-              },
-
-              tips: {
-                history: [{
-                  timestamp: {type: Number},
-                  total: {type: Number}
-                  //new: {type: Number}
-                }],
-                total: {type: Number},
-                timestamp: {type: Number}
-              },
-
-              photos: {
-                history: [{
-                  timestamp: {type: Number},
-                  total: {type: Number}
-                  //new: {type: Number}
-                }],
-                total: {type: Number},
-                timestamp: {type: Number}
-              }
-            },
+            }],
+            timestamp: {type: Number}
           },
 
-          yelp: {
-            business: {
+          hourBreakdown: {
+            history: [{
               timestamp: {type: Number},
-              data: {
-                id: {type: String},
-                name: {type: String},
-                is_claimed: {type: Boolean},
-                is_closed: {type: Boolean},
-                image_url: {type: String},
-                url: {type: String},
-                phone: {type: String},
-                snippet: {type: String},
-                location: {
-                  address: {type: String},
-                  city: {type: String},
-                  state: {type: String},
-                  postal: {type: String}
-                }
-              }
-            },
-            tracking: {
-              reviews: {
-                history: [{
-                  timestamp: {type: Number},
-                  total: {type: Number}
-                  //data: {}
-                }],
-                total: {type: Number},
-                timestamp: {type: Number}
-              },
-              rating: {
-                history: [{
-                  timestamp: {type: Number},
-                  score: {type: Number}
-                }],
-                score: {type: Number},
-                timestamp: {type: Number}
-              }
-            }
+              data: {}
+            }],
+            timestamp: {type: Number}
           },
+
+          visitsHistogram: {
+            history: [{
+              timestamp: {type: Number},
+              data: {}
+            }],
+            timestamp: {type: Number}
+          },
+
+          // just plugin data from JSON response, also cool because it often contains emails and facebook pages for businesses owners to thank patrons
+          topVisitors: {},
+
+          recentVisitors: {},
+
+          // these don't rely on checkins
+          likes: {
+            history: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+              //new: {type: Number}
+            }],
+            total: {type: Number},
+            timestamp: {type: Number}
+          },
+
+          tips: {
+            history: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+              //new: {type: Number}
+            }],
+            total: {type: Number},
+            timestamp: {type: Number}
+          },
+
+          photos: {
+            history: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+              //new: {type: Number}
+            }],
+            total: {type: Number},
+            timestamp: {type: Number}
+          }
+        },
+      },
+
+      google: {
+        business: {
+          timestamp: {type: Number},
+          data: {
+            /*id: {type: String},
+            name: {type: String},
+            formatted_address: {type: String},
+            formatted_phone_number: {type: String},
+            international_phone_number: {type: String},
+            url: {type: String},
+            website: {type: String}*/
+          }
+        },
+        tracking: {
+          reviews: {
+            history: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+              //data: {}
+            }],
+            total: {type: Number},
+            timestamp: {type: Number}
+          },
+          rating: {
+            history: [{
+              timestamp: {type: Number},
+              score: {type: Number}
+            }],
+            score: {type: Number},
+            timestamp: {type: Number}
+          }
+        },
+        reviews: {}
+      },
+
+      yelp: {
+        business: {
+          timestamp: {type: Number},
+          data: {
+            id: {type: String},
+            name: {type: String},
+            is_claimed: {type: Boolean},
+            is_closed: {type: Boolean},
+            image_url: {type: String},
+            url: {type: String},
+            phone: {type: String},
+            snippet: {type: String},
+            location: {
+              address: {type: String},
+              city: {type: String},
+              state: {type: String},
+              postal: {type: String}
+            }
+          }
+        },
+        tracking: {
+          reviews: {
+            history: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+              //data: {}
+            }],
+            total: {type: Number},
+            timestamp: {type: Number}
+          },
+          rating: {
+            history: [{
+              timestamp: {type: Number},
+              score: {type: Number}
+            }],
+            score: {type: Number},
+            timestamp: {type: Number}
+          }
+        }
+      },
 
           instagram: {
             id: {type: String},

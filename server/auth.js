@@ -10,16 +10,17 @@ var fs = require('fs'),
 		Model = Model || Object,
 		LocalStrategy = require('passport-local').Strategy,
 		Api = require('socialite'),
-		Facebook = null, //require('fbgraph'),
+		Facebook = null,
 		Twitter = null,
-		Foursquare = null, // require('node-foursquare'),
+		Foursquare = null,
 		Google = null,
-		GoogleDiscovery = null,
+		GoogleDiscoveryApi = null,
 		Instagram = null,
 		Yelp = null,
 		Bitly = null,
 		nTwitter = require('ntwitter'),
-		GoogleOAuth = require('googleapis').OAuth2Client,
+		//GoogleOAuth = require('googleapis').OAuth2Client,
+		googleapis = require('googleapis'),
 		YelpApi = require('yelp');
 
 var Auth = (function() {
@@ -107,6 +108,7 @@ var Auth = (function() {
 					Google = new Api('google');
 					Google.client = {
 						id: Config.google.id,
+						key: Config.google.key,
 						consumerSecret: Config.google.consumerSecret,
 						redirect: Config.google.callback
 					}
@@ -116,20 +118,23 @@ var Auth = (function() {
 			},
 
 			google_discovery: function() {
-				if(!GoogleDiscovery) {
-					GoogleDiscovery = new GoogleOAuth(
+				if(!GoogleDiscoveryApi) {
+					GoogleDiscoveryApi = googleapis;
+					var GoogleOAuth = GoogleDiscoveryApi.OAuth2Client
+					GoogleDiscoveryApi.oauth = new GoogleOAuth(
 						Config.google.id,
 						Config.google.consumerSecret,
 						Config.google.callback 
 					);
-				}
 
-				GoogleDiscovery.setAccessTokens = function(tokens) {
-					this.credentials = tokens;
-					return this;
-				}
+					GoogleDiscoveryApi.oauth.setAccessTokens = function(tokens) {
+						this.credentials = tokens;
+						return this;
+					}
 
-				return GoogleDiscovery
+					GoogleDiscoveryApi.apiKey = Config.google.key;
+				}
+				return GoogleDiscoveryApi
 			},
 
 			yelp: function() {
