@@ -403,14 +403,23 @@
             international_phone_number: {type: String},
             url: {type: String},
             website: {type: String}*/
+          },
+          page: {
+            local: {
+              id: {type: String}, // used to get reviews from google
+              data:{}
+            },
+            plus: {
+              id: {type: Number}
+            }
           }
         },
         tracking: {
           reviews: {
             history: [{
               timestamp: {type: Number},
-              total: {type: Number}
-              //data: {}
+              total: {type: Number},
+              star_breakdown: {}
             }],
             total: {type: Number},
             timestamp: {type: Number}
@@ -424,14 +433,21 @@
             timestamp: {type: Number}
           }
         },
-        reviews: {}
+        reviews: {
+          active: [],
+          retracted: []
+          //TODO: Need to add a removed flag variable 
+          // to show removed reviews, put removed in this object
+          // so review count will still work
+        }
       },
 
       yelp: {
         business: {
           timestamp: {type: Number},
+          id: {type: String}, // this is the true Yelp ID
           data: {
-            id: {type: String},
+            id: {type: String}, // this is the URL name id
             name: {type: String},
             is_claimed: {type: Boolean},
             is_closed: {type: Boolean},
@@ -465,8 +481,25 @@
             score: {type: Number},
             timestamp: {type: Number}
           }
+        },
+        reviews: {
+          active: [],
+          filtered: {
+            count: {type: Number} // link to this is http://www.yelp.com/filtered_reviews/YELP_ID (true id, not name id)
+            // link: ie. http://www.yelp.com/filtered_reviews/ZQWnC09DjrNoaAECARIaJg
+          },
+        },
+
+        // yelp is a strange, unyielding beast. we need to keep track of several variables for best practice scraping/harvesting and to stagger HTTP requests
+        harvest: {
+          initial: {type: Boolean, default: true},
+          timestamp: {type: Number, default: 0},
+          pagination: {
+            multiplier : {type: Number, default: 40}
+          }
         }
       },
+
 
           instagram: {
             id: {type: String},

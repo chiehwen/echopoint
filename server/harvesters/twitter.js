@@ -129,14 +129,23 @@ var TwitterHarvester = (function() {
 				if(!response.length)
 					return next(itr, cb);
 
+				var usersArray = [],
+						timestamp = Helper.timestamp();
+
 				update = true;
 				for(var i = 0, l = response.length; i < l; i++) {
-					response[i].timestamp = Helper.timestamp();
-					Analytics.twitter.mentions.list.push(response[i]);
+					response[i].timestamp = timestamp;
+					Analytics.twitter.mentions.list.splice(i, 0, response[i]);
+					usersArray.push({id: parseInt(response[i].user.id_str, 10)})
 				}
 
 				Analytics.twitter.mentions.since_id = response[0].id_str;
-				Analytics.twitter.mentions.timestamp = Helper.timestamp();
+				Analytics.twitter.mentions.timestamp = timestamp;
+
+				// insert user ids into Twitter user model for cron lookup 
+				Model.Twitter.collection.insert(usersArray, function(err, save) {
+					// TODO: put any errors in logs
+				})
 				
 				console.log('saved user @ mentions...');
 
@@ -172,7 +181,8 @@ var TwitterHarvester = (function() {
 									total: count // parseInt(response[x].retweet_count, 10),
 								}],
 								timestamp: timestamp,
-								total: count
+								total: count,
+								updated: true
 							}
 							Analytics.markModified('twitter.timeline.tweets');
 						} else if(Analytics.twitter.timeline.tweets[y].retweets.total != count) {
@@ -181,7 +191,9 @@ var TwitterHarvester = (function() {
 								timestamp: timestamp,
 								total: count
 							});
+							Analytics.twitter.timeline.tweets[y].retweets.timestamp = timestamp;
 							Analytics.twitter.timeline.tweets[y].retweets.total = count;
+							Analytics.twitter.timeline.tweets[y].retweets.updated = (count <= 1200) ? true : false; // for rate limiting purposes, we no longer update over 1200 retweets
 						}
 						break;
 
@@ -193,6 +205,72 @@ var TwitterHarvester = (function() {
 				
 				next(itr, cb);
 			})
+		},
+
+		// load retweeters list for tweets
+		retweeters: function(itr, cb, tweet) {
+
+			if(iteration > 11)
+				return next(itr, cb);
+
+			var tweet = tweet || false;
+
+			if(!tweet)
+				for(var i=0, l=Analytics.twitter.timeline.tweets.length; i < l; i++)
+					if(Analytics.twitter.timeline.tweets[i].retweets && Analytics.twitter.timeline.tweets[i].retweets.update) {
+						// If the tweet already has 1200+ ids stored then don't bother updating because of twitter rate limits
+						if(Analytics.twitter.timeline.tweets[i].retweets.retweeters && Analytics.twitter.timeline.tweets[i].retweets.retweeters.length > 1199) {
+							Analytics.twitter.timeline.tweets[i].retweets.update = false,
+							update = true;
+							continue;
+						}
+
+						tweet = {
+							id: Analytics.twitter.timeline.tweets[i].id,
+							index: i,
+							cursor: -1,
+							iteration: 0
+						}
+						Analytics.twitter.timeline.tweets[i].retweets.retweeters = [];
+						break;
+					}
+
+
+			if(tweet) {
+				twitter.get('/statuses/retweeters/ids.json', {id: tweet.id, cursor: tweet.cursor, stringify_ids: true}, function(err, response) {
+					if(err || response.errors)
+						console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
+					
+					if(!response.ids || !response.ids.length)
+						return next(itr, cb);
+
+					var usersArray = [],
+							timestamp = Helper.timestamp(),
+							localUpdate = false;
+
+					for(var i=0, l=response.ids.length; i<l; i++) {
+						Analytics.twitter.timeline.tweets[tweet.index].retweets.retweeters.push(response.ids[i])
+						usersArray.push({id: parseInt(response.ids[i], 10)})
+					}
+
+					// insert user ids into Twitter user model for cron lookup 
+					Model.Twitter.collection.insert(usersArray, function(err, save) {
+						// TODO: put any errors in logs
+					})
+
+					if(response.next_cursor > 0) {
+						tweet.iteration++;
+						tweet.cursor = response.next_cursor_str;
+						return Harvest.retweeters(itr, cb, tweet);
+					}
+
+					if(localUpdate)
+						console.log('saved/updated retweeters id list to tweet...');
+					
+					Analytics.markModified('twitter.timeline.tweets');
+					next(itr, cb);
+				})
+			}
 		},
 
 		// direct message tracking
@@ -426,6 +504,10 @@ return;
 				Analytics.twitter.tracking.followers.newest.true_new = users.new;
 			
 			})
+		},
+
+		user_data: function(itr, cb) {
+
 		}
 
 	} // End Harvest

@@ -18,6 +18,7 @@ var fs = require('fs'),
 		Instagram = null,
 		Yelp = null,
 		Bitly = null,
+		Klout = null,
 		nTwitter = require('ntwitter'),
 		//GoogleOAuth = require('googleapis').OAuth2Client,
 		googleapis = require('googleapis'),
@@ -81,7 +82,7 @@ var Auth = (function() {
 						access_token_secret: oauthAccessTokenSecret ? oauthAccessTokenSecret : 'faux',
 					}
 
-					Twitter = new nTwitter(credentials);
+					Twitter = new nTwitter(credentials)
 
 					/*Twitter.oauth = new oauth.OAuth(
 						Config.twitter.requestUrl,
@@ -144,7 +145,7 @@ var Auth = (function() {
 						consumer_secret: Config.yelp.consumerSecret,
 						token: Config.yelp.token,
 						token_secret: Config.yelp.tokenSecret
-					});
+					})
 				}
 
 				return Yelp;
@@ -158,7 +159,7 @@ var Auth = (function() {
 						secret: Config.foursquare.secret,
 						redirect: Config.foursquare.callback,
 						verified: Config.foursquare.verified // this is the foursquare verfied date (https://developer.foursquare.com/overview/versioning)
-					};
+					}
 				}
 
 				return Foursquare;	
@@ -171,7 +172,7 @@ var Auth = (function() {
 						id: Config.instagram.id,
 						secret: Config.instagram.secret,
 						redirect: Config.instagram.callback
-					};
+					}
 				}
 
 				return Instagram;
@@ -184,10 +185,23 @@ var Auth = (function() {
 						id: Config.bitly.id,
 						secret: Config.bitly.secret,
 						redirect: Config.bitly.callback
-					};
+					}
 				}
 
 				return Bitly;
+			},
+
+			klout: function() {
+				if(!Klout) {
+					Klout = new Api('klout');
+					Klout.client = {
+						key: Config.klout.key,
+						secret: Config.klout.secret,
+						redirect: Config.klout.callback
+					}
+				}
+
+				return Klout;
 			}
 		};
 

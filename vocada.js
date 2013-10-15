@@ -39,15 +39,67 @@ Model.Analytics.find(function(err, analytic) {
 				//followers.twitter = [];followers.save(function(err){})
 			})
 
-		//console.log(user.facebook.tracking);
+		//console.log(user.google.reviews.active[10]);
+//		console.log(user.twitter.mentions.list[0])
+		for(var i=0,l=user.twitter.timeline.tweets.length; i<l;i++) {
+			if(user.twitter.timeline.tweets[i].retweets)
+				if(user.twitter.timeline.tweets[i].retweets.retweeters) {
+					console.log(user.twitter.timeline.tweets[i])
+					break;
+				}
+		}
+		/*var hol = 0;
+		for(var i=0,l=user.google.reviews.active.length; i<l;i++) {
+			//if(user.google.reviews.active[i].user.id)
+				//console.log(user.google.reviews.active[i])
+			hol += user.google.reviews.active[i].review.rating;
+		}*/
+
+		//console.log((hol / (user.google.reviews.active.length * 1000)).toFixed(2));
+
+		//user.google.reviews.active = [];
+		//user.save(function(err,res){});
+
 	});
 });
 
 
+//Model.Connections.remove(function(err){if(err) throw err})
+//var connections = new Model.Connections({});
+//connections.save(function(err,com) {});
+Model.Klout.find(function(err, con) {
+	con.forEach(function(use) {
+		//use.push({id: 1922})
+		//use.save(function(er,s) {})
+	//console.log(use)
+//console.log(use.Klout.id("525880ff3d9ae1ad50000023"));
+	});
+});
+
+
+//Model.Klout.remove(function(err){if(err) throw err});
+//var newAnalytics = new Model.Klout({
+							//id: i,
+							//handle: 'scottrcarlson'
+							//name: req.body.name
+						//});
+for(var i=0, l=3; i<l; i++) {
+
+//Model.Klout.collection.insert([{id: i}, {id: i+100}], function(er, s) {console.log(er, s);})
+}
+
+//newAnalytics.push()
+//newAnalytics.save(function(err, sav) {})
+
+//, {Klout: {$elemMatch: {handle: {$exists: true}}}},
+	Model.Klout.find({handle: {$exists: false}}, /*{$elemMatch: {Klout: {$exists: true}}},*/ function(err, connection) {
+	console.log(connection); //connection.Klout[0]
+})
 
 Model.User.findOne({email: "123"}, function(err, user) {
 //	console.log(user);
-	//console.log(user.Business[0].Social.google.business);
+	//console.log(user.Business[0]);
+
 	//console.log(user.Business[0].Social.google.auth.oauthAccessToken);
 	//user.Business[0].Social.google.auth.oauthAccessToken = '';
 	//user.Business[0].Social.yelp.id = '';
@@ -88,7 +140,9 @@ Model.User.findOne({email: "123"}, function(err, user) {
 //Cron.facebook.feed.start();
 //Cron.facebook.insights.start();
 
-//Cron.twitter.start();
+//Cron.twitter.timeline.start();
+//Cron.twitter.retweeters.start();
+//Cron.twitter.users.start();
 
 //Cron.foursquare.start();
 

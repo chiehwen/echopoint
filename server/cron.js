@@ -110,47 +110,130 @@ var CronJobs = {
 	},
 
 
-	twitter: new Cron({
-		cronTime: '45 * * * * *',
-		onTick: function() {
-			Model.User.find(function(err, users) {
-				users.forEach(function(user) {
-					user.Business.forEach(function(business, index) {
+	twitter: {
+		timeline: new Cron({
+			cronTime: '45 * * * * *',
+			onTick: function() {
+				Model.User.find(function(err, users) {
+					users.forEach(function(user) {
+						user.Business.forEach(function(business, index) {
 
-					var t = business.Social.twitter;
-					if (
-							t.auth.oauthAccessToken
-							&& t.auth.oauthAccessTokenSecret
-							&& t.id
-							&& t.auth.oauthAccessToken != ''
-							&& t.auth.oauthAccessTokenSecret != ''
-							&& t.id != ''
-						) {
+						var t = business.Social.twitter;
+						if (
+								t.auth.oauthAccessToken
+								&& t.auth.oauthAccessTokenSecret
+								&& t.id
+								&& t.auth.oauthAccessToken != ''
+								&& t.auth.oauthAccessTokenSecret != ''
+								&& t.id != ''
+							) {
 
-							Harvester.twitter.getData({
-								methods: ['credentials', 'timeline', 'mentions', 'retweets', 'dm', 'favorited'],
-								user: user._id,
-								analytics_id: business.Analytics.id,
-								index: index,
-								network_id: t.id,
-								auth_token: t.auth.oauthAccessToken,
-								token_secret: t.auth.oauthAccessTokenSecret
-							}, function(err) {
-								console.log('Twitter callbacks complete');							
-								//res.json({success: true,connected: true,account: true,data: {businesses: null},url: null});
-							});
-	
-						} else {
-							console.log('no credenttials or credentials problem');
-						} // End of twitter credentials if statement
+								Harvester.twitter.getData({
+									methods: ['credentials', 'timeline', 'mentions', 'retweets', 'dm', 'favorited'],
+									user: user._id,
+									analytics_id: business.Analytics.id,
+									index: index,
+									network_id: t.id,
+									auth_token: t.auth.oauthAccessToken,
+									token_secret: t.auth.oauthAccessTokenSecret
+								}, function(err) {
+									console.log('Twitter callbacks complete');							
+									//res.json({success: true,connected: true,account: true,data: {businesses: null},url: null});
+								});
+		
+							} else {
+								console.log('no credenttials or credentials problem');
+							} // End of twitter credentials if statement
 
-					}); // End of business forEach
-				}); // End of users forEach
-			}); // End of Model users array
-		}, // End of onTick Cron function
+						}); // End of business forEach
+					}); // End of users forEach
+				}); // End of Model users array
+			}, // End of onTick Cron function
 
-		start: false
-	}),
+			start: false
+		}),
+
+		retweeters: new Cron({
+			cronTime: '0 */15 * * * *',
+			onTick: function() {
+				Model.User.find(function(err, users) {
+					users.forEach(function(user) {
+						user.Business.forEach(function(business, index) {
+
+						var t = business.Social.twitter;
+						if (
+								t.auth.oauthAccessToken
+								&& t.auth.oauthAccessTokenSecret
+								&& t.id
+								&& t.auth.oauthAccessToken != ''
+								&& t.auth.oauthAccessTokenSecret != ''
+								&& t.id != ''
+							) {
+
+								Harvester.twitter.getData({
+									methods: ['retweeters'],
+									user: user._id,
+									analytics_id: business.Analytics.id,
+									index: index,
+									network_id: t.id,
+									auth_token: t.auth.oauthAccessToken,
+									token_secret: t.auth.oauthAccessTokenSecret
+								}, function(err) {
+									console.log('Twitter retweeters updates');							
+									//res.json({success: true,connected: true,account: true,data: {businesses: null},url: null});
+								});
+		
+							} else {
+								console.log('no credenttials or credentials problem');
+							} // End of twitter credentials if statement
+
+						}); // End of business forEach
+					}); // End of users forEach
+				}); // End of Model users array
+			}, // End of onTick Cron function
+
+			start: false
+		}),
+
+		users: new Cron({
+			cronTime: '45 * * * * *',
+			onTick: function() {
+				Model.Connections.find({"Twitter.id" : {$gt: 0}}, {Twitter: {$elemMatch: {id: {$gt: 0}, handle: {$exists: false} }}}, function(err, connection) {
+	console.log(connection); //connection.Klout[0]
+})
+
+						var t = business.Social.twitter;
+						if (
+								t.auth.oauthAccessToken
+								&& t.auth.oauthAccessTokenSecret
+								&& t.id
+								&& t.auth.oauthAccessToken != ''
+								&& t.auth.oauthAccessTokenSecret != ''
+								&& t.id != ''
+							) {
+
+								Harvester.twitter.getData({
+									methods: ['user_data'],
+									user: user._id,
+									analytics_id: business.Analytics.id,
+									index: index,
+									network_id: t.id,
+									auth_token: t.auth.oauthAccessToken,
+									token_secret: t.auth.oauthAccessTokenSecret
+								}, function(err) {
+									console.log('Twitter callbacks complete');							
+									//res.json({success: true,connected: true,account: true,data: {businesses: null},url: null});
+								});
+		
+							} else {
+								console.log('no credenttials or credentials problem');
+							} // End of twitter credentials if statement
+
+			}, // End of onTick Cron function
+
+			start: false
+		}) 
+	},
 
 
 
@@ -191,7 +274,7 @@ var CronJobs = {
 	}),
 
 	google: new Cron({
-		cronTime: '30 * * * * *',
+		cronTime: '0 * * * * *',
 		onTick: function() {
 
 			Model.User.find(function(err, users) {
@@ -206,7 +289,7 @@ var CronJobs = {
 						if (g.id && g.id != '' && g.data.reference && g.data.reference != '') {
 
 							Harvester.google.getData({
-								methods: ['cheer'],
+								methods: ['reviews'],
 								user: users[i]._id,
 								analytics_id: business.Analytics.id,
 								index: index,
@@ -229,7 +312,7 @@ var CronJobs = {
 
 
 	yelp: new Cron({
-		cronTime: '40 * * * * *',
+		cronTime: '35 * * * * *',
 		onTick: function() {
 
 			Model.User.find(function(err, users) {
@@ -245,7 +328,7 @@ var CronJobs = {
 						if (y.id && y.id != '') {
 
 								Harvester.yelp.getData({
-									methods: ['cheer'],
+									methods: ['reviews'],
 									user: users[i]._id,
 									analytics_id: business.Analytics.id,
 									index: index,

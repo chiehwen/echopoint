@@ -50,5 +50,10 @@
 		"callback": "http://127.0.0.1:3000/oauth/instagram",
 		"dialog": "https://api.instagram.com/oauth/authorize/",
 		"scope": "basic comments relationships likes"		
+	},
+	"klout": {
+		"key": "8f27znf5xgf3fhupeb4dvj5r",
+		"secret": "4FVu95bxdx",
+		"callback": "http://127.0.0.1:3000/oauth/klout"
 	}
 }

@@ -9,7 +9,7 @@ var Model = Model || Object,
 var OauthController = {
 
 	facebook: {
-		get: function(req, res) {
+		get: function(req, res) {		
 			Helper.getUser(req.session.passport.user, function(err, user) {
  					if (err || !user) return next(err);	
 
