@@ -1,12 +1,15 @@
 /**
- * Facebook Users Caching Model
+ * Twitter Users Caching Model
  */
 
-var FacebookModel = {
+var TwitterModel = {
 
   Architecture: {
     schema: {
       id: {type: Number, required: true, index: true, unique: true, dropDups: true},
+      screen_name: {type: String},
+      timestamp: {type: Number},
+      remove: {type: Boolean, default: false},
       data: {}
     },
 
@@ -38,4 +41,4 @@ var FacebookModel = {
 };
 
 
-module.exports = FacebookModel;
+module.exports = TwitterModel;

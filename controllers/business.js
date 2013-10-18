@@ -26,40 +26,28 @@ var BusinessController = {
 
  						var generated = Helper.timestamp(true) + Helper.randomInt(10000, 99999);
 
- 						var newBusiness = {
+ 						var business = {
  							name: req.body.name,
  							Analytics: { 
  								id: generated
  							}
  						};
 
- 						var newAnalytics = new Model.Analytics({
-							id: generated,
-							//name: req.body.name
+ 						var analytics = new Model.Analytics({
+							id: generated
 						});
 
- 						// this is used because the complete followers list might be 
- 						// quite large and is only needed every 24 hours. no need to
- 						// include it in the base Analytics that we call often
-						var newFollowers = new Model.Followers({
-							id: generated,
-							//name: req.body.name
-						});
- 						
- 						user.Business.push(newBusiness);
+ 						user.Business.push(business);
 
  						user.save(function(err, response){
  							if (err) return next(err);
 	 			
-							newAnalytics.save(function(err){
-								if (err) return next(err);
-
-								newFollowers.save(function(err){
-									if (err) return next(err);
-									res.redirect('/business/select');
-								})
+							analytics.save(function(err){
+								if (err) 
+									return next(err);
+								
+								res.redirect('/business/select');
 							});
- 							
  						});
 
  					}	else {

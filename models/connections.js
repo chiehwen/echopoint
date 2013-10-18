@@ -6,11 +6,34 @@ var ConnectionsModel = {
 
   Architecture: {
     schema: {
-      Twitter: [],
-      Facebook: [],
-      //google:  [],
-      Klout: [{
-        id: {type: Number, required: true, index: true, unique: true, dropDups: true},
+      twitter_id: {type: String, required: false, sparse: true, unique: true},
+      //twitter_loaded: {type: Boolean, default: false},
+
+      facebook_id: {type: String, required: false, sparse: true, unique: true},
+      //facebook_loaded: {type: Boolean, default: false},
+
+      google_id: {type: String, required: false, sparse: true, unique: true},
+      //google_loaded: {type: Boolean, default: false},
+
+      foursquare_id: {type: String, required: false, sparse: true, unique: true},
+      //foursquare_loaded: {type: Boolean, default: false},
+
+      instagram_id: {type: String, required: false, sparse: true, unique: true},
+
+      klout_id: {type: String, required: false, sparse: true, unique: true},
+      //klout_success: {type: Boolean, default: false},
+      //klout_attempt_timestamp: {type: Number, default: 0},
+      //klout_loaded: {type: Boolean, default: false},
+
+      
+      Twitter: {},
+      Facebook: {},
+      Google:  {},
+      Foursquare: {},
+      Klout: {
+        // below is the Klout data schema, we don't pre-populate because we will be using $exists to discover if data has been loaded (during queries)
+        /*
+        id: {type: String},
         handle: {type: String},
         user: {
           twitter: {
@@ -47,7 +70,14 @@ var ConnectionsModel = {
             influencees: {type: Number}
           },
         }
-      }]
+        */
+      },
+      meta: {
+        klout: {
+          success: {type: Boolean, default: false},
+          attempt_timestamp: {type: Number, default: 0}
+        }
+      },
     },
 
     options: {
@@ -76,6 +106,5 @@ var ConnectionsModel = {
     virtuals: {}
   }
 };
-
 
 module.exports = ConnectionsModel;

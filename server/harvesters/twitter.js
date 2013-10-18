@@ -8,6 +8,7 @@ var TwitterHarvester = (function() {
 			twitter,
 			data,
 			update = false,
+			connections = [],
 			next = function(i, cb) {
 				var i = i+1;
 				if(data.methods[i])
@@ -39,6 +40,7 @@ var TwitterHarvester = (function() {
 					})
 					Analytics.twitter.tracking.friends.total = credentials.friends_count;
 					Analytics.twitter.tracking.friends.timestamp = timestamp;
+					Analytics.twitter.tracking.friends.update = true;
 				}
 
 				// followers
@@ -50,6 +52,7 @@ var TwitterHarvester = (function() {
 					})
 					Analytics.twitter.tracking.followers.total = credentials.followers_count;
 					Analytics.twitter.tracking.followers.timestamp = timestamp;
+					Analytics.twitter.tracking.followers.update = true;
 				}
 
 				// favorited_count
@@ -129,23 +132,23 @@ var TwitterHarvester = (function() {
 				if(!response.length)
 					return next(itr, cb);
 
-				var usersArray = [],
+				var //usersArray = [],
 						timestamp = Helper.timestamp();
 
 				update = true;
 				for(var i = 0, l = response.length; i < l; i++) {
 					response[i].timestamp = timestamp;
 					Analytics.twitter.mentions.list.splice(i, 0, response[i]);
-					usersArray.push({id: parseInt(response[i].user.id_str, 10)})
+					connections.push({twitter_id: parseInt(response[i].user.id_str, 10)})
 				}
 
 				Analytics.twitter.mentions.since_id = response[0].id_str;
 				Analytics.twitter.mentions.timestamp = timestamp;
 
 				// insert user ids into Twitter user model for cron lookup 
-				Model.Twitter.collection.insert(usersArray, function(err, save) {
+				//Model.Connections.collection.insert(usersArray, {continueOnError: true}, function(err, save) {
 					// TODO: put any errors in logs
-				})
+				//})
 				
 				console.log('saved user @ mentions...');
 
@@ -208,7 +211,7 @@ var TwitterHarvester = (function() {
 		},
 
 		// load retweeters list for tweets
-		retweeters: function(itr, cb, tweet) {
+		retweeters: function(itr, cb, tweet, iteration) {
 
 			if(iteration > 11)
 				return next(itr, cb);
@@ -236,7 +239,7 @@ var TwitterHarvester = (function() {
 					}
 
 
-			if(tweet) {
+			if(tweet)
 				twitter.get('/statuses/retweeters/ids.json', {id: tweet.id, cursor: tweet.cursor, stringify_ids: true}, function(err, response) {
 					if(err || response.errors)
 						console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
@@ -244,24 +247,24 @@ var TwitterHarvester = (function() {
 					if(!response.ids || !response.ids.length)
 						return next(itr, cb);
 
-					var usersArray = [],
+					var //usersArray = [],
 							timestamp = Helper.timestamp(),
 							localUpdate = false;
 
 					for(var i=0, l=response.ids.length; i<l; i++) {
 						Analytics.twitter.timeline.tweets[tweet.index].retweets.retweeters.push(response.ids[i])
-						usersArray.push({id: parseInt(response.ids[i], 10)})
+						connections.push({twitter_id: parseInt(response.ids[i], 10)})
 					}
 
 					// insert user ids into Twitter user model for cron lookup 
-					Model.Twitter.collection.insert(usersArray, function(err, save) {
+					//Model.Connections.collection.insert(usersArray, {continueOnError: true}, function(err, save) {
 						// TODO: put any errors in logs
-					})
+					//})
 
 					if(response.next_cursor > 0) {
 						tweet.iteration++;
 						tweet.cursor = response.next_cursor_str;
-						return Harvest.retweeters(itr, cb, tweet);
+						return Harvest.retweeters(itr, cb, tweet, tweet.iteration);
 					}
 
 					if(localUpdate)
@@ -270,7 +273,192 @@ var TwitterHarvester = (function() {
 					Analytics.markModified('twitter.timeline.tweets');
 					next(itr, cb);
 				})
-			}
+			else
+				next(itr, cb);
+		},
+
+		friends: function(itr, cb, params, iteration) {
+			//if(!Analytics.twitter.tracking.friends.update)
+				//return next(itr, cb);
+
+			// If the twitter id count is close to 30,000 then no update is needed 
+			// NVM: we might use this to mark and display new friends/followers so always keep up-to-date
+			/*if(Analytics.twitter.friends.length > 28000) {
+				Analytics.twitter.tracking.friends.update = false;
+				update = true;
+				return next(itr, cb);
+			} */
+
+			var params = params || false,
+					iteration = iteration || 0;
+
+			if(!params)
+				params = {cursor: -1}
+
+			if(params)
+				twitter.get('/friends/ids.json', {user_id: data.network_id, cursor: params.cursor, stringify_ids: true, count: 5000}, function(err, response) {
+					if(err || response.errors)
+						console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
+
+					if(!response.ids || !response.ids.length)
+						return next(itr, cb);
+
+					var //usersArray = [],
+							timestamp = Helper.timestamp(),
+							localUpdate = false;
+
+					if(!iteration) {
+						Analytics.twitter.friends.previous = Analytics.twitter.friends.active;
+						Analytics.twitter.friends.active = [];
+					}
+
+					for(var i=0, l=response.ids.length; i<l; i++) {
+						Analytics.twitter.friends.active.push(response.ids[i])
+						connections.push({twitter_id: parseInt(response.ids[i], 10)})
+					}
+
+					// insert user ids into Twitter user model for cron lookup 
+					/*Model.Connections.collection.insert(usersArray, {continueOnError: true}, function(err, save) {
+						// TODO: put any errors in logs
+						console.log('error!: ', err);
+						console.log('save: ', save);
+					})*/
+
+					if(response.next_cursor > 0 && iteration < 5) {
+						iteration++;
+						params.cursor = parseInt(response.next_cursor_str, 10);
+						return Harvest.friends(itr, cb, params, iteration);
+					}
+
+
+					var initialMatch = false,
+							droppedArray = [];
+
+					previousUsersLoop:
+					for(var x=0, l=Analytics.twitter.friends.previous.length; x<l; x++) {
+						for(var y=0, len=Analytics.twitter.friends.active.length; y<len; y++) {
+							if(Analytics.twitter.friends.previous[x] == Analytics.twitter.friends.active[y]) {
+								if(initialMatch === false)
+									initialMatch = y;
+								continue previousUsersLoop;
+							}
+						}
+
+						if(initialMatch && Analytics.twitter.tracking.friends.total < 28000) {
+							Analytics.twitter.friends.dropped.push(Analytics.twitter.friends.previous[x])
+						}
+					}
+
+					if(initialMatch)
+						for(var i=0, l=initialMatch; i<l; i++)
+							Analytics.twitter.friends.new.push(Analytics.twitter.friends.active[i])
+
+					update = localUpdate = true;
+					Analytics.twitter.friends.previous = [],
+					Analytics.twitter.tracking.friends.update = false;
+
+					if(localUpdate)
+						console.log('saved/updated users friends id list...');
+
+					Analytics.markModified('twitter.friends.active', 'twitter.friends.previous', 'twitter.friends.new', 'twitter.friends.dropped')
+					//Analytics.markModified('twitter.friends.previous')
+					//Analytics.markModified('twitter.friends.new')
+					//Analytics.markModified('twitter.friends.dropped')
+					next(itr, cb);
+				})
+
+		},
+
+		followers: function(itr, cb, params, iteration) {
+			//if(!Analytics.twitter.tracking.followers.update)
+				//return next(itr, cb);
+
+			// If the twitter id count is close to 30,000 then no update is needed 
+			// NVM: we might use this to mark and display new friends/followers so always keep up-to-date
+			/*if(Analytics.twitter.friends.length > 28000) {
+				Analytics.twitter.tracking.friends.update = false;
+				update = true;
+				return next(itr, cb);
+			} */
+
+			var params = params || false,
+					iteration = iteration || 0;
+
+			if(!params)
+				params = {cursor: -1}
+
+			if(params)
+				twitter.get('/followers/ids.json', {user_id: data.network_id, cursor: params.cursor, stringify_ids: true, count: 5000}, function(err, response) {
+					if(err || response.errors)
+						console.log(err); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
+
+					if(!response.ids || !response.ids.length)
+						return next(itr, cb);
+
+					var //usersArray = [],
+							//timestamp = Helper.timestamp(),
+							localUpdate = false;
+
+					if(!iteration) {
+						Analytics.twitter.followers.previous = Analytics.twitter.followers.active;
+						Analytics.twitter.followers.active = [];
+					}
+
+					for(var i=0, l=response.ids.length; i<l; i++) {
+						Analytics.twitter.followers.active.push(response.ids[i])
+						connections.push({twitter_id: parseInt(response.ids[i], 10)})
+					}
+
+					// insert user ids into Twitter user model for cron lookup 
+					/*Model.Connections.collection.update(usersArray, {continueOnError: true}, function(err, save) {
+						// TODO: put any errors in logs
+						console.log('error!: ', err);
+						console.log('save: ', save);
+					})*/
+
+					if(response.next_cursor > 0 && iteration < 5) {
+						iteration++;
+						params.cursor = parseInt(response.next_cursor_str, 10);
+						return Harvest.followers(itr, cb, params, iteration);
+					}
+
+
+					var initialMatch = false,
+							droppedArray = [];
+
+					previousUsersLoop:
+					for(var x=0, l=Analytics.twitter.followers.previous.length; x<l; x++) {
+						for(var y=0, len=Analytics.twitter.followers.active.length; y<len; y++) {
+							if(Analytics.twitter.followers.previous[x] == Analytics.twitter.followers.active[y]) {
+								if(initialMatch === false)
+									initialMatch = y;
+								continue previousUsersLoop;
+							}
+						}
+
+						if(initialMatch && Analytics.twitter.tracking.followers.total < 28000) {
+							Analytics.twitter.followers.dropped.push(Analytics.twitter.followers.previous[x])
+						}
+					}
+
+					if(initialMatch)
+						for(var i=0, l=initialMatch; i<l; i++)
+							Analytics.twitter.followers.new.push(Analytics.twitter.followers.active[i])
+
+					update = localUpdate = true;
+					Analytics.twitter.followers.previous = [],
+					Analytics.twitter.tracking.followers.update = false;
+
+					if(localUpdate)
+						console.log('saved/updated users followers id list...');
+
+					Analytics.markModified('twitter.followers.active','twitter.followers.previous', 'twitter.followers.new', 'twitter.followers.dropped')
+					//Analytics.markModified('twitter.followers.previous')
+					//Analytics.markModified('twitter.followers.new')
+					//Analytics.markModified('twitter.followers.dropped')
+					next(itr, cb);
+				})
+
 		},
 
 		// direct message tracking
@@ -282,16 +470,25 @@ var TwitterHarvester = (function() {
 				if(!response.length)
 					return next(itr, cb);
 
+				var //usersArray = [],
+						timestamp = Helper.timestamp();
+
 				update = true;
 				for(var i = 0, l = response.length; i < l; i++) {
-					response[i].timestamp = Helper.timestamp();
+					response[i].timestamp = timestamp;
 					response[i].recipient = null;
-					Analytics.twitter.messages.list.push(response[i]);
+					Analytics.twitter.messages.list.push(response[i])
+					connections.push({twitter_id: parseInt(response[i].sender.id_str, 10)})
 				}
 
 				Analytics.twitter.messages.since_id = response[0].id_str;
-				Analytics.twitter.messages.timestamp = Helper.timestamp();
+				Analytics.twitter.messages.timestamp = timestamp;
 				
+				// insert user ids into Twitter user model for cron lookup 
+				//Model.Connections.collection.insert(usersArray, {continueOnError: true}, function(err, save) {
+					// TODO: put any errors in logs
+				//})
+
 				console.log('saved new direct messages...');
 
 				next(itr, cb);
@@ -521,14 +718,23 @@ return;
 			Model.Analytics.findOne({id: data.analytics_id}, function(err, analytics) {
 				Analytics = analytics;
 				Harvest[data.methods[0]](0, function() {
-					if(update)
+					
+					if(update) {
+						if(connections.length) {
+							Model.Connections.collection.insert(connections, {safe: true, continueOnError: true}, function(err, save) {
+								// TODO: put any errors in logs
+								console.log('error!: ', err);
+								console.log('save: ', save);
+							})
+						}
 						Analytics.save(function(err,r){
 							// TODO: handle err 
 							//console.log('saved all twitter analytic data from multiple methods');
 							callback(null);
 						})
-					else
+					} else {
 						callback(null);//callback({err: 'error occured'});
+					}
 				});
 			})
 		}

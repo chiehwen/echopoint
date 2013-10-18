@@ -78,8 +78,8 @@ var Auth = (function() {
 					var credentials = {
 						consumer_key: Config.twitter.consumerKey,
 						consumer_secret: Config.twitter.consumerSecret,
-						access_token_key: oauthAccessToken ? oauthAccessToken : 'faux',
-						access_token_secret: oauthAccessTokenSecret ? oauthAccessTokenSecret : 'faux',
+						access_token_key: oauthAccessToken ? oauthAccessToken : null,
+						access_token_secret: oauthAccessTokenSecret ? oauthAccessTokenSecret : null,
 					}
 
 					Twitter = new nTwitter(credentials)
@@ -97,6 +97,11 @@ var Auth = (function() {
 					Twitter.setAccessTokens = function(oauthAccessToken, oauthAccessTokenSecret) {
 						this.options.access_token_key = oauthAccessToken;
 						this.options.access_token_secret = oauthAccessTokenSecret;
+						return this;
+					}
+
+					Twitter.setBearerToken = function(oauthBearerToken) {
+						this.options.headers.Authorization = 'Bearer ' + oauthBearerToken;
 						return this;
 					}
 				}

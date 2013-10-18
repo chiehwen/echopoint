@@ -11,6 +11,7 @@ var Auth = require('./auth').getInstance(),
 			foursquare: require('./harvesters/foursquare'),
 			google: require('./harvesters/google'),
 			yelp: require('./harvesters/yelp'),
+			klout: require('./harvesters/klout')
 		};
 
 var CronJobs = {
@@ -153,8 +154,8 @@ var CronJobs = {
 			start: false
 		}),
 
-		retweeters: new Cron({
-			cronTime: '0 */15 * * * *',
+		connections: new Cron({
+			cronTime: '0 * * * * *', //'0 */15 * * * *',
 			onTick: function() {
 				Model.User.find(function(err, users) {
 					users.forEach(function(user) {
@@ -171,7 +172,7 @@ var CronJobs = {
 							) {
 
 								Harvester.twitter.getData({
-									methods: ['retweeters'],
+									methods: ['retweeters', 'friends', 'followers'],
 									user: user._id,
 									analytics_id: business.Analytics.id,
 									index: index,
@@ -179,7 +180,7 @@ var CronJobs = {
 									auth_token: t.auth.oauthAccessToken,
 									token_secret: t.auth.oauthAccessTokenSecret
 								}, function(err) {
-									console.log('Twitter retweeters updates');							
+									console.log('Twitter connections updates');							
 									//res.json({success: true,connected: true,account: true,data: {businesses: null},url: null});
 								});
 		
@@ -198,36 +199,72 @@ var CronJobs = {
 		users: new Cron({
 			cronTime: '45 * * * * *',
 			onTick: function() {
-				Model.Connections.find({"Twitter.id" : {$gt: 0}}, {Twitter: {$elemMatch: {id: {$gt: 0}, handle: {$exists: false} }}}, function(err, connection) {
-	console.log(connection); //connection.Klout[0]
-})
+				Model.Connections.find({twitter_id: {$exists: true}, Twitter: {$exists: false}}, null, {limit: 100}, function(err, users) {
+	//console.log(users); //connection.Klout[0]
+					if(!users.length)
+						return;
 
-						var t = business.Social.twitter;
-						if (
+					// TODO: move bearer token to a config file and not hard coded, terrible practice
+					var twitter = Auth.load('twitter').setBearerToken('AAAAAAAAAAAAAAAAAAAAANbqSAAAAAAAVGJ9wYukomG62Mj6t42iXrhpaNs%3DbKsXPBLlB6RwMZZI8NTwmVHwW9w3N4XtRRHjn0VNTU'),
+							timestamp = Helper.timestamp(),
+							twitterUsersCsv = '';
+
+					for(var i=0, l=users.length; i<l; i++)
+						twitterUsersCsv += users[i].twitter_id + ',';
+	
+					twitter.get('/users/lookup.json', {user_id: twitterUsersCsv.slice(0,-1) /* slice: remove last character from string */, include_entities: false}, function(err, response) {
+						
+						if(err || response.errors)
+							console.log(err)
+
+						for(var x=0, l=users.length; x<l; x++)
+							for(var y=0, len=response.length; y<len; y++)
+								if(parseInt(response[y].id_str, 10) == users[x].twitter_id) {
+									response[y].status = null;
+									users[x].Twitter = {
+										id: users[x].twitter_id,
+										screen_name: response[y].screen_name,
+										timestamp: timestamp,
+										data: response[y]
+									}
+									users[x].save(function(err, save) {
+										if(err)
+											console.log(err)
+
+										console.log('Twitter Save: ', err, save);
+									})
+									break;
+								}
+						
+					})
+				})
+				
+						//var t = business.Social.twitter;
+						/*if (
 								t.auth.oauthAccessToken
 								&& t.auth.oauthAccessTokenSecret
 								&& t.id
 								&& t.auth.oauthAccessToken != ''
 								&& t.auth.oauthAccessTokenSecret != ''
 								&& t.id != ''
-							) {
+							) {*/
 
-								Harvester.twitter.getData({
+								/*Harvester.twitter.getData({
 									methods: ['user_data'],
-									user: user._id,
-									analytics_id: business.Analytics.id,
-									index: index,
-									network_id: t.id,
-									auth_token: t.auth.oauthAccessToken,
-									token_secret: t.auth.oauthAccessTokenSecret
+									//user: user._id,
+									//analytics_id: business.Analytics.id,
+									//index: index,
+									//network_id: t.id,
+									bearer_token: 'AAAAAAAAAAAAAAAAAAAAANbqSAAAAAAAVGJ9wYukomG62Mj6t42iXrhpaNs%3DbKsXPBLlB6RwMZZI8NTwmVHwW9w3N4XtRRHjn0VNTU'
+									//token_secret: QrMG1wV0Pn3SmuNyXoHaDCdbCK3CsEIm0pDoSg3U
 								}, function(err) {
 									console.log('Twitter callbacks complete');							
 									//res.json({success: true,connected: true,account: true,data: {businesses: null},url: null});
-								});
+								});*/
 		
-							} else {
-								console.log('no credenttials or credentials problem');
-							} // End of twitter credentials if statement
+							//} else {
+							//	console.log('no credenttials or credentials problem');
+							//} // End of twitter credentials if statement
 
 			}, // End of onTick Cron function
 
@@ -346,7 +383,29 @@ var CronJobs = {
 		},
 
 		start: false
+	}),
+
+	klout: new Cron({
+		cronTime: '45 * * * * *',
+		onTick: function() {
+
+			Harvester.klout.getData({
+				methods: [/*'id', 'score', 'update'*/ 'test'],
+				//user: users[i]._id,
+				//analytics_id: business.Analytics.id,
+				//index: index,
+				//network_id: y.id
+			}, function(err) {
+				console.log('Klout callbacks complete');							
+				//res.json({success: true,connected: true,account: true,data: {businesses: null},url: null});
+			});
+
+
+		},
+
+		start: false
 	})
+
 } // end cronjobs namespace
 
 module.exports = CronJobs;

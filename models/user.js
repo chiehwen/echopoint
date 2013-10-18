@@ -32,7 +32,7 @@ var UserModel = {
 
             account: {
               id: {type: String},
-              oauthAccessToken: {type: String},
+              oauthAccessToken: {type: String}, 
               data: {}
             },
 
@@ -42,7 +42,7 @@ var UserModel = {
             }
           },
           twitter: {
-            id: {type: Number},
+            id: {type: String},
             username: {type: String},
             auth: {  
               oauthAccessToken: {type: String},

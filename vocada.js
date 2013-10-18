@@ -39,12 +39,19 @@ Model.Analytics.find(function(err, analytic) {
 				//followers.twitter = [];followers.save(function(err){})
 			})
 
-		//console.log(user.google.reviews.active[10]);
+			//console.log(user.twitter.tracking)
+		//console.log('new array: ', user.twitter.friends.new.length);
+		//console.log('new array: ', user.twitter.followers.new.length);
+
+		//user.twitter.friends.active = [];
+		//user.twitter.friends.new = [];
+		//user.save(function(err,res){});
+
 //		console.log(user.twitter.mentions.list[0])
 		for(var i=0,l=user.twitter.timeline.tweets.length; i<l;i++) {
 			if(user.twitter.timeline.tweets[i].retweets)
 				if(user.twitter.timeline.tweets[i].retweets.retweeters) {
-					console.log(user.twitter.timeline.tweets[i])
+					//console.log(user.twitter.timeline.tweets[i])
 					break;
 				}
 		}
@@ -63,19 +70,76 @@ Model.Analytics.find(function(err, analytic) {
 	});
 });
 
+var request = require('request');
+var OAuth2 = require('oauth').OAuth2; 
+console.log(new Buffer('xvz1evFS4wEEPTGEFPHBog:L8qq9PZyRg6ieKGEKhZolGC0vJWLw8iEJ88DRdyOg').toString('base64'))
+/*request.post('https://api.twitter.com/1.1/oauth2/token', 
+	{ 
+		//form: {
+		//	"f.req": '["' + Analytics.google.business.page.local.id + '",null,[null,null,[[28,' + pagination + ',' + count + ',null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{}],[30,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{}]]],[null,null,false,true,3,true]]', 
+		//	at: 'AObGSAiOtoNHKnLAO-PWRdWXOASNwMAl4g:1379699578795'
+		//},
+		headers: {
+			'Authorization': 'Basic ' + new Buffer('ymPfLoyL7T53O5vPRByMA:QrMG1wV0Pn3SmuNyXoHaDCdbCK3CsEIm0pDoSg3U').toString('base64'),
+			//'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+		},
+		form: {
+			grant_type: "client_credentials"
+		}
+		//body: "grant_type=client_credentials".toString()
+	}, 
+	function(err, ressy) {
+		console.log(err, ressy.body)
+	}
+)*/
+var oauth2 = new OAuth2('ymPfLoyL7T53O5vPRByMA', 'QrMG1wV0Pn3SmuNyXoHaDCdbCK3CsEIm0pDoSg3U', 'https://api.twitter.com/', null, 'oauth2/token', null);
 
-//Model.Connections.remove(function(err){if(err) throw err})
+oauth2.getOAuthAccessToken('', {
+    'grant_type': 'client_credentials'
+  }, function (e, access_token) {
+      console.log(e, access_token); //string that we can use to authenticate request
+});
+
+//Model.Twitter.remove(function(err){if(err) throw err})
 //var connections = new Model.Connections({});
 //connections.save(function(err,com) {});
-Model.Klout.find(function(err, con) {
-	con.forEach(function(use) {
+Model.Connections.find(function(err, con) {
+	console.log('Twitter document length: ', con.length)
+	//con.forEach(function(use) {
 		//use.push({id: 1922})
 		//use.save(function(er,s) {})
 	//console.log(use)
 //console.log(use.Klout.id("525880ff3d9ae1ad50000023"));
-	});
+	//});
 });
 
+var Helper = require('./server/helpers');
+Model.Connections.findOne(
+{
+	klout_id: {$exists: false}, 
+	$or: [
+		{twitter_id: {$exists: true}}, 
+		{google_id: {$exists: true}}
+	], 
+	$or: [
+		{'meta.klout.attempt_timestamp': {$exists: false}}, 
+		{
+			$and: [
+				{'meta.klout.success': {$exists: false}}, 
+				{'meta.klout.attempt_timestamp': {$lt: Helper.timestamp() - 1296000 /* 1296000 = 15 days */} }
+			]
+		}
+	] 
+}, function(err, con) {
+	//console.log(err, con);
+	console.log('Twitter OR query: ', con)
+	//con.forEach(function(use) {
+		//use.push({id: 1922})
+		//use.save(function(er,s) {})
+	//console.log(use)
+//console.log(use.Klout.id("525880ff3d9ae1ad50000023"));
+	//});
+});
 
 //Model.Klout.remove(function(err){if(err) throw err});
 //var newAnalytics = new Model.Klout({
@@ -83,18 +147,35 @@ Model.Klout.find(function(err, con) {
 							//handle: 'scottrcarlson'
 							//name: req.body.name
 						//});
-for(var i=0, l=3; i<l; i++) {
+
 
 //Model.Klout.collection.insert([{id: i}, {id: i+100}], function(er, s) {console.log(er, s);})
-}
 
+
+//Model.Connections.remove(function(err){if(err) throw err});
+
+//Model.Connections.collection.insert(usersArray, {continueOnError: true}, function(er, s) {console.log(er, s);})
+//30399302251492452
+Model.Connections.findOne({klout_id: 30399302251492452}, function(err, dat) {
+ console.log(dat)
+})
+
+Model.Connections.find({twitter_id: {$exists: true}, Twitter: {$exists: false}}, null, {/*limit: 10*/}, function(err, users) {
+console.log('len: ', users.length, users[0])
+//con.klout_id = 123;
+//con.Klout = {id: 123};
+//con.save(function(err,s){});
+	//con.forEach(function(use) {
+		//console.log('twit: ', use)
+	//})
+})
 //newAnalytics.push()
 //newAnalytics.save(function(err, sav) {})
 
 //, {Klout: {$elemMatch: {handle: {$exists: true}}}},
-	Model.Klout.find({handle: {$exists: false}}, /*{$elemMatch: {Klout: {$exists: true}}},*/ function(err, connection) {
-	console.log(connection); //connection.Klout[0]
-})
+	//Model.Klout.find({handle: {$exists: false}}, /*{$elemMatch: {Klout: {$exists: true}}},*/ function(err, connection) {
+	//console.log(connection); //connection.Klout[0]
+//})
 
 Model.User.findOne({email: "123"}, function(err, user) {
 //	console.log(user);
@@ -141,7 +222,7 @@ Model.User.findOne({email: "123"}, function(err, user) {
 //Cron.facebook.insights.start();
 
 //Cron.twitter.timeline.start();
-//Cron.twitter.retweeters.start();
+//Cron.twitter.connections.start();
 //Cron.twitter.users.start();
 
 //Cron.foursquare.start();
@@ -149,6 +230,8 @@ Model.User.findOne({email: "123"}, function(err, user) {
 //Cron.google.start();
 
 //Cron.yelp.start();
+
+Cron.klout.start();
 
 
 var googlePageData = require('./server/harvesters/tmpPageData/googlePage'); // TEMP

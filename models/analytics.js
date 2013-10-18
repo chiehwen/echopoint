@@ -99,7 +99,7 @@
 
       twitter: {
         account: {
-          id: {type: Number},
+          id: {type: String},
           timestamp: {type: Number},
           data: {}
         },
@@ -143,6 +143,22 @@
             */
           ]
         },
+
+        // Put gathering friends and followers id (from '/friends/ids' and '/followers/ids' endpoints respectively) for now
+        // the data is large and not particularly needed unless we just want t large pool of twitter user data
+        friends: {
+          active: [],
+          dropped: [],
+          new: [],
+          previous: [] // this is a temp array used for comparing new active to old to discover dropped/deleted users
+        },
+        followers: {
+          active: [],
+          dropped: [],
+          new: [],
+          previous: [] // this is a temp array used for comparing new active to old to discover dropped/deleted users
+        },
+        
         search: {
           since_id: {type: String, default: '1'}, // this is time of last check used with the .since parameter of facebook graph
           timestamp: {type: Number},
@@ -175,7 +191,8 @@
               total: {type: Number}
             }],
             timestamp: {type: Number},
-            total: {type: Number}
+            total: {type: Number},
+            update: {type: Boolean, default: true}
           },
           followers: {
             history: [{
@@ -184,6 +201,7 @@
             }],
             timestamp: {type: Number},
             total: {type: Number},
+            update: {type: Boolean, default: true},
             newest: {
               timestamp: {type: Number},
               true_new: {type: Number}, // this is the number [0 -20] of the actual new followers since last login (within the list variable)
@@ -410,7 +428,7 @@
               data:{}
             },
             plus: {
-              id: {type: Number}
+              id: {type: String}
             }
           }
         },
