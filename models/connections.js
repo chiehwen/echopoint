@@ -30,6 +30,7 @@ var ConnectionsModel = {
       Facebook: {},
       Google:  {},
       Foursquare: {},
+      Instagram: {},
       Klout: {
         // below is the Klout data schema, we don't pre-populate because we will be using $exists to discover if data has been loaded (during queries)
         /*
@@ -75,7 +76,22 @@ var ConnectionsModel = {
       meta: {
         klout: {
           success: {type: Boolean, default: false},
-          attempt_timestamp: {type: Number, default: 0}
+          attempt_timestamp: {type: Number, default: 0},
+          discovery: {
+            attempt_timestamp: {type: Number, default: 0},
+            twitter: {
+              success: {type: Boolean, default: false},
+              //attempt_timestamp: {type: Number, default: 0}
+            },
+            google: {
+              success: {type: Boolean, default: false},
+              //attempt_timestamp: {type: Number, default: 0}
+            },
+            instagram: {
+              success: {type: Boolean, default: false},
+              //attempt_timestamp: {type: Number, default: 0}
+            },
+          }
         }
       },
     },

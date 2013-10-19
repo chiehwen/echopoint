@@ -34,11 +34,6 @@ Model.Analytics.find(function(err, analytic) {
 			//if(user.facebook.tracking.posts[x].insights)
 		//console.log(user.twitter.tracking.followers.dropped);
 
-			Model.Followers.findOne({id: user.id},function(err, followers) {
-				//console.log(followers);
-				//followers.twitter = [];followers.save(function(err){})
-			})
-
 			//console.log(user.twitter.tracking)
 		//console.log('new array: ', user.twitter.friends.new.length);
 		//console.log('new array: ', user.twitter.followers.new.length);
