@@ -7,24 +7,22 @@ var ConnectionsModel = {
   Architecture: {
     schema: {
       twitter_id: {type: String, required: false, sparse: true, unique: true},
-      //twitter_loaded: {type: Boolean, default: false},
+      twitter_handle: {type: String},
 
       facebook_id: {type: String, required: false, sparse: true, unique: true},
-      //facebook_loaded: {type: Boolean, default: false},
 
       google_id: {type: String, required: false, sparse: true, unique: true},
-      //google_loaded: {type: Boolean, default: false},
 
       foursquare_id: {type: String, required: false, sparse: true, unique: true},
-      //foursquare_loaded: {type: Boolean, default: false},
 
       instagram_id: {type: String, required: false, sparse: true, unique: true},
 
       klout_id: {type: String, required: false, sparse: true, unique: true},
-      //klout_success: {type: Boolean, default: false},
-      //klout_attempt_timestamp: {type: Number, default: 0},
-      //klout_loaded: {type: Boolean, default: false},
 
+      peerindex_id: {type: String, required: false, sparse: true, unique: true},
+
+      email: {type: String},
+      phone: {type: String},
       
       Twitter: {},
       Facebook: {},
@@ -92,8 +90,12 @@ var ConnectionsModel = {
               //attempt_timestamp: {type: Number, default: 0}
             },
           }
+        },
+
+        foursquare: {
+          business_id: {type: String}
         }
-      },
+      }
     },
 
     options: {

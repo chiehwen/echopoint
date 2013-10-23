@@ -74,3 +74,41 @@ exports.isPath = function(currentUrl, bypassPaths, bypassPathKeywords) {
 exports.randomInt = function(min, max) {
 	return Math.floor(Math.random() * (max - min + 1) + min);
 }
+
+exports.connectionMatch = function(data, callback) {
+	Model.Connections.findOne({
+		foursquare_id: {$exists: false},
+		$or: [
+			{
+				facebook_id: {$exists: true},
+				facebook_id: data.facebook_id
+			},
+			{
+				twitter_handle: {$exists: true},
+				twitter_handle: data.twitter_handle
+			},
+			{
+				twitter_id: {$exists: true},
+				$or: [
+					{
+						Twitter: {$exists: true},
+						'Twitter.screen_name': data.twitter_handle
+					},
+					{
+						Klout: {$exists: true},
+						'Klout.handle': data.twitter_handle
+					}
+				]
+			}
+		]
+	}, 
+	function(err, match) {
+		if(err)
+			return callback(err);
+
+		if(!match)
+			return callback(null, false)
+
+		callback(null, match)
+	})
+}

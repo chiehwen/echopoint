@@ -16,6 +16,7 @@ var FoursquareHarvester = (function() {
 			response,
 			data,
 			update = false,
+			connections = [],
 			next = function(i, cb) {
 				var i = i+1;
 				if(data.methods[i])
@@ -72,6 +73,7 @@ var FoursquareHarvester = (function() {
 		},
 
 		// up-to-date venue data 
+		// call every 1 hour?
 		venue: function(itr, cb) {
 
 			foursquare.get('venues/' + data.network_id, {v: foursquare.client.verified}, function(err, response) {
@@ -92,6 +94,7 @@ var FoursquareHarvester = (function() {
 						timestamp: timestamp,
 						data: {name: venue.name,contact: venue.contact,location: venue.location,categories: venue.categories,tags: venue.tags}
 					}
+					Analytics.markModified('foursquare.business')
 
 					Model.User.findById(data.user, function(err, user) {
 						user.Business[data.index].Social.foursquare.venue.data = Analytics.foursquare.business.data;
@@ -168,6 +171,7 @@ var FoursquareHarvester = (function() {
 					})
 					Analytics.foursquare.tracking.tips.total = venue.tips.count;
 					Analytics.foursquare.tracking.tips.timestamp = timestamp;
+					Analytics.foursquare.tracking.tips.update = true;
 				}
 
 				if(venue.photos.count != Analytics.foursquare.tracking.photos.total) {
@@ -189,6 +193,7 @@ var FoursquareHarvester = (function() {
 		},
 
 		// daily stats data
+		// updated every 24 hours
 		stats: function(itr, cb) {
 			foursquare.get('venues/' + data.network_id + '/stats', {v: foursquare.client.verified}, function(err, response) {
 				if(err || response.meta.code != 200)
@@ -196,7 +201,7 @@ var FoursquareHarvester = (function() {
 
 				var stats = response.response.stats,
 						timestamp = Helper.timestamp();
-		
+	
 				// If it seems odd that we are comparing two different stat fields it's because foursquare doesn't report the checkins in the venue call the same as the checkins count in the stats call.
 				// Further more, the stats section gets updated far less often it seems while the venue call is nearly instant. I have no idea why this is
 				if(stats.totalCheckins == Analytics.foursquare.tracking.checkins.stats.total)
@@ -205,7 +210,7 @@ var FoursquareHarvester = (function() {
 				update = true;
 
 				// Update unique visitors
-				if(stats.uniqueVisitors != stats.Analytics.foursquare.tracking.unique.total) {
+				if(stats.uniqueVisitors != Analytics.foursquare.tracking.unique.total) {
 					Analytics.foursquare.tracking.unique.history.push({
 						timestamp: timestamp,
 						total: stats.uniqueVisitors
@@ -264,10 +269,63 @@ var FoursquareHarvester = (function() {
 				Analytics.foursquare.tracking.visitsHistogram.timestamp = timestamp;
 
 				// Update top visitors list
-				Analytics.foursquare.tracking.topVisitors = stats.topVisitors;
+//Analytics.foursquare.tracking.topVisitors = stats.topVisitors;
+//console.log('topVisitors: ', stats.topVisitors);
+				
+				var newTopVisitors = [];
+				topVisitorsLoop:
+				for(var x=0,l=stats.topVisitors.length;x<l;x++) {			
+					if(Analytics.foursquare.tracking.topVisitors.history[0])
+						for(var y=0,len=Analytics.foursquare.tracking.topVisitors.history[0].list.length;y<len;y++) {
+							if(stats.topVisitors[x].user.id == Analytics.foursquare.tracking.topVisitors.history[0].list[y].id && stats.topVisitors[x].checkins == Analytics.foursquare.tracking.topVisitors.history[0].list[y].checkins)
+								continue topVisitorsLoop;
+
+							if(stats.topVisitors[x].user.id == Analytics.foursquare.tracking.topVisitors.history[0].list[y].id && stats.topVisitors[x].checkins != Analytics.foursquare.tracking.topVisitors.history[0].list[y].checkins) {
+								Analytics.foursquare.tracking.topVisitors.history[0].list[y].checkins = stats.topVisitors[x].checkins;
+								continue topVisitorsLoop;
+							}
+						}
+					
+					connections.push({foursquare_id: stats.topVisitors[x].user.id, meta:{ foursquare: {business_id: Analytics.id}}})
+					newTopVisitors.push({id: stats.topVisitors[x].user.id, checkins: stats.topVisitors[x].checkins})			
+				}
+
+				if(newTopVisitors.length) {
+					Analytics.foursquare.tracking.topVisitors.history.unshift({
+						timestamp: timestamp,
+						list: newTopVisitors
+					});
+					Analytics.foursquare.tracking.topVisitors.timestamp = timestamp;
+				}
 
 				// Update recent visitors list
-				Analytics.foursquare.tracking.recentVisitors = stats.recentVisitors;
+//Analytics.foursquare.tracking.recentVisitors = stats.recentVisitors;
+//console.log('recentVisitors', stats.recentVisitors);
+				
+				var recentVisitorsChange = false,
+						newRecentVisitors = [];
+
+				for(var x=0,l=stats.recentVisitors.length;x<l;x++) {
+
+					newRecentVisitors.push({id: stats.recentVisitors[x].user.id, checkins: stats.recentVisitors[x].checkins})
+
+					if(Analytics.foursquare.tracking.recentVisitors.history[0])
+						if(stats.recentVisitors[x].id != Analytics.foursquare.tracking.recentVisitors.history[0].list[x].id) {
+							recentVisitorsChange = true;
+							connections.push({foursquare_id: stats.recentVisitors[x].user.id, meta:{ foursquare: {business_id: Analytics.id}}})
+							continue;
+						}
+					else
+						recentVisitorsChange = true;
+				}
+
+				if(recentVisitorsChange) {
+					Analytics.foursquare.tracking.recentVisitors.history.unshift({
+						timestamp: timestamp,
+						list: newRecentVisitors
+					});
+					Analytics.foursquare.tracking.recentVisitors.timestamp = timestamp;
+				}
 
 				console.log('saved foursquare stats...');
 
@@ -275,9 +333,192 @@ var FoursquareHarvester = (function() {
 			})
 		},
 
+		// call every 1 hour, used to gather user data
 		here_now: function(itr, cb) {
 
 		},
+
+		// call every 10 seconds
+		tips: function(itr, cb, offset) {
+
+				if(!data.Model)
+					return next(itr, cb, 'No Model was specified!')
+
+				var business = data.Model,
+						offset = offset || 0,
+						count = 500,
+						timestamp = Helper.timestamp();
+
+				foursquare.get('venues/' + business.foursquare.business.data.id + '/tips', {v: foursquare.client.verified, limit: count, offset: offset, client_id: foursquare.client.id, client_secret: foursquare.client.secret}, function(err, response) {
+					if(err || response.meta.code != 200)
+						return next(itr, cb, err)
+
+					if(response.response.tips.count < 1 || !response.response.tips.items.length)
+						return next(itr, cb)
+
+					if(!offset && business.foursquare.tips.active.length) {
+						business.foursquare.tips.previous = business.foursquare.tips.active;
+						business.foursquare.tips.active = [];
+					}
+
+					for(var i=0,l=response.response.tips.items.length;i<l;i++) {
+						business.foursquare.tips.active.push(response.response.tips.items[i])
+						connections.push({foursquare_id: response.response.tips.items[i].id, meta:{ foursquare: {business_id: business.id}}})
+					}
+
+					if(response.response.tips.count > offset+count) {
+						return Harvester.tips(itr, cb, offset+count)
+					} else {
+
+						for(var x=0, l=business.foursquare.tips.previous.length; x<l; x++) {
+							for(var y=0, len=business.foursquare.tips.active.length; y<len; y++)
+							 if(business.foursquare.tips.previous[x].id == business.foursquare.tips.active[y].id)
+							 	break;
+							
+							business.foursquare.tips.previous[x].retractedTimestamp = timestamp;
+							business.foursquare.tips.retracted.push(business.foursquare.tips.previous[x])
+						}
+
+						business.foursquare.tracking.tips.update = false
+						business.foursquare.tips.previous = []
+						next(itr, cb)
+					}
+				})
+
+		},
+
+		// call every 10 seconds
+		user: function(itr, cb) {
+
+			Model.Connections.findOne({
+				foursquare_id: {$exists: true},
+				Foursquare: {$exists: false},
+				'meta.foursquare.business_id': {$exists: true}
+			}, function(err, connection) {
+				if(err)
+					return next(itr, cb, err);
+
+				if(!connection)
+					return next(itr, cb);
+
+				Model.User.find({Business: {$exists: true}}, {'Business': {$elemMatch: {'Analytics.id': 1379383358779} }}, function(err, user) {
+					if(err)
+						return next(itr, cb, err);
+
+					if(!user || !user.Business.length)
+						return next(itr, cb);
+
+					var f = user.Business.Social.foursquare;
+					if (!f.auth.oauthAccessToken || !f.venue.id || f.auth.oauthAccessToken === '' || f.venue.id === '') 
+						return next(itr, cb, 'User foursquare credentials missing or removed');
+					
+					foursquare.setAccessToken(f.auth.oauthAccessToken)
+
+					foursquare.get('users/' + connection.foursquare_id, {v: foursquare.client.verified}, function(err, response) {
+						if(err || response.meta.code != 200)
+							return next(itr, cb, err);
+
+						if(response.response.user.contact.facebook || response.response.user.contact.twitter) {
+							Model.Connections.findOne({ $or: 
+								[
+									{
+										facebook_id: {$exists: true},
+										facebook_id: response.response.user.contact.facebook
+									},
+									{
+										twitter_handle: {$exists: true},
+										twitter_handle: response.response.user.contact.twitter
+									},
+									{
+										twitter_id: {$exists: true},
+										$or: [
+											{
+												Twitter: {$exists: true},
+												'Twitter.screen_name': response.response.user.contact.twitter
+											},
+											{
+												Klout: {$exists: true},
+												'Klout.handle': response.response.user.contact.twitter
+											}
+										]
+									}
+								]}, function(err, match) {
+									if(err)
+										return next(itr, cb, err);
+
+									if(!match) {
+										connection.Foursquare = response.response.user;
+										connection.save(function(err, save) {
+
+										})
+										return next(itr, cb)
+									}
+
+									match.foursquare_id = connection.foursquare_id;
+									match.meta.foursquare.business_id = connection.meta.foursquare.business_id;
+									match.Foursquare = response.response.user;
+
+									connection.remove(function(err, removal) {
+
+									})
+
+									if(response.response.user.contact.facebook && !match.facebook_id)
+										match.facebook_id = response.response.user.contact.facebook
+									if(response.response.user.contact.twitter && !match.Twitter && !match.twitter_handle)
+										match.twitter_handle = response.response.user.contact.twitter
+
+									match.save(function(err, save) {
+
+									})
+							})
+
+						} else {
+							connection.Foursquare = response.response.user;
+							connection.save(function(err, save) {
+
+							})
+						}
+
+						next(itr, cb)
+						/*if(response.response.user.contact.twitter) 
+							Model.Connections.findOne({
+								twitter_id: {$exists: true},
+								$or: [
+									{
+										Twitter: {$exists: true},
+										'Twitter.screen_name': response.response.user.contact.twitter
+									},
+									{
+										Klout: {$exists: true},
+										'Klout.handle': response.response.user.contact.twitter
+									}
+								]
+							}, function(err, match) {
+								if(err)
+									return next(itr, cb, err);
+
+								if(match) {
+
+								}
+							})*/
+//console.log(err, response.response.user.contact);
+					})
+				})
+			})
+		},
+
+		userTest: function(itr, cb) {
+						/*
+{ id: '8617217',
+       firstName: 'Andy',
+       lastName: 'G.',
+       gender: 'male',
+       photo: [Object] } }
+			*/
+			foursquare.get('users/8617217', {v: foursquare.client.verified}, function(err, response) {
+				console.log(err, response.response.user.contact);
+			})
+		}
 
 	} // End Harvest
 
@@ -294,15 +535,38 @@ var FoursquareHarvester = (function() {
 				Analytics = analytics;
 
 				Harvest[data.methods[0]](0, function() {
-					if(update)
+					if(connections.length) 
+						Model.Connections.collection.insert(connections, {safe: true, continueOnError: true}, function(err, save) {
+							// TODO: put any errors in logs
+							console.log('error!: ', err);
+							console.log('save: ', save);
+						})
+
+					if(update) 
 						Analytics.save(function(err,r){
 							// TODO: handle err 
 							//console.log('saved all twitter analytic data from multiple methods');
 							callback(null);
 						})
-					else
+					else 
 						callback(null);//callback({err: 'error occured'});
 				});
+			})
+		},
+		appData: function(params, callback) {
+			foursquare = Auth.load('foursquare'),
+			data = params,
+			update = false;
+
+			Harvest[data.methods[0]](0, function() {
+				if(connections.length) 
+					Model.Connections.collection.insert(connections, {safe: true, continueOnError: true}, function(err, save) {
+						// TODO: put any errors in logs
+						console.log('error!: ', err);
+						console.log('save: ', save);
+					})
+
+				callback(null);
 			})
 		}
 	}

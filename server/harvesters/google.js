@@ -369,9 +369,8 @@ console.log(overview);
 						}
 
 						// remove retracted reviews from active array
-						for(var i=0,l=removalIndexes.length; i<l;i++) {
+						for(var i=0,l=removalIndexes.length; i<l;i++)
 							Analytics.google.reviews.active.splice(removalIndexes[i], 1)
-						}
 
 						if (reviews.length >= count)
 							Harvest.reviews(itr, cb, (count+pagination))

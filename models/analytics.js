@@ -373,9 +373,21 @@
           },
 
           // just plugin data from JSON response, also cool because it often contains emails and facebook pages for businesses owners to thank patrons
-          topVisitors: {},
+          topVisitors: {
+            history: [{
+              timestamp: {type: Number},
+              list: []
+            }],
+            timestamp: {type: Number}
+          },
 
-          recentVisitors: {},
+          recentVisitors: {
+            history: [{
+              timestamp: {type: Number},
+              list: []
+            }],
+            timestamp: {type: Number}
+          },
 
           // these don't rely on checkins
           likes: {
@@ -395,7 +407,8 @@
               //new: {type: Number}
             }],
             total: {type: Number},
-            timestamp: {type: Number}
+            timestamp: {type: Number},
+            update: {type: Boolean, default: true}
           },
 
           photos: {
@@ -408,6 +421,11 @@
             timestamp: {type: Number}
           }
         },
+        tips: {
+          active: [],
+          retracted: [],
+          previous: [] // this is a temp array used for comparing new active to old active tips
+        }
       },
 
       google: {

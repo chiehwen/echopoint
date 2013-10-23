@@ -65,9 +65,15 @@ Model.Analytics.find(function(err, analytic) {
 	});
 });
 
-var request = require('request');
-var OAuth2 = require('oauth').OAuth2; 
-console.log(new Buffer('xvz1evFS4wEEPTGEFPHBog:L8qq9PZyRg6ieKGEKhZolGC0vJWLw8iEJ88DRdyOg').toString('base64'))
+Model.Analytics.findOne({/*'foursquare.business.data.id': {$exists: true}, 'foursquare.tracking.tips.update': false*/}, function(err, u) {
+	//console.log('anal: ', u.foursquare.tracking);
+	//u.foursquare.tracking.tips.update = true;
+	//u.save(function(err,save) {})
+})
+
+//var request = require('request');
+//var OAuth2 = require('oauth').OAuth2; 
+//console.log(new Buffer('xvz1evFS4wEEPTGEFPHBog:L8qq9PZyRg6ieKGEKhZolGC0vJWLw8iEJ88DRdyOg').toString('base64'))
 /*request.post('https://api.twitter.com/1.1/oauth2/token', 
 	{ 
 		//form: {
@@ -87,13 +93,13 @@ console.log(new Buffer('xvz1evFS4wEEPTGEFPHBog:L8qq9PZyRg6ieKGEKhZolGC0vJWLw8iEJ
 		console.log(err, ressy.body)
 	}
 )*/
-var oauth2 = new OAuth2('ymPfLoyL7T53O5vPRByMA', 'QrMG1wV0Pn3SmuNyXoHaDCdbCK3CsEIm0pDoSg3U', 'https://api.twitter.com/', null, 'oauth2/token', null);
+/*var oauth2 = new OAuth2('ymPfLoyL7T53O5vPRByMA', 'QrMG1wV0Pn3SmuNyXoHaDCdbCK3CsEIm0pDoSg3U', 'https://api.twitter.com/', null, 'oauth2/token', null);
 
 oauth2.getOAuthAccessToken('', {
     'grant_type': 'client_credentials'
   }, function (e, access_token) {
       console.log(e, access_token); //string that we can use to authenticate request
-});
+});*/
 
 //Model.Twitter.remove(function(err){if(err) throw err})
 //var connections = new Model.Connections({});
@@ -108,8 +114,8 @@ Model.Connections.find(function(err, con) {
 	//});
 });
 
-var Helper = require('./server/helpers');
-Model.Connections.findOne(
+//var Helper = require('./server/helpers');
+/*Model.Connections.findOne(
 {
 	klout_id: {$exists: false}, 
 	$or: [
@@ -121,7 +127,7 @@ Model.Connections.findOne(
 		{
 			$and: [
 				{'meta.klout.success': {$exists: false}}, 
-				{'meta.klout.attempt_timestamp': {$lt: Helper.timestamp() - 1296000 /* 1296000 = 15 days */} }
+				{'meta.klout.attempt_timestamp': {$lt: Helper.timestamp() - 1296000 /* 1296000 = 15 days *} }
 			]
 		}
 	] 
@@ -134,7 +140,7 @@ Model.Connections.findOne(
 	//console.log(use)
 //console.log(use.Klout.id("525880ff3d9ae1ad50000023"));
 	//});
-});
+});*/
 
 //Model.Klout.remove(function(err){if(err) throw err});
 //var newAnalytics = new Model.Klout({
@@ -151,29 +157,26 @@ Model.Connections.findOne(
 
 //Model.Connections.collection.insert(usersArray, {continueOnError: true}, function(er, s) {console.log(er, s);})
 //30399302251492452
-Model.Connections.findOne({klout_id: 30399302251492452}, function(err, dat) {
- console.log(dat)
-})
+//Model.Connections.findOne({klout_id: 30399302251492452}, function(err, dat) {
+ //console.log(dat)
+//})
 
-Model.Connections.find({twitter_id: {$exists: true}, Twitter: {$exists: false}}, null, {/*limit: 10*/}, function(err, users) {
-console.log('len: ', users.length, users[0])
+//Model.Connections.find({twitter_id: {$exists: true}, Twitter: {$exists: false}}, null, {/*limit: 10*/}, function(err, users) {
+//console.log('len: ', users.length, users[0])
 //con.klout_id = 123;
 //con.Klout = {id: 123};
 //con.save(function(err,s){});
 	//con.forEach(function(use) {
 		//console.log('twit: ', use)
 	//})
-})
-//newAnalytics.push()
-//newAnalytics.save(function(err, sav) {})
-
-//, {Klout: {$elemMatch: {handle: {$exists: true}}}},
-	//Model.Klout.find({handle: {$exists: false}}, /*{$elemMatch: {Klout: {$exists: true}}},*/ function(err, connection) {
-	//console.log(connection); //connection.Klout[0]
 //})
 
+Model.User.find({Business: {$exists: true}}, {'Business': {$elemMatch: {'Analytics.id': 1379383358779} }}, function(err, dat) {
+ //console.log(dat)
+})
+
 Model.User.findOne({email: "123"}, function(err, user) {
-//	console.log(user);
+	//console.log(user);
 	//console.log(user.Business[0]);
 
 	//console.log(user.Business[0].Social.google.auth.oauthAccessToken);
@@ -215,24 +218,29 @@ Model.User.findOne({email: "123"}, function(err, user) {
 	
 //Cron.facebook.feed.start();
 //Cron.facebook.insights.start();
+//Cron.facebook.users.start();
 
 //Cron.twitter.timeline.start();
 //Cron.twitter.connections.start();
 //Cron.twitter.users.start();
 
-//Cron.foursquare.start();
+//Cron.foursquare.business.start();
+//Cron.foursquare.tips.start();
+//Cron.foursquare.users.start();
 
 //Cron.google.start();
 
 //Cron.yelp.start();
 
-Cron.klout.start();
+//Cron.instagram.users.start();
+
+//Cron.klout.start();
 
 
-var googlePageData = require('./server/harvesters/tmpPageData/googlePage'); // TEMP
+//var googlePageData = require('./server/harvesters/tmpPageData/googlePage'); // TEMP
 
 //console.log(googlePageData.json[0][1][11][0][1][5]);
-
+/*
 		var reviews = googlePageData.json[0][1][11][0],
 				reviewObjects = [];
 
@@ -253,7 +261,7 @@ var googlePageData = require('./server/harvesters/tmpPageData/googlePage'); // T
 				//timestamp: Helper.timestamp()
 			});
 		}
-
+*/
 //console.log(reviewObjects);
 
 

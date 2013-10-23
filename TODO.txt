@@ -1,0 +1,59 @@
+TODO:
+
+1.) DONE! finish google reviews scraping
+
+1.5) DONE! process reviews into meta data (score, star breakdown, etc)
+
+1.75) look into getting updated data from different places page:
+http://www.google.com/mapmaker?ui_type=pc&cid=17751536374062546769&src=1&continue=https://plus.google.com/100271274097694780455/about?gl%3DUS%26hl%3Den-US
+
+2.) DONE! add review gathering and storgae for yelp (same as googles)
+
+3.) DONE!! setup Klout model to hold klout users, ids, scores, etc
+
+3.5) DONE! get retweeter data for retweeted tweets
+
+4.)setup klout data gathering via API
+
+5.?) DONE! setup foursquare tips to be gathered and stored as well (same as reviews for yelp and google)?
+
+5.5) add a cron job the detects duplicate twitter handles and checks those id's for updated screen names
+
+6.) SCRAPED (until later)! look into business places using admin user id
+
+7.) Setup in-depth logging system for... everything!
+
+7.a) add fallbacks and logs for errors/changes in data scraping to notify if something has changed
+
+IF HERE LOOK BACK AND REFER TO 5.5!
+
+8.) setup headers for web scraping to resemble browser
+
+24.) Need to look into anonymous proxies for web scraping 
+
+
+{ twitter: 'bradbogus', facebook: '1634735498' }
+{ twitter: 'howeth', facebook: '7904104' }
+{ twitter: 'andyviral', facebook: '1432417383' }
+{ twitter: 'theashleycarter' }
+{}
+{ twitter: 'stephaniebogus', facebook: '1230696413' }
+{ facebook: '8356336' }
+{ twitter: 'brianbogus', facebook: '100001724930213' }
+{ twitter: 'speaksocial', facebook: '1466796077' }
+{ twitter: 'merineclare', facebook: '1525050038' }
+
+
+
+{ twitter: 'andyviral', facebook: '1432417383' }
+{ facebook: '100000105443407' }
+{ facebook: '100000105443407' }
+{ facebook: '100000105443407' }
+{ facebook: '100000105443407' }
+{ twitter: 'bradbogus', facebook: '1634735498' }
+{ twitter: 'bradbogus', facebook: '1634735498' }
+{ twitter: 'andyviral', facebook: '1432417383' }
+{ twitter: 'bradbogus', facebook: '1634735498' }
+{ twitter: 'andyviral', facebook: '1432417383' }
+
+

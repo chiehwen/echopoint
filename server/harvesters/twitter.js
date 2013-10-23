@@ -139,7 +139,7 @@ var TwitterHarvester = (function() {
 				for(var i = 0, l = response.length; i < l; i++) {
 					response[i].timestamp = timestamp;
 					Analytics.twitter.mentions.list.splice(i, 0, response[i]);
-					connections.push({twitter_id: parseInt(response[i].user.id_str, 10)})
+					connections.push({twitter_id: response[i].user.id_str})
 				}
 
 				Analytics.twitter.mentions.since_id = response[0].id_str;
@@ -253,7 +253,7 @@ var TwitterHarvester = (function() {
 
 					for(var i=0, l=response.ids.length; i<l; i++) {
 						Analytics.twitter.timeline.tweets[tweet.index].retweets.retweeters.push(response.ids[i])
-						connections.push({twitter_id: parseInt(response.ids[i], 10)})
+						connections.push({twitter_id: response.ids[i]})
 					}
 
 					// insert user ids into Twitter user model for cron lookup 
@@ -314,7 +314,7 @@ var TwitterHarvester = (function() {
 
 					for(var i=0, l=response.ids.length; i<l; i++) {
 						Analytics.twitter.friends.active.push(response.ids[i])
-						connections.push({twitter_id: parseInt(response.ids[i], 10)})
+						connections.push({twitter_id: response.ids[i]})
 					}
 
 					// insert user ids into Twitter user model for cron lookup 
@@ -406,7 +406,7 @@ var TwitterHarvester = (function() {
 
 					for(var i=0, l=response.ids.length; i<l; i++) {
 						Analytics.twitter.followers.active.push(response.ids[i])
-						connections.push({twitter_id: parseInt(response.ids[i], 10)})
+						connections.push({twitter_id: response.ids[i]})
 					}
 
 					// insert user ids into Twitter user model for cron lookup 
@@ -478,7 +478,7 @@ var TwitterHarvester = (function() {
 					response[i].timestamp = timestamp;
 					response[i].recipient = null;
 					Analytics.twitter.messages.list.push(response[i])
-					connections.push({twitter_id: parseInt(response[i].sender.id_str, 10)})
+					connections.push({twitter_id: response[i].sender.id_str})
 				}
 
 				Analytics.twitter.messages.since_id = response[0].id_str;
@@ -720,13 +720,13 @@ return;
 				Harvest[data.methods[0]](0, function() {
 					
 					if(update) {
-						if(connections.length) {
+						if(connections.length)
 							Model.Connections.collection.insert(connections, {safe: true, continueOnError: true}, function(err, save) {
 								// TODO: put any errors in logs
 								console.log('error!: ', err);
 								console.log('save: ', save);
 							})
-						}
+
 						Analytics.save(function(err,r){
 							// TODO: handle err 
 							//console.log('saved all twitter analytic data from multiple methods');
