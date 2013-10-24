@@ -1,4 +1,5 @@
 var Auth = require('../auth').getInstance(),
+		Log = require('../logger').getInstance().getLogger(),
 		Helper = require('../helpers'),
 		Model = Model || Object;
 
@@ -701,10 +702,6 @@ return;
 				Analytics.twitter.tracking.followers.newest.true_new = users.new;
 			
 			})
-		},
-
-		user_data: function(itr, cb) {
-
 		}
 
 	} // End Harvest

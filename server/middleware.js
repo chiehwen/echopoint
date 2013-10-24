@@ -1,4 +1,5 @@
 var Auth = require('../server/auth').getInstance(),
+		Log = require('./logger').getInstance().getLogger(),
 		Helper = require('./helpers'),
 		Model = Model || Object;
 
@@ -19,7 +20,7 @@ var Middleware = {
 	sessionVariables: function(req, res, next) {
 		if(req.session.passport.user) {
  			Helper.getUser(req.session.passport.user, function(err, user) {
- 				if(err) console.log(err);
+ 				if(err) return; // error logging handled in Helper class
  				res.locals.username = user.name;
  				res.locals.uid = user.id;
  				res.locals.email = user.email;

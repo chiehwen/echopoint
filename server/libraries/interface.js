@@ -8,13 +8,11 @@ var Interface = function(name, methods) {
     
     this.name = name;
     this.methods = [];
-    for(var i = 0, len = methods.length; i < len; i++) {
-        if(typeof methods[i] !== 'string') {
+    for(var i = 0, len = methods.length; i < len; i++)
+        if(typeof methods[i] !== 'string')
             throw new Error("Interface constructor expects method names to be passed in as a string.");
-        }
-        this.methods.push(methods[i]);        
-    }    
-};    
+        this.methods.push(methods[i]);          
+}   
 
 // Static class method.
 

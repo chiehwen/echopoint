@@ -5,23 +5,11 @@
  *
  */
 
-var //request = require('request'),
-		Auth = require('../auth').getInstance(),
+var Auth = require('../auth').getInstance(),
 		Helper = require('../helpers'),
-		Model = Model || Object,
-		//Requester = require('requester'),
-		//cheerio = require('cheerio'),
-		winston = require('winston');
-
-//var googlePageData = require('./tmpPageData/googlePage'); // TEMP
+		Model = Model || Object;
 
 var KloutHarvester = (function() {
-
-	/*winston.add(winston.transports.File, 
-		{ filename: 'googlePage.log' 
-			, json: true
-		})
-	.remove(winston.transports.Console);*/
 
 	var klout,
 			data,

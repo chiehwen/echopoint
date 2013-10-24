@@ -6,6 +6,7 @@ var fs = require('fs'),
 		bcrypt = require('bcrypt-nodejs'),
 		passport = require('passport'),
 		oauth = require('oauth'),
+		Log = require('./logger').getInstance().getLogger(),
 		Helper = require('./helpers'),
 		Model = Model || Object,
 		LocalStrategy = require('passport-local').Strategy,
@@ -43,13 +44,20 @@ var Auth = (function() {
 				  },
 				  function(email, password, callback) {
 				    Model.User.findOne({ email: email }, function(err, user) {
-				    	if (err) return callback(err);
+				    	if (err) {
+								Log.error('Error on Mongoose User.findOne query @ local Passport strategy in auth.js file', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+								return callback(err)
+							}
 
-							if(!user) return callback(null, false, {message: 'email-password-error'});
+							if(!user) 
+								return callback(null, false, {message: 'email-password-error'})
 
 							// check if password is a match
 							user.authenticate(password, function(err, match) {
-								if (err) return callback(err);
+								if (err) {
+									Log.error('Error on user.authenticate @ local Passport strategy in auth.js file', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+									return callback(err)
+								}
 								if(!match) return callback(null, false, {message: 'email-password-error'});
 								return callback(null, user);
 							});
@@ -60,7 +68,7 @@ var Auth = (function() {
 			
 			facebook: function() {
 				if(!Facebook) {
-					Facebook = new Api('facebook');
+					Facebook = new Api('facebook')
 					Facebook.client = {
 						id: Config.facebook.id,
 						secret: Config.facebook.secret,
@@ -111,7 +119,7 @@ var Auth = (function() {
 
 			google: function() {
 				if(!Google) {
-					Google = new Api('google');
+					Google = new Api('google')
 					Google.client = {
 						id: Config.google.id,
 						key: Config.google.key,
@@ -144,21 +152,20 @@ var Auth = (function() {
 			},
 
 			yelp: function() {
-				if(!Yelp) {
+				if(!Yelp)
 					Yelp = YelpApi.createClient({
 						consumer_key: Config.yelp.consumerKey,
 						consumer_secret: Config.yelp.consumerSecret,
 						token: Config.yelp.token,
 						token_secret: Config.yelp.tokenSecret
 					})
-				}
 
 				return Yelp;
 			},
 
 			foursquare: function() {
 				if(!Foursquare) {
-					Foursquare = new Api('foursquare');
+					Foursquare = new Api('foursquare')
 					Foursquare.client = {
 						id: Config.foursquare.id,
 						secret: Config.foursquare.secret,
@@ -172,7 +179,7 @@ var Auth = (function() {
 
 			instagram: function() {
 				if(!Instagram) {
-					Instagram = new Api('instagram');
+					Instagram = new Api('instagram')
 					Instagram.client = {
 						id: Config.instagram.id,
 						secret: Config.instagram.secret,
@@ -185,7 +192,7 @@ var Auth = (function() {
 
 			bitly: function() {
 				if(!Bitly) {
-					Bitly = new Api('bitly');
+					Bitly = new Api('bitly')
 					Bitly.client = {
 						id: Config.bitly.id,
 						secret: Config.bitly.secret,
@@ -198,7 +205,7 @@ var Auth = (function() {
 
 			klout: function() {
 				if(!Klout) {
-					Klout = new Api('klout');
+					Klout = new Api('klout')
 					Klout.client = {
 						key: Config.klout.key,
 						secret: Config.klout.secret,
@@ -218,6 +225,8 @@ var Auth = (function() {
 
 				passport.deserializeUser(function(id, callback) {
 				  Model.User.findById(id, function(err, user) {
+				  	if(err)
+				  		Log.error('Error on Mongoose User.findById query @ local Passport Session (session.local) in auth.js file', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
 				    callback(err, user);
 				  });
 				});				
@@ -244,8 +253,11 @@ var Auth = (function() {
 
 		function _salt(callback) {
 			bcrypt.genSalt(saltWorkFactor, function(err, salt) {
-				if (err) callback(err);
-				callback(null, salt);
+				if (err) {
+					Log.error('Error with bcrypt salt generation (bcrypt.genSalt) @ _salt function in auth.js file', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					callback(err)
+				}
+				callback(null, salt)
 			});
 		};
 
@@ -254,8 +266,11 @@ var Auth = (function() {
 				if (err) callback(err);
 				// hash the password using our salt
 				bcrypt.hash(password, salt, function(progress){}, function(err, hash) {
-					if (err) callback(err);
-					callback(null, hash);
+					if (err) {
+						Log.error('Error with bcrypt hashing (bcrypt.hash) @ _hash function in auth.js file', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						callback(err)
+					}
+					callback(null, hash)
 				});
 			});
 		};
@@ -284,15 +299,18 @@ var Auth = (function() {
 			// These are Authentication functions
 			authenticate: function(unverified, password, callback) {
 				bcrypt.compare(unverified, password, function(err, match) {
-					if (err) return callback(err);
-						callback(null, match);
-				});
+					if (err) {
+						Log.error('Error with bcrypt compare (bcrypt.compare) @ authenticate function in auth.js file', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						return callback(err)
+					}
+					callback(null, match)
+				})
 			},
 			encrypt: function(password, callback) {
-				_hash(password, function(err, encrypted){
-					if(err) callback(err);
-					else callback(null, encrypted);
-				});
+				_hash(password, function(err, encrypted) {
+					if(err) return callback(err)
+					callback(null, encrypted)
+				})
 			},
 
 			// These are Authorization functions
@@ -304,7 +322,9 @@ var Auth = (function() {
 					// attempted to put this in middleware but got page load glitches, works fine here
 					if(typeof req.session.Business === 'undefined' && !Helper.isPath(req.url, ['/login', '/logout', '/business/select', '/business/create', '/user/create'], [])) {
 			 			Helper.getUser(req.session.passport.user, function(err, user) {
-			 				if (err || !user) return next(err);
+			 				if (err || !user) 
+			 					return next(err)
+			 				
 			 				if(user.meta.Business.current && user.meta.Business.current.id != '' && user.meta.Business.current.id ) {
 			 					req.session.Business = user.meta.Business.current;
 			 					next();

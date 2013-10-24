@@ -264,7 +264,81 @@ Model.User.findOne({email: "123"}, function(err, user) {
 */
 //console.log(reviewObjects);
 
+/*
+var winston = require('winston');
+require('winston-mail').Mail;
+require('winston-papertrail').Papertrail;
 
-	// !!!!0
+		//Loggly = require('winston-loggly').Loggly;
 
+		var testLogger = new (winston.Logger)({
+			transports: [
+				new (winston.transports.Console)(),
+				new (winston.transports.File)({
+					handleExceptions: false,
+					filename: 'server/logs/logTest.log',
+					json: true
+				})
+				/*new (Loggly)(
+					{
+						subdomain: "vocada",
+						inputToken: "3373e727-da7a-4d97-a317-20464e47d77e", 
+						json: true
+					}
+				)*
+			],
+			exceptionHandlers: [
+				new (winston.transports.File)({
+					handleExceptions: true,
+					filename: 'server/logs/excemptions.log',
+					json: true
+				}),
+				/*new (winston.transports.Mail)({
+					handleExceptions: true,
+					to: 'scottcarlsonjr@gmail.com',
+					from: 'error@vocada.co',
+					subject: 'Excemption Error on Vacada!',
+					host: 'smtp.gmail.com',
+					username: 'scottcarlsonjr',
+					password: 'h34dtr1p',
+					ssl: true
+				}),
+				new (winston.transports.Papertrail)({
+					host: 'logs.papertrailapp.com',
+					port: 28648
+        })*
+			],
+			exitOnError: false
+		}) */
+
+		//logger.on('logging', function (transport, level, msg, meta) {
+    // [msg] and [meta] have now been logged at [level] to [transport]
+    //console.log(transport, level, msg, meta);
+  //});
+
+//var Log = require('./server/logger').getInstance().getLogger();
+		//Log.error('so far away from the milky teat!', {err: null, response: '503 Forbidden'})
+
+
+var Helper = require('./server/helpers');
+		console.log(new Date().toUTCString())
+
+/*var loggly = require('loggly');
+  var conf = {
+    subdomain: "vocada",
+    //auth: {
+     // username: "scottcarlson",
+      //password: "h34dtr1p"
+    //}
+  };
+  var client= loggly.createClient(conf);
+
+  client.log("5fb7fac7-e8b7-40f6-8c95-dfbe0f719785", '127.0.0.1 - Theres no place like home', function(err,log) {
+  	console.log(err, log)
+  });
+
+  //client.getInput('Scott Carlson', function (err, input) {
+  	//console.log(err);
+    //input.log('127.0.0.1 - Theres no place like home');
+  //}); */
 // END TEMP

@@ -1,7 +1,9 @@
 // Module dependencies.
 var fs = require('fs'),
 		//mongo = require('mongodb'),
-		mongoose = require('mongoose');		
+		mongoose = require('mongoose'),
+    Log = require('./logger').getInstance().getLogger(),
+    Helper = require('./helpers');		
 
 var Database = (function() {
 
@@ -18,8 +20,11 @@ var Database = (function() {
   		switch(type) {
   			case 'mongoose':
 					mongoose.connect(mongooseUri, function(err) {
-						if (err) throw err;
-						console.log('Successfully connected to MongoDB via the node mongoose module');
+						if (err) {
+              Log.error('Error connecting to MongoDB database via Mongoose @ mongoose.connect in database.js file', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+              throw err
+            }
+						Log.info('Successfully connected to MongoDB via the node Mongoose module');
 					});
   				break;
   			case 'redis':

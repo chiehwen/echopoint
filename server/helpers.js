@@ -7,6 +7,8 @@ exports.bootstrapRoute = 'bootstrap';
 
 exports.getUser = function(id, callback) {
 	Model.User.findById(id, function(err, user) {
+		if(err)
+			Log.error('Error with Mongoose User findById query (Model.User.findById) @ getUser function in helpers.js file', {error: err, file: __filename, line: this.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: this.timestamp(1)})
 		callback(err, user);
 	});
 } 		
@@ -42,11 +44,11 @@ exports.sortBy = function(field, reverse, primer) {
 };
 
 exports.timestamp = function(seconds) {
-	var seconds = seconds || false;
+	var seconds = seconds || false
 	if(seconds)
-		return new Date().getTime();
+		return Date.now()
 	else
-		return Math.round(new Date().getTime()/ 1000);
+		return Math.round(Date.now()/ 1000)
 }
 
 exports.redirectToPrevious = function(session) {
@@ -75,6 +77,19 @@ exports.randomInt = function(min, max) {
 	return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
+exports.stack = function(){
+  var orig = Error.prepareStackTrace;
+  Error.prepareStackTrace = function(_, stack){ return stack }
+  var err = new Error;
+  Error.captureStackTrace(err, arguments.callee);
+  var stack = err.stack;
+  Error.prepareStackTrace = orig;
+  return stack;
+}
+
+
+// currently connectionMatch is not being used, 
+// consider deleting
 exports.connectionMatch = function(data, callback) {
 	Model.Connections.findOne({
 		foursquare_id: {$exists: false},

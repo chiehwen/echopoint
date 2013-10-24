@@ -1,7 +1,6 @@
 /*
  * Analytics Processing
  */
-
 var Auth = require('./auth').getInstance(),
 		Helper = require('./helpers'),
 		Model = Model || Object;
@@ -12,9 +11,6 @@ var Analytics = (function() {
 	var analyticsInstance;
 
 	function constructor() {
-
-		//var databases = JSON.parse(fs.readFileSync('./server/config/databases.json')),
-				//mongooseUri = buildMongooseUri('dev');
 
 		var graphData = {
 

@@ -1,11 +1,11 @@
 // Module dependencies.
 var Auth = require('./auth').getInstance(),
+		Log = require('./logger').getInstance().getLogger(),
 		Helper = require('./helpers'),
 		Notification = require('./notification'),
 		Session = require('./session'),
 		Url = require('url'),
 		Model = Model || Object;
-
 
 var Socket = (function() {
 

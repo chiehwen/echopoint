@@ -3,6 +3,7 @@ var http = require('http'),
 		fs = require('fs'),
 		Database = require('./database').getInstance(),
 		Auth = require('./auth').getInstance(),
+		Log = require('./logger').getInstance().getLogger(),
 		Helper = require('./helpers'),
 		Model = Model || Object;
 
@@ -42,9 +43,9 @@ var LoadServer = (function() {
 
 				// make sure a controller exists for the model
 				fs.exists(__dirname + '/../controllers/' + name + '.js', function(exists) {
-					if(!exists) {
-						console.log('No matching Controller! Please create a file named ' + name + '.js in the controllers directory to avoid potential errors.');
-					}
+					if(!exists)
+						Log.warn('No matching Controller. Please create a file named ' + name + '.js in the controllers directory to avoid potential errors.');
+					
 				});
 
 				// add model name to the local models variable
@@ -62,7 +63,7 @@ var LoadServer = (function() {
 					name = models[i];
 
 					// check if a hasOne association is defined and not empty
-					if(typeof ModelClasses[name].getAssociations().hasOne != 'undefined' && ModelClasses[name].getAssociations().hasOne.length > 0) {
+					if(typeof ModelClasses[name].getAssociations().hasOne != 'undefined' && ModelClasses[name].getAssociations().hasOne.length > 0)
 						for(var child in ModelClasses[name].getAssociations().hasOne) {
 							childModelName = ModelClasses[name].getAssociations().hasOne[child]
 
@@ -77,10 +78,9 @@ var LoadServer = (function() {
 									ModelClasses[name].updateSchema(childModelName.capitalize(), [Model[childModelName.capitalize()].schema]);
 							}
 						}
-					}
 
 					// check if a hasMany association is defined and not empty
-					if(typeof ModelClasses[name].getAssociations().hasMany != 'undefined' && ModelClasses[name].getAssociations().hasMany.length > 0) {
+					if(typeof ModelClasses[name].getAssociations().hasMany != 'undefined' && ModelClasses[name].getAssociations().hasMany.length > 0)
 						for(var child in ModelClasses[name].getAssociations().hasMany) {
 							childModelName = ModelClasses[name].getAssociations().hasMany[child]
 
@@ -93,8 +93,8 @@ var LoadServer = (function() {
 								var currentSchema = typeof ModelClasses[name].getSchema();
 								if(typeof currentSchema[childModelName.capitalize()] == 'undefined')
 									ModelClasses[name].updateSchema(childModelName.capitalize(), [Model[childModelName.capitalize()].schema]);
-						}	}
-					}
+							}
+						}
 
 					// if we didn't "continue" back to the outer loop than create the model
 					Model[name.capitalize()] = ModelClasses[name].create();
@@ -150,18 +150,6 @@ var LoadServer = (function() {
 					}
 				}
 			});
-
-			// create 404 page
-			/*app.use(function(req, res, next){
-				if(req.session.passport.user) {
-					res.render('bootstrap');
-				} else {
-					if(!Helper.isPath(req.url))
-						req.session.returnTo = req.url;
-					res.redirect('/login');
-				}
-			});*/
-
 		};
 
 		// public members
@@ -176,7 +164,7 @@ var LoadServer = (function() {
 				server = http.createServer(app);
 				io = require('socket.io').listen(server);
 				server.listen(app.get('port'), function(){
-				  console.log('Express server listening on port ' + app.get('port'));
+				  Log.info('Express server listening on port ' + app.get('port'));
 				});
 				return io;
 			}

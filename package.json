@@ -26,6 +26,9 @@
     "googleapis": "*",
     "yelp": "*",
     "cron": "*",
-    "winston": "*"
+    "winston": "*",
+    "winston-mail": "*",
+    "winston-loggly": "*",
+    "winston-papertrail": "*"
   }
 }
