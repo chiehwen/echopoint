@@ -571,7 +571,7 @@ winston.info(body);
 			data = params,
 			update = false;
 
-			Model.Analytics.findOne({id: data.analytics_id}, function(err, analytics) {
+			Model.Analytics.findById(data.analytics_id, function(err, analytics) {
 				Analytics = analytics;
 
 				Harvest[data.methods[0]](0, function() {

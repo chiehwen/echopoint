@@ -347,7 +347,7 @@ klout_id: 9288683845728660,
 			klout = Auth.load('klout'),
 			data = params;
 
-			//Model.Analytics.findOne({id: data.analytics_id}, function(err, analytics) {
+			//Model.Analytics.findById(data.analytics_id, function(err, analytics) {
 				//Analytics = analytics;
 
 				Harvest[data.methods[0]](0, function() {

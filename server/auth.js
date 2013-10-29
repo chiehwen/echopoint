@@ -45,7 +45,7 @@ var Auth = (function() {
 				  function(email, password, callback) {
 				    Model.User.findOne({ email: email }, function(err, user) {
 				    	if (err) {
-								Log.error('Error on Mongoose User.findOne query @ local Passport strategy in auth.js file', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+								Log.error('Error on Mongoose User.findOne query', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
 								return callback(err)
 							}
 
@@ -55,7 +55,7 @@ var Auth = (function() {
 							// check if password is a match
 							user.authenticate(password, function(err, match) {
 								if (err) {
-									Log.error('Error on user.authenticate @ local Passport strategy in auth.js file', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+									Log.error('Error on authenticating user', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
 									return callback(err)
 								}
 								if(!match) return callback(null, false, {message: 'email-password-error'});
@@ -226,7 +226,7 @@ var Auth = (function() {
 				passport.deserializeUser(function(id, callback) {
 				  Model.User.findById(id, function(err, user) {
 				  	if(err)
-				  		Log.error('Error on Mongoose User.findById query @ local Passport Session (session.local) in auth.js file', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+				  		Log.error('Error on Mongoose User.findById query', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
 				    callback(err, user);
 				  });
 				});				
@@ -317,31 +317,42 @@ var Auth = (function() {
 			restrict: function(req, res, next) {
 				if(!Helper.isPath(req.url))
 					req.session.returnTo = req.url;
-				if(req.session.passport.user) {
-					
-					// attempted to put this in middleware but got page load glitches, works fine here
-					if(typeof req.session.Business === 'undefined' && !Helper.isPath(req.url, ['/login', '/logout', '/business/select', '/business/create', '/user/create'], [])) {
-			 			Helper.getUser(req.session.passport.user, function(err, user) {
-			 				if (err || !user) 
-			 					return next(err)
-			 				
-			 				if(user.meta.Business.current && user.meta.Business.current.id != '' && user.meta.Business.current.id ) {
-			 					req.session.Business = user.meta.Business.current;
-			 					next();
-			 				} else {
-			 					res.redirect('/business/select');
-			 				}
-			 			}); 
-			 		} else {
-						next(); 
-					}
 
-				} else {
+				if(!req.session.passport.user) {
 					if(typeof req.session.returnTo === 'undefined' || !req.session.returnTo) 
 						req.session.returnTo = '/dashboard';
 					req.session.messages = 'please login to continue';
 					res.redirect('/login');
+					return
 				}
+					
+				// attempted to put this in middleware but got page load glitches, works fine here
+				if(!req.session.Business && !Helper.isPath(req.url, ['/login', '/logout', '/business/select', '/business/create', '/user/create'], [])) {
+		 			Helper.getUser(req.session.passport.user, function(err, user) {
+		 				if (err) {
+							Log.error('Helper.getUser error @ restrict() in auth.js file', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							res.redirect('/logout')
+							return
+						}	
+
+	 					if(!user) {
+	 						Log.warn('No User found @ restrict() in auth.js file', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							req.session.messages.push("Error finding user")
+	 						res.redirect('/login')
+	 						return next(err)
+	 					}
+
+		 				if(user.meta.Business.current && user.meta.Business.current.id != '' && user.meta.Business.current.id ) {
+		 					req.session.Business = user.meta.Business.current;
+		 					next();
+		 				} else {
+		 					res.redirect('/business/select');
+		 				}
+		 			}); 
+		 		} else {
+					next(); 
+				}
+
 				if(req.session.returnTo)
 					res.locals.returnTo = req.session.returnTo;
 			}

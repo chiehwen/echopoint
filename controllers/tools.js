@@ -4,6 +4,7 @@
 
 var crypto = require('crypto'),
 	Auth = require('../server/auth').getInstance(),
+	Log = require('../server/logger').getInstance().getLogger(),
 	Helper = require('../server/helpers'),
 	Model = Model || Object;
 

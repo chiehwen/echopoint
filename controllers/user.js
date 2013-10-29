@@ -4,6 +4,7 @@
 
 // controller dependencies
 var passport = require('passport'),
+		Log = require('../server/logger').getInstance().getLogger(),
 		Helper = require('../server/helpers'),
 		Model = Model || Object;
 
@@ -67,13 +68,16 @@ var UserController = {
 				if (err) return next(err);
 				if(!user) {
 					var newUser = new Model.User({
-						name: req.body.name,
+						//name: req.body.name,
 						email: req.body.email,
 						password: req.body.password
 					});
 
 					newUser.save(function(err){
-						if (err) return next(err);
+						if (err) {
+							console.log(err)
+							return next(err)
+						}
 						req.login(newUser, function(err) {
 						  if (err) return next(err);
 						  res.redirect('/business/select');

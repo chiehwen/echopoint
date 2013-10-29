@@ -202,7 +202,7 @@ console.log('query FB users: ',users);
 								});
 		
 							} else {
-								console.log('no credenttials or credentials problem');
+								console.log('no credentials or credentials problem');
 							} // End of twitter credentials if statement
 
 						}); // End of business forEach

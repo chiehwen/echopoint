@@ -10,16 +10,16 @@ var UserModel = {
   Architecture: {
     schema: {
       // id is really only used as a unique identifier for firebase
-      id: {type: String, default: '', index: true, unique: true },
+      id: {type: String, sparse: true, unique: true },
       name: {type: String},
       email: {type: String, required: true, index: true, unique: true },
       password: {type: String, required: true},
       role: {type: String, required: true, default: 'user' }, // current roles: admin, user
       Business: [{
-        id: {type: String, default: '', index: true, unique: true },
+        id: {type: String, sparse: true, unique: true },
         name: { type: String, required: true},
         Analytics: {
-          id: {type: Number}
+          id: {type: String, required: true}
         },
         Social: {
           facebook: {

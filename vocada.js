@@ -64,11 +64,14 @@ Model.Analytics.find(function(err, analytic) {
 
 	});
 });
-
-Model.Analytics.findOne({/*'foursquare.business.data.id': {$exists: true}, 'foursquare.tracking.tips.update': false*/}, function(err, u) {
-	//console.log('anal: ', u.foursquare.tracking);
+// remove  1382807555173
+Model.Analytics.findOne({id: 1382807555173/*'foursquare.business.data.id': {$exists: true}, 'foursquare.tracking.tips.update': false*/}, function(err, u) {
+	console.log('anal: ', u);
 	//u.foursquare.tracking.tips.update = true;
 	//u.save(function(err,save) {})
+	u.remove(function(err, gone) {
+		console.log(err);
+	})
 })
 
 //var request = require('request');
@@ -171,13 +174,15 @@ Model.Connections.find(function(err, con) {
 	//})
 //})
 
-Model.User.find({Business: {$exists: true}}, {'Business': {$elemMatch: {'Analytics.id': 1379383358779} }}, function(err, dat) {
- //console.log(dat)
-})
+//Model.User.find({Business: {$exists: true}}, {'Business': {$elemMatch: {'Analytics.id': 1379383358779} }}, function(err, dat) {
+//Model.User.find({_id: '5237b7f253754c386d00001d', Business: {$exists: true}}, {'Business': {$elemMatch: {'_id': '5237b7f553754c386d000020'}}}, {lean: false}, function(err, dat) {
 
-Model.User.findOne({email: "123"}, function(err, user) {
-	//console.log(user);
-	//console.log(user.Business[0]);
+//})
+
+
+Model.User.findOne({email: "1234"}, function(err, user) {
+	console.log(user);
+	//console.log(user.Business[0].Analytics.id)
 
 	//console.log(user.Business[0].Social.google.auth.oauthAccessToken);
 	//user.Business[0].Social.google.auth.oauthAccessToken = '';
@@ -207,6 +212,7 @@ Model.User.findOne({email: "123"}, function(err, user) {
 	})*/
 	//user.Business = [];
 	//user.save(function(err,res){});
+	//user.remove(function(err,res){});
 });
 
 
@@ -318,11 +324,16 @@ require('winston-papertrail').Papertrail;
 
 //var Log = require('./server/logger').getInstance().getLogger();
 		//Log.error('so far away from the milky teat!', {err: null, response: '503 Forbidden'})
+//var FacebookLog = require('./server/logger').getInstance().getLogger('facebook')
+//var Err = require('./server/error').getInstance()
+//var Helper = require('./server/helpers');
+		//console.log(new Date().toUTCString())
 
+		//Log.warn('just a warning', {err: 'indeed'})
 
-var Helper = require('./server/helpers');
-		console.log(new Date().toUTCString())
-
+		//FacebookLog.warn('just a Facebook warning', {err: 'righto'})
+		//FacebookLog.error('just a Facebook error', {err: 'ello'})
+		//Err.handler('facebook', 'just a Facebook warning', null, ressy)
 /*var loggly = require('loggly');
   var conf = {
     subdomain: "vocada",

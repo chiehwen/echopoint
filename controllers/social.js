@@ -6,10 +6,9 @@ var crypto = require('crypto'),
 		oauth = require('oauth'),
 		url = require('url'),
 		Auth = require('../server/auth').getInstance(),
-		//Api = require('../server/harvest').getInstance(),
+		Log = require('../server/logger').getInstance().getLogger(),
 		Helper = require('../server/helpers'),
 		Model = Model || Object,
-		//googleapis = require('googleapis'),
 		Facebook = require('../server/harvesters/facebook');
 
 var SocialController = {
@@ -65,7 +64,7 @@ var SocialController = {
  					if(req.session.facebookConnected && req.session.facebook.oauthAccessToken && !req.query.login) {
 
 						var facebook = Auth.load('facebook');
-
+console.log('here second');
 						if(typeof req.query.id !== 'undefined' && typeof req.query.select === 'undefined') {
 
 			 				facebook.get('me', {fields: 'id,accounts.fields(name,picture.type(square),access_token,about,id,website,likes,perms,category_list,category)'}, function(err, response) {
@@ -146,17 +145,15 @@ console.log('callbacks complete');
 
  					} else if(
  						!req.query.login
-						&& typeof f.auth.oauthAccessToken !== 'undefined'
-						&& typeof f.auth.expires !== 'undefined'
-						&& typeof f.auth.created !== 'undefined'
-						&& f.auth.oauthAccessToken != ''
-						&& f.auth.expires != 0
-						&& f.auth.created != 0
 						&& f.auth.oauthAccessToken
 						&& f.auth.expires
 						&& f.auth.created
+						&& f.auth.oauthAccessToken != ''
+						&& f.auth.expires != 0
+						&& f.auth.created != 0
 						&& ((f.auth.created + f.auth.expires) * 1000 > Date.now())
 					) {
+					
 						var facebook = Auth.load('facebook');
 						facebook.setAccessToken(f.oauthAccessToken);
 						req.session.facebook = {
@@ -170,8 +167,7 @@ console.log('callbacks complete');
  					} else {
 
 						req.session.facebookState = crypto.randomBytes(10).toString('hex');
-//req.session.messages.push(req.session.facebookState);
-				 		
+	 		
 						res.json({
 							success: true,
 							connected: false,

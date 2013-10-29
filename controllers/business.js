@@ -2,110 +2,147 @@
  * Business Controller
  */
 
-var Helper = require('../server/helpers'),
+var Log = require('../server/logger').getInstance().getLogger(),
+		Helper = require('../server/helpers'),
 		Model = Model || Object;
 
 var BusinessController = {
 
- 	create: {
- 		get: function(req, res) {
- 			res.render(
- 				'business/create', 
- 				{
- 			  	title: 'Vocada | Create New Business'
- 			 	}
- 			);
- 		},
+	create: {
+		get: function(req, res) {
+			res.render(
+				'business/create', 
+				{
+			  	title: 'Vocada | Create New Business'
+			 	}
+			);
+		},
 
- 		post: function(req, res, next) {
- 			if(req.session.passport.user) {
- 				Helper.getUser(req.session.passport.user, function(err, user) {
- 					if (err) return next(err);	
+		post: function(req, res, next) {
+			if(!req.session.passport.user)
+				res.redirect('/login')
 
- 					if(user) {
+			Helper.getUser(req.session.passport.user, function(err, user) {
+				if (err || !user) {
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					req.session.messages.push('Error finding user for business')
+					res.redirect(err ? '/logout' : '/login')
+					return
+				}
 
- 						var generated = Helper.timestamp(true) + Helper.randomInt(10000, 99999);
+				//var generated = Helper.timestamp(true) + Helper.randomInt(10000, 99999);
 
- 						var business = {
- 							name: req.body.name,
- 							Analytics: { 
- 								id: generated
- 							}
- 						};
-
- 						var analytics = new Model.Analytics({
-							id: generated
-						});
-
- 						user.Business.push(business);
-
- 						user.save(function(err, response){
- 							if (err) return next(err);
-	 			
-							analytics.save(function(err){
-								if (err) 
-									return next(err);
-								
-								res.redirect('/business/select');
-							});
- 						});
-
- 					}	else {
- 						req.session.messages.push("Error finding user for business");
- 						res.redirect('/business/create');
- 					}
- 				});
- 			}	
- 		}
- 	},
-
- 	select: {
- 		get: function(req, res) {
- 			if(req.session.passport.user) {
- 				Helper.getUser(req.session.passport.user, function(err, user) {
- 					if (err || !user) return next(err);	
- 					
- 					if(typeof user.Business === 'undefined' || !user.Business.length)
- 						res.redirect('business/create');
-
- 					if(typeof user.Business !== 'undefined' && user.Business.length == 1) {
- 						user.meta.Business.current = req.session.Business = {
-							id: user.Business[0]._id,
-							bid: user.Business[0].id,
-							index: 0
-						} 
-						user.save(function(err,res){});
-						res.redirect(Helper.redirectToPrevious(req.session));
+				Helper.getBusinessByName(user._id, req.body.name, true, function(err, named) {
+					if (err) {
+						Log.error('Error querying business by name', {error: err, user_id: user._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						req.session.messages.push('Error finding business')
+						res.redirect('/logout')
+						return
 					}
 
-					if(typeof req.query.business !== 'undefined') {
-						//user.Business.forEach(function(business) {
-						for (var i = 0, l = user.Business.length; i < l; i++) {
-							var businessId = user.Business[i]._id;
-							if(businessId == req.query.business) {
-								user.meta.Business.current = req.session.Business = {
-									id: businessId,
-									bid: user.Business[i].id,
-									index: i
-								}
-								user.save(function(err,res){});
-								res.redirect(Helper.redirectToPrevious(req.session));
+					// check that user isn't creating a business with the same name
+					if(named[0].Business) {
+						req.session.messages.push('You already have a Business with that name')
+						res.redirect('/business/create')
+						return
+					}
+
+					var analytics = new Model.Analytics();
+
+					var business = {
+						name: req.body.name,
+						Analytics: { 
+							id: analytics._id
+						}
+					};
+
+					user.Business.push(business);
+
+					user.save(function(err, response) {
+						if(err) {
+							Log.error('Error saving new Business to User model with Mongoose', {error: err, user_id: user._id, business_id: named[0]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							req.session.messages.push('Error creating new Business!')
+							res.redirect('/business/create')
+							return
+						}
+
+						analytics.save(function(err) {
+							if (err) {
+								Log.error('Error saving new Analytic model with Mongoose', {error: err, user_id: user._id, business_id: named[0]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+								req.session.messages.push('Error creating new Business!')
+								res.redirect('/business/create')
+								return
 							}
+							
+							res.redirect('/business/select');
+						})
+					})
+				})
+			})
+		}
+	},
+
+	select: {
+		get: function(req, res, next) {
+			if(!req.session.passport.user)
+				res.redirect('/login')
+
+			Helper.getUser(req.session.passport.user, function(err, user) {
+				if (err || !user) {
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					req.session.messages.push('Error finding user for business')
+					res.redirect(err ? '/logout' : '/login')
+					return
+				}
+				
+				if(typeof user.Business === 'undefined' || !user.Business.length)
+					res.redirect('business/create');
+
+				if(typeof user.Business !== 'undefined' && user.Business.length == 1) {
+					user.meta.Business.current = req.session.Business = {
+						id: user.Business[0]._id,
+						bid: user.Business[0].id,
+						index: 0
+					} 
+					user.save(function(err,res){
+						if(err) 
+							Log.error('Error saving current business meta data', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					});
+					res.redirect(Helper.redirectToPrevious(req.session));
+				}
+
+				if(typeof req.query.business !== 'undefined') {
+					// TODO: change this to use $elemMatch Mongoose lookup 
+					// instead of for loop
+					for (var i = 0, l = user.Business.length; i < l; i++) {
+						var businessId = user.Business[i]._id;
+						if(businessId == req.query.business) {
+							user.meta.Business.current = req.session.Business = {
+								id: businessId,
+								bid: user.Business[i].id,
+								index: i
+							}
+							user.save(function(err,res){
+								if(err) 
+									Log.error('Error saving current business meta data', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							});
+							res.redirect(Helper.redirectToPrevious(req.session));
 						}
 					}
+				}
 
- 					res.render(
- 						Helper.bootstrapRoute, //'business/select', 
- 						{
- 					  	title: 'Vocada | Business List',
- 					  	businesses: user.Business
- 						}
- 					);
- 				});
- 			}
- 		},
+				res.render(
+					Helper.bootstrapRoute, //'business/select', 
+					{
+						title: 'Vocada | Business List',
+						businesses: user.Business
+					}
+				);
+			});
+
+		},
 /*
- 		post: function(req, res, next) {
+		post: function(req, res, next) {
  			if(req.session.passport.user && typeof req.body.id !== 'undefined') {
  				var id = req.session.passport.user;
  				Model.User.findById(id, function(err, user) {
@@ -125,42 +162,83 @@ var BusinessController = {
  				res.redirect('/business/create');
  			}
  		} */
- 	},
- 	list: {
- 		get: function(req, res) {
- 			if(req.session.passport.user) {
- 				var id = req.session.passport.user;
+	},
 
- 				Model.User.findById(id, function(err, user) {
- 					if (err) return next(err);	
- 					
- 					res.render(
- 						Helper.bootstrapRoute, //'business/list', 
- 						{
- 					  	title: 'Vocada | Business List',
- 					  	businesses: user.Business
- 						}
- 					);
- 				});
- 			}
- 		}
- 	},
+	/*
+	list: {
+		get: function(req, res) {
+			if(req.session.passport.user) {
+				Helper.getUser(req.session.passport.user, function(err, user) {
+					if (err) return next(err);		
+					
+					res.render(
+						Helper.bootstrapRoute, //'business/list', 
+						{
+					  	title: 'Vocada | Business List',
+					  	businesses: user.Business
+						}
+					);
+				});
+			}
+		}
+	},
+	*/
 
- 	delete: {
- 		get: function(req, res) {
- 			//res.send(req.session.passport.user);
- 		},
- 		delete: function(req, res) {
- 			if(req.session.passport.user) {
- 				Helper.getUser(req.session.passport.user, function(err, user) {
- 					if (err || !user) return next(err);	
- 				  req.session.destroy(function(){
- 					  res.redirect('/dashboard');
- 					});
- 				});		
- 			}
- 		}
- 	}
+	// this will probably be handled by sockets not a full url load
+	delete: {
+		get: function(req, res) {
+			//res.send(req.session.passport.user);
+		},
+		delete: function(req, res, next) {
+			if(!req.session.passport.user)
+				res.redirect('/login')
+
+			Helper.getUser(req.session.passport.user, function(err, user) {
+				if (err || !user) {
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					req.session.messages.push('Error finding user for business')
+					res.redirect(err ? '/logout' : '/login')
+					return
+				}
+
+				Helper.getBusiness(user._id, req.body.id, function(err, business) {
+					if (err || !business) {
+						Log.error(err ? err : 'No business returned', {error: err, user_id: user._id, business_id: req.body.id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						req.session.messages.push('Error finding user for business')
+						res.redirect(err ? '/logout' : '/login')
+						return
+					}
+
+					Model.Analytics.findById(business.Analytics.id, function(err, analytics) {
+						if (err) {
+							Log.error(err, {error: err, user_id: user._id, business_id: req.body.id, analytics_id: business.Analytics.id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							req.session.messages.push('Error finding analytics for business')
+							res.redirect('/logout')
+							return
+						}
+
+						if(!analytics)
+							Log.warn('No matching analytics found', {error: 'No matching analytics found during business remove', user_id: user._id, business_id: req.body.id, analytics_id: business.Analytics.id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					
+						if(analytics)
+							analytics.remove(function(err, removed) {
+								if(err)
+									Log.error('Error deleting Analytic collection from database', {error: err, user_id: user._id, business_id: req.body.id, analytics_id: business.Analytics.id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							})
+
+						business.remove(function(err, removed) {
+							if(err)
+								Log.error('Error deleting Business collection from database', {error: err, user_id: user._id, business_id: req.body.id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						})
+
+						req.session.destroy(function(){
+							res.redirect('/business/select');
+						});
+					})
+				})
+			})	
+		}
+	}
 }
 
 module.exports = BusinessController;

@@ -6,7 +6,7 @@
 
   Architecture: {
     schema: {
-      id: { type: Number, required: true},
+      //id: { type: Number, required: true},
       //name: { type: String, required: true},
 
       facebook: {
