@@ -65,7 +65,7 @@ console.log($scope.page);
 					
 				}
 
-				if(user.uid === '') {
+				if(!user.uid) {
 					socket.emit('setUid', {uid: $scope.user.uid}, function (err) {
 						if(err) console.log(err)
 						console.log('new uid has been saved to database');
@@ -73,7 +73,7 @@ console.log($scope.page);
 				}
 
 				for(var i=0,l=user.businesses.list.length;i<l;i++) {
-					if(user.businesses.list[i].id === '') {
+					if(!user.businesses.list[i].id) {
 						var index = i;
 						$http.get('/user/settings').then(function(json) {
 							var newBid = new Firebase(firebaseUrl + 'user/' + $scope.user.uid + '/business').push({settings: json['data']}).name();
@@ -283,7 +283,8 @@ console.log($scope.firebase);
 			$scope.modules.data = $scope.remoteModules;
 			for(var i=0,l=$scope.modules.data.length; i<l; i++)
 				$scope.modules.data[i].id = i;
-			$scope.modules.count = l;	
+			$scope.modules.count = l;
+console.log('MODULES', $scope.modules);			
 		});
 	}])
 

@@ -714,7 +714,6 @@ console.log('s here');
 			populateById: function(itr, cb) {
 				var timestamp = Helper.timestamp(),
 						twitterUsersCsv = '';
-						//twitterUserHandlesCsv;
 
 				Model.Connections.find({twitter_id: {$exists: true}, Twitter: {$exists: false}}, null, {limit: 99}, function(err, users) {
 					if (err)

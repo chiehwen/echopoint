@@ -83,25 +83,8 @@ var SocialController = {
 						// load facebook api
 					var facebook = Auth.load('facebook');
 
-					// if select GET param is passed then bring up user business pages list 
-					if(!f.account.id || !f.account.oauthAccessToken || req.query.select)
-						facebook.get('me', {fields: 'accounts.fields(name,picture.type(square),id)'}, function(err, response) {
-							if(err || response.error) {
-								Error.handler('facebook', err || response.error, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
-								return res.redirect('/social/facebook/connect?login=true')
-							}
-
-							return res.json({
-								success: true,
-								connected: true,
-								account: false,
-								data: {businesses: response.accounts.data},
-								url: null
-							})
-						})
-
-					// if we have an id GET param from the above select menu lets load it into the business
-					else if(req.query.id)
+					// if we have an id GET param from the below select page lets load it into the business
+					if(req.query.id)
 						facebook.get('me', {fields: 'id,accounts.fields(id,access_token)'}, function(err, response) {
 							if(err || response.error) {
 								Error.handler('facebook', err || response.error, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
@@ -138,7 +121,24 @@ var SocialController = {
 							return res.redirect('/social/facebook/connect' + (found ? '' : '?login=true'));
 							//return res.json({success: found});
 						})
-					
+
+					// if select GET param is passed then bring up user business pages list 
+					else if(!f.account.id || !f.account.oauthAccessToken || req.query.select)
+						facebook.get('me', {fields: 'accounts.fields(name,picture.type(square),id)'}, function(err, response) {
+							if(err || response.error) {
+								Error.handler('facebook', err || response.error, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+								return res.redirect('/social/facebook/connect?login=true')
+							}
+
+							return res.json({
+								success: true,
+								connected: true,
+								account: false,
+								data: {businesses: response.accounts.data},
+								url: null
+							})
+						})
+
 					// if we have database data and session is loaded then we are good to go
 					else if(f.account.id && f.account.oauthAccessToken)
 

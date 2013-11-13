@@ -104,7 +104,11 @@ oauth2.getOAuthAccessToken('', {
       console.log(e, access_token); //string that we can use to authenticate request
 });*/
 
-//Model.Twitter.remove(function(err){if(err) throw err})
+// Remove all 
+Model.Connections.remove(function(err){if(err) throw err})
+Model.Analytics.remove(function(err){if(err) throw err})
+Model.User.remove(function(err){if(err) throw err})
+
 //var connections = new Model.Connections({});
 //connections.save(function(err,com) {});
 Model.Connections.find(function(err, con) {
