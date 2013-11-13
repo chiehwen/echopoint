@@ -24,7 +24,7 @@ var Database = (function() {
               Log.error('Error connecting to MongoDB database via Mongoose @ mongoose.connect in database.js file', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
               throw err
             }
-						Log.info('Successfully connected to MongoDB via the node Mongoose module');
+						console.log('Successfully connected to MongoDB via the node Mongoose module');
 					});
   				break;
   			case 'redis':
@@ -58,7 +58,6 @@ var Database = (function() {
       return databaseInstance;
     }
   }
-
 })();
 
 module.exports = Database;

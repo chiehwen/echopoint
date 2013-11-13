@@ -1,5 +1,6 @@
 
 var url = require('url'),
+		//Log = require('./logger').getInstance().getLogger(),
 		Model = Model || Object;
 
 // this is for Angular JS bootstraped pages
@@ -7,15 +8,7 @@ exports.bootstrapRoute = 'bootstrap';
 
 exports.getUser = function(id, callback) {
 	Model.User.findById(id, function(err, user) {
-		// we use .info logging here instead of .error 
-		// because actual error logging is done in the 
-		// calling function to show file and line
-		if(err)
-			Log.info('Error on Mongoose User findById query (Model.User.findById)', {error: err, user_id: id, file: __filename, time: new Date().toUTCString()})
-		
-		if(!user)
-			Log.info('No user returned with user_id: '+id+' (Model.User.findById)', {error: err, user_id: id, file: __filename, time: new Date().toUTCString()})
-
+		// log any errors at the callback so we gatehr file and line data
 		callback(err, user);
 	});
 } 		
@@ -55,12 +48,17 @@ exports.sortBy = function(field, reverse, primer) {
 	}
 };
 
-exports.timestamp = function(seconds) {
-	var seconds = seconds || false
+exports.timestamp = function(date, seconds) {
+	if(!seconds && typeof date !== 'string') {
+		seconds = date;
+		date = false;
+	}
+
+	var timestamp = date ? new Date(date).getTime() : Date.now();
 	if(seconds)
-		return Date.now()
+		return timestamp
 	else
-		return Math.round(Date.now()/ 1000)
+		return Math.round(timestamp/1000)
 }
 
 exports.redirectToPrevious = function(session) {

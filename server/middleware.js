@@ -18,9 +18,15 @@ var Middleware = {
 	},
 
 	sessionVariables: function(req, res, next) {
-		if(req.session.passport.user) {
+		if(req.session.passport.user)
  			Helper.getUser(req.session.passport.user, function(err, user) {
- 				if(err) return; // error logging handled in Helper class
+ 				if (err || !user) {
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					req.session.messages.push('Error finding user')
+					res.redirect('/logout')
+					return next(err);
+				}
+
  				res.locals.username = user.name;
  				res.locals.uid = user.id;
  				res.locals.email = user.email;
@@ -30,16 +36,19 @@ var Middleware = {
  				}
  				next();
  			});
- 		} else {
+ 		else
 	 		next();
-	 	}
-
 	},
 
 	loadBusiness: function(req, res, next) {
-		if(req.session.passport.user && typeof req.session.Business === 'undefined' && !Helper.isPath(req.url, ['/login', '/logout', '/business/select', '/business/create', '/user/create'], [])) {
+		if(req.session.passport.user && !req.session.Business && !Helper.isPath(req.url, ['/login', '/logout', '/business/select', '/business/create', '/user/create'], []))
  			Helper.getUser(req.session.passport.user, function(err, user) {
- 				if (err || !user) return next(err);
+ 				if (err || !user) {
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					req.session.messages.push('Error finding user')
+					res.redirect('/logout')
+					return next(err);
+				}
  				if(user.meta.Business.current && user.meta.Business.current.id != '' && user.meta.Business.current.id ) {
  					req.session.Business = user.meta.Business.current;
  					next();
@@ -47,9 +56,8 @@ var Middleware = {
  					res.redirect('/business/select');
  				}
  			}); 
- 		} else {
+ 		else
  			next();
- 		}
 	},
 
 	analyticNotifications: function(req, res, next) {

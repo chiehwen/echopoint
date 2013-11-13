@@ -19,11 +19,13 @@ var fs = require('fs'),
 		Instagram = null,
 		Yelp = null,
 		Bitly = null,
+		Flickr = null,
 		Klout = null,
 		nTwitter = require('ntwitter'),
 		//GoogleOAuth = require('googleapis').OAuth2Client,
 		googleapis = require('googleapis'),
-		YelpApi = require('yelp');
+		YelpApi = require('yelp'),
+		FlickrApi = require('flickr').Flickr;
 
 var Auth = (function() {
 
@@ -58,7 +60,9 @@ var Auth = (function() {
 									Log.error('Error on authenticating user', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
 									return callback(err)
 								}
-								if(!match) return callback(null, false, {message: 'email-password-error'});
+								if(!match) 
+									return callback(null, false, {message: 'email-password-error'});
+								
 								return callback(null, user);
 							});
 						});
@@ -92,16 +96,6 @@ var Auth = (function() {
 
 					Twitter = new nTwitter(credentials)
 
-					/*Twitter.oauth = new oauth.OAuth(
-						Config.twitter.requestUrl,
-						Config.twitter.accessUrl, 
-						Config.twitter.consumerKey,
-						Config.twitter.consumerSecret,
-						Config.twitter.version,
-						Config.twitter.callback,
-						Config.twitter.signature
-					);*/
-
 					Twitter.setAccessTokens = function(oauthAccessToken, oauthAccessTokenSecret) {
 						this.options.access_token_key = oauthAccessToken;
 						this.options.access_token_secret = oauthAccessTokenSecret;
@@ -109,7 +103,8 @@ var Auth = (function() {
 					}
 
 					Twitter.setBearerToken = function(oauthBearerToken) {
-						this.options.headers.Authorization = 'Bearer ' + oauthBearerToken;
+						// the bearer token is the app token used to make api calls on behalf of the application (in this case vocada)
+						this.options.headers.Authorization = 'Bearer ' + (oauthBearerToken || Config.twitter.oauth_bearer_token);
 						return this;
 					}
 				}
@@ -203,6 +198,33 @@ var Auth = (function() {
 				return Bitly;
 			},
 
+			flickr: function() {
+				if(!Flickr) {
+					Flickr = new FlickrApi(Config.flickr.consumerKey, Config.flickr.consumerSecret);
+					Flickr.oauth = new oauth.OAuth(
+						Config.flickr.requestUrl,
+						Config.flickr.accessUrl, 
+						Config.flickr.consumerKey,
+						Config.flickr.consumerSecret,
+						Config.flickr.version,
+						null,
+						Config.flickr.signatureMethod
+					);
+					Flickr.client = {
+						requestUrl: Config.flickr.requestUrl,
+						accessUrl: Config.flickr.accessUrl, 
+						consumerKey: Config.flickr.consumerKey,
+						consumerSecret: Config.flickr.consumerSecret,
+						version: Config.flickr.version,
+						signatureMethod: Config.flickr.signatureMethod,
+						callback: Config.flickr.callback,
+						dialog: Config.flickr.dialog
+					}
+				}
+
+				return Flickr;
+			},
+
 			klout: function() {
 				if(!Klout) {
 					Klout = new Api('klout')
@@ -235,14 +257,11 @@ var Auth = (function() {
 
 		var oauthDialogUrl = function(type, params) {
 			
-			if(type === 'twitter')
-					return Config.twitter.dialog + '?' + qs.stringify(params);
+			if(type === 'twitter' || type === 'flickr')
+					return Config[type].dialog + '?' + qs.stringify(params);
 
 			if(typeof Config[type].scope !== 'undefined')
 				params.scope = Config[type].scope;
-
-			//if(type === 'google')
-				//return Google.generateAuthUrl(params);
 
 			params.client_id = Config[type].id;
 			params.redirect_uri = Config[type].callback;
@@ -319,7 +338,7 @@ var Auth = (function() {
 					req.session.returnTo = req.url;
 
 				if(!req.session.passport.user) {
-					if(typeof req.session.returnTo === 'undefined' || !req.session.returnTo) 
+					if(!req.session.returnTo) 
 						req.session.returnTo = '/dashboard';
 					req.session.messages = 'please login to continue';
 					res.redirect('/login');

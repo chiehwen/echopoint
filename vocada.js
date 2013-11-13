@@ -3,14 +3,14 @@
  */
 var Boot = require('./server/boot').Bootup,
 		Server = require('./server/load').Server,
-		Auth = require('./server/auth'),
+		Auth = require('./server/auth').getInstance(),
 		Sockets = require('./server/sockets');
 
 Boot.start(function(app) {
 	Server = Server.getInstance(app);
 	Server.load();
 	
-	Auth.getInstance().loadStrategy('local').loadSession('local');
+	Auth.loadStrategy('local').loadSession('local');
 
 	Sockets.getInstance(Server.create());
 });
@@ -69,9 +69,9 @@ Model.Analytics.findOne({id: 1382807555173/*'foursquare.business.data.id': {$exi
 	console.log('anal: ', u);
 	//u.foursquare.tracking.tips.update = true;
 	//u.save(function(err,save) {})
-	u.remove(function(err, gone) {
-		console.log(err);
-	})
+	//u.remove(function(err, gone) {
+		//console.log(err);
+	//})
 })
 
 //var request = require('request');
@@ -179,10 +179,94 @@ Model.Connections.find(function(err, con) {
 
 //})
 
+var Harvester = {
+			facebook: require('./server/harvesters/facebook'),
+			twitter: require('./server/harvesters/twitter'),
+			foursquare: require('./server/harvesters/foursquare'),
+			google: require('./server/harvesters/google'),
+			yelp: require('./server/harvesters/yelp'),
+			klout: require('./server/harvesters/klout')
+		};
 
-Model.User.findOne({email: "1234"}, function(err, user) {
-	console.log(user);
-	//console.log(user.Business[0].Analytics.id)
+/*Harvester.foursquare.appData({
+					methods: ['user'],
+					//Model: business
+					//analytics_id: f.id,
+					//network_id: f.business.data.id
+				}, function(err) {
+					console.log('Foursquare connections callbacks complete');							
+					//res.json({success: true,connected: true,account: true,data: {businesses: null},url: null});
+					//business.save(function(err, save) {
+						//console.log(err);
+					//})
+				})*/
+
+Model.Connections.find({'Twitter.screen_name_lower' : 'andyviral'}, function(err, dataa) {
+	console.log('here',err, dataa[0]);
+	dataa= dataa[0];
+	//dataa.Twitter = {screen_name: 'andyviral', screen_name_lower: 'andyviral'}
+	//dataa[0].twitter_handle = 'notandyviral'
+	//dataa.save(function(err, savey) {
+	//		console.log('the save',err, savey);
+		//})
+//console.log(dataa[3]);
+	//var str = '';
+/*for(var i = 0, l = dataa.length; i < l; i++) {
+		dataa[i].foursquare_id = undefined
+		dataa[i].Foursquare = undefined
+		dataa[i].meta.foursquare.analytics_id = undefined
+		dataa[i].markModified('Foursquare')
+		dataa[i].save(function(err, savey) {
+			console.log(err);
+		})
+		//str += '{foursquare_id: ' + dataa[i].foursquare_id + ', meta:{ foursquare: { analytics_id: '+ dataa[i].meta.foursquare.analytics_id+ '}}},'
+	}*/
+//console.log(str);
+})
+
+Model.Connections.aggregate(
+	{ $group : {_id : "$Twitter.screen_name_lower", total : { $sum : 1 } } },
+	{ $match : { total : { $gte : 2 } } },
+	//{ $sort : {total : -1} },
+	//{ $limit : 5 }, 
+	function(err, dats) {
+console.log('data me! ', err, dats)
+	}
+)
+
+/*Model.Connections.collection.insert([
+	{foursquare_id: 28706346, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},
+	{foursquare_id: 2904015, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},
+	{foursquare_id: 12588455, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},
+	{foursquare_id: 8617217, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},{foursquare_id: 16911328, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},
+	{foursquare_id: 3115127, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},{foursquare_id: 12987298, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},{foursquare_id: 12742228, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},{foursquare_id: 11858283, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},{foursquare_id: 4477130, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},{foursquare_id: 12452125, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}}], {safe: true, continueOnError: true}, 
+	function(err, save) {
+	if(err)
+		//return Log.error('Error saving to Connection table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+		console.log(err);
+})*/
+
+Model.Analytics.findOne({}, function(err, res) {
+
+	//res.forEach(function(dat) {
+		console.log(res.id);
+		//res.foursquare.tips.active = []
+		/*res.foursquare.tracking.tips.update = true
+		res.markModified('foursquare.tracking.tips.update')
+		res.save(function(err, saved) {
+			console.log(err);
+		})*/
+	//})
+})
+
+Model.Connections.findById('527ad3e186569f404000008b', function(err, huh) {
+//console.log(huh);
+})
+
+
+Model.User.findOne({email: "123"}, function(err, user) {
+	//console.log(user);
+	console.log(user.Business[0].Analytics.id)
 
 	//console.log(user.Business[0].Social.google.auth.oauthAccessToken);
 	//user.Business[0].Social.google.auth.oauthAccessToken = '';
@@ -217,7 +301,6 @@ Model.User.findOne({email: "1234"}, function(err, user) {
 
 
 
-
 	var Cron = require('./server/cron');
 	// !!!! IMPORTANT: BELOW IS THE TOGGLE FOR 
 	// !!!! CRON TESTING !!!
@@ -229,8 +312,10 @@ Model.User.findOne({email: "1234"}, function(err, user) {
 //Cron.twitter.timeline.start();
 //Cron.twitter.connections.start();
 //Cron.twitter.users.start();
+//Cron.twitter.duplication_discovery.start();
 
-//Cron.foursquare.business.start();
+//Cron.foursquare.venue.start();
+//Cron.foursquare.stats.start();
 //Cron.foursquare.tips.start();
 //Cron.foursquare.users.start();
 

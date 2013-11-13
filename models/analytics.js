@@ -268,6 +268,7 @@
       foursquare: {
         // this is venue updates (such as change of operating hours, new address, new business category, etc)
         business: {
+          id: {type: String},
           timestamp: {type: Number},
           data: {}
         },

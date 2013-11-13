@@ -1,36 +1,28 @@
 var request = require('request'),
 		Auth = require('../auth').getInstance(),
+		Log = require('../logger').getInstance().getLogger(),
+		Error = require('../error').getInstance(),
 		Helper = require('../helpers'),
 		Model = Model || Object,
 		Requester = require('requester'),
-		cheerio = require('cheerio'),
-		winston = require('winston');
+		cheerio = require('cheerio');
 
-var googlePageData = require('./tmpPageData/googlePage'); // TEMP
+//var googlePageData = require('./tmpPageData/googlePage'); // TEMP
 
 var GoogleHarvester = (function() {
 
-	/*winston.add(winston.transports.File, 
-		{ filename: 'googlePage.log' 
-			, json: true
-		})
-	.remove(winston.transports.Console);*/
-
-	var Analytics,
+	var User,
+			Analytics,
 			requester = new Requester({
 				debug: 1,
 				//proxies: [{ip: '107.17.100.254', port: 8080}]
 			}),
 			google,
-			//response,
 			data,
 			update = false,
-			//url = false,
-			//getReviews = false,
-			next = function(i, cb, err) {
+			next = function(i, cb, stop) {
 				var i = i+1
-				if(err) console.log(err)
-				if(data.methods[i])
+				if(!stop && data.methods[i])
 					Harvest[data.methods[i]](i, cb)
 				else
 					cb(null)
@@ -46,6 +38,7 @@ var GoogleHarvester = (function() {
 				var place = response.result,
 						cached = Analytics.google.business.data,
 						timestamp = Helper.timestamp(),
+						ratingChange = false,
 						localUpdate = false;
 console.log(place);
 				if(
@@ -66,170 +59,53 @@ console.log(place);
 						data: place
 					}
 
-					//url = place.url;
-
-					Model.User.findById(data.user, function(err, user) {
-						user.Business[data.index].Social.google.business.data = Analytics.google.business.data;
-						user.save(function(err) {console.log(err)});
-					});
+					//Model.User.findById(data.user, function(err, user) {
+						User.Business.Social.google.business.data = Analytics.google.business.data;
+						//user.save(function(err) {console.log(err)});
+					//});
 				}
 
 				if(parseFloat(place.rating) != Analytics.google.tracking.rating.score) {
 					update = localUpdate = true;
+					ratingChange = Analytics.google.tracking.rating.timestamp;
 					Analytics.google.tracking.rating.history.push({
 						timestamp: timestamp,
 						score: parseFloat(place.rating)
 					})
 					Analytics.google.tracking.rating.score = parseFloat(place.rating);
 					Analytics.google.tracking.rating.timestamp = timestamp;
+
+					//User[0].Business[0].Social.google.reviews.override = ratingChange = true;
 				}	
 
 				if(localUpdate)
 					console.log('saved updated Google business and rating data from API.');
 
-				next(itr, cb);
+				if(Business.Social.google.reviews.timestamp === 0 || (ratingChange && Business.Social.google.reviews.timestamp < ratingChange))
+					next(itr, cb)
+				else
+					next(itr, cb, true)
 			})
 		},
 
-		scrape: function(itr, cb) {
-			/// only scrape if something has changed from the API data
-			//if(!update)
-			//	return next(itr, cb);
-
-			requester.get((url || Analytics.google.business.data.url), function(body) {
-				if (this.statusCode != 200)
-					return next(itr, cb, body);
-				//console.log(body);
-				//console.log(this);
-
-				//var reviewsArray = [];
-
-				var $ = cheerio.load(body),
-						timestamp = Helper.timestamp(),
-						localUpdate = false;
-
-				var reviews_star_breakdown = {},
-						topics_list = [];
-
-				$('.tLP8Cb > div > div').each(function(key, value) {
-					var star = '';
-					switch(key) {
-						case 0:
-							star = 'five_star';
-							break;
-						case 1:
-							star = 'four_star';
-							break;
-						case 2:
-							star = 'three_star';
-							break;
-						case 3:
-							star = 'two_star';
-							break;
-						case 4:
-							star = 'one_star';
-							break;
-					}
-
-					reviews_star_breakdown[star] = $(value).find('.g-wc').text().trim();
-				})
-
-				$('.tgAekb > span').each(function(key, value) {
-					topics_list.push($(value).text().trim());
-				})
-
-
-				var pageObject = {
-					rating: {
-//						$('body div div/ div:nth-child(3) div:nth-child(2) div:nth-child(4) div div div div:nth-child(2) div div div div:nth-child(3) div div div div div:nth-child(2) div:nth-child(3)')
-						score: parseFloat($('.SNJ03').text().trim()),
-						//stars: 
-					},
-					reviews: {
-						count: $('.ix.ZzSoq.IY5lWc .TezzSb.qja').text(),
-						star_breakdown: reviews_star_breakdown
-					},
-					summary: $('.Jya').text().trim(),
-					topics: topics_list,
-					zagat_featured: $('.r6Rtbe.bh0S9e.sLv3ye.ZXKyud.tob').attr('role') ? true : false
-				}
-
-				if(
-					pageObject.summary != Analytics.google.business.page.local.data.summary
-					|| pageObject.topics.length !== Analytics.google.business.page.local.data.length
-					|| pageObject.zagat_featured != Analytics.google.business.page.local.data.zagat_featured
-				) {
-					update = localUpdate = true;
-					Analytics.google.business.page.local.data = {
-						summary: pageObject.summary,
-						topics: pageObject.topics,
-						zagat_featured: pageObject.zagat_featured
-					}
-				}
-
-				if(pageObject.reviews.count != Analytics.google.tracking.reviews.total) {
-					update = localUpdate = true;
-
-					if(pageObject.reviews.count > Analytics.google.tracking.reviews.total)
-						getReviews = {
-							count: pageObject.reviews.count - Analytics.google.tracking.reviews.total,
-							pagination: Analytics.google.tracking.reviews.total,
-							total: pageObject.reviews.count
-						}
-					else 
-						getReviews = {
-							count: pageObject.reviews.count,
-							pagination: 0,
-							removed: true
-						}
-
-					Analytics.google.tracking.reviews.history.push({
-						total: pageObject.reviews.count,
-						star_breakdown: pageObject.reviews.star_breakdown,
-						timestamp: timestamp
-					})
-					Analytics.google.tracking.reviews.total = pageObject.reviews.count;
-					Analytics.google.tracking.reviews.timestamp = timestamp;
-				}
-
-				if(pageObject.rating.score != Analytics.google.tracking.rating.score) {
-					update = localUpdate = true;
-					Analytics.google.tracking.rating.history.push({
-						score: pageObject.rating.score,
-						timestamp: timestamp
-					});
-					Analytics.google.tracking.rating.score = pageObject.rating.score;
-					Analytics.google.tracking.rating.timestamp = timestamp;
-				}
-
-				if(!Analytics.google.business.page.local.id) {
-					update = localUpdate = true;
-					Analytics.google.business.page.local.id = $('div[data-placeid]').attr('data-placeid');
-					getReviews = {
-						count: pageObject.reviews.count,
-						pagination: 0
-					}
-				}
-
-console.log(pageObject);				
-
-				next(itr, cb);
-			})
-		},
-
+		// call every 5 minutes
 		reviews: function(itr, cb, pagination) {
 
-// Need to have id from page scrape
-// and total new reviews to look up with pagination
-
-			// only call review POST if something has changed from the API data
-			if(!Analytics.google.business.data.url)
-				return next(itr, cb);
-
+			// if we dont have the business page id then scrape the webpage for the data
 			if(!Analytics.google.business.page.local.id) {
+				// if we don't have the url to scrape
+				// for the business page id then exit
+				if(!Analytics.google.business.data.url) {
+					if(User.Business[0])
+						User.Business[0].Social.google.reviews.timestamp = timestamp;
+					else
+						User.Business.Social.google.reviews.timestamp = timestamp;
+					return next(itr, cb);
+				}
+
 				requester.get(Analytics.google.business.data.url, function(body) {
 					if (this.statusCode != 200)
-						return next(itr, cb, body);
+						return next(itr, cb);
 
 					var $ = cheerio.load(body);
 					update = true;
@@ -243,6 +119,15 @@ console.log(pageObject);
 						timestamp = Helper.timestamp(),
 						localUpdate = false;
 
+				//User[0].Business[0].Social.google.reviews.scraped = true;
+				//User[0].Business[0].Social.google.reviews.override = false;
+				//User[0].Business[0].Social.google.reviews.timestamp = timestamp;
+
+				if(User.Business[0])
+					User.Business[0].Social.google.reviews.timestamp = timestamp;
+				else
+					User.Business.Social.google.reviews.timestamp = timestamp;
+
 				request.post('https://plus.google.com/_/pages/local/loadreviews', 
 					{ form: {
 						"f.req": '["' + Analytics.google.business.page.local.id + '",null,[null,null,[[28,' + pagination + ',' + count + ',null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{}],[30,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{}]]],[null,null,false,true,3,true]]', 
@@ -251,6 +136,13 @@ console.log(pageObject);
 					function(err, res) {
 						if(err)
 							return console.log('error!: ', err);
+
+						if(!res.body || res.body == '')
+							return console.log('error!: ', err);
+
+						// make sure the proper JSON set was returned for eval() parsing
+						if(res.body.toString().indexOf(")]}'") !== -1)
+							console.log('error!: ', err);
 
 						var parsedReviewData = eval(res.body.toString().replace(")]}'", "").trim())
 								reviews = parsedReviewData[0][1][11][0],
@@ -385,97 +277,8 @@ console.log(overview);
 			} // end Google page id else
 		},
 
-		cheer: function(itr, cb) {
-			$ = cheerio.load(googlePageData.html);
-
-			var reviews_star_breakdown = {},
-					topics_list = [];
-
-			$('.tLP8Cb > div > div').each(function(key, value) {
-				var star = '';
-				switch(key) {
-					case 0:
-						star = 'five_star';
-						break;
-					case 1:
-						star = 'four_star';
-						break;
-					case 2:
-						star = 'three_star';
-						break;
-					case 3:
-						star = 'two_star';
-						break;
-					case 4:
-						star = 'one_star';
-						break;
-				}
-
-				reviews_star_breakdown[star] = $(value).find('.g-wc').text().trim();
-			})
-
-			$('.tgAekb > span').each(function(key, value) {
-				topics_list.push($(value).text().trim());
-			})
 
 
-			var pageObject = {
-					rating: {
-						score: parseFloat($('.SNJ03').text().trim()),
-						//stars: 
-					},
-					reviews: {
-						count: $('.ix.ZzSoq.IY5lWc .TezzSb.qja').text(),
-						star_breakdown: reviews_star_breakdown
-					},
-					summary: $('.Jya').text().trim(),
-					topics: topics_list,
-					zagat_featured: $('.r6Rtbe.bh0S9e.sLv3ye.ZXKyud.tob').attr('role') ? true : false
-				}
-//console.log(pageObject);
-
-
-console.log('id: ', $('div[data-placeid]').attr('data-placeid')) //.attr('data-placeid'));
-
-/*
-request.post('https://plus.google.com/_/pages/local/loadreviews', 
-	{ form: {
-		"f.req": '["17751536374062546769",null,[null,null,[[28,10,10,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{}],[30,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{}]]],[null,null,false,true,3,true]]', 
-		at: 'AObGSAiOtoNHKnLAO-PWRdWXOASNwMAl4g:1379699578795'
-	}}, 
-	function(err, res) {
-		if(err)
-			return console.log('error!: ', err);
-//var parsedReviewData = eval(res.body.toString().replace(")]}'", "").trim());
-		//strTest = { data: eval(strTest) };
-		//console.log(strTest[0]);
-
-		var parsedReviewData = eval(res.body.toString().replace(")]}'", "").trim())
-				reviews = parsedReviewData[0][1][11][0],
-				reviewObjects = [];
-
-		for(var i=0, l=reviews.length; i<l;i++) {
-			reviewObjects.push({
-				user: {
-					name: reviews[i][0][0][1],
-					page: reviews[i][0][0][3][0] || reviews[i][0][0][0],
-					photo: reviews[i][0][1]
-				},
-				review: {
-					complete: reviews[i][3],
-					summary: reviews[i][4]
-				},
-				lang_code: reviews[i][30],
-				relative_time:reviews[i][5],
-				reference: reviews[i][33],
-				timestamp: Helper.timestamp()
-			});
-		}
-
-console.log(reviewObjects);
-
-	} 
-)*/
 
 // USER OBJECT: [0][1][11][0][0][0]
 // user plus page: 
@@ -495,94 +298,33 @@ console.log(reviewObjects);
 // TODO: look into correct "inappropriate flag":
 // url between:  [0][1][11][0][0][7], [0][1][11][0][0][13]
 
-/*
-			$('#reviews-other ul li.review').each(function(key, value) {
-
-				var date = $(value).find('.media-block .media-story .review-meta > meta').attr('content'),
-						elite = $(value).find('.media-block .media-avatar .user-passport .user-stats li.is-elite'),
-						reviewAttributes = {
-							useful: $(value).find('.media-block .media-story .extra-actions .rateReview ul li.useful a span.count').text(),
-							funny: $(value).find('.media-block .media-story .extra-actions .rateReview ul li.funny a span.count').text(),
-							cool: $(value).find('.media-block .media-story .extra-actions .rateReview ul li.cool a span.count').text()
-						};
-
-
-				var reviewObject = {
-					id: $(value).attr('id'),
-					date: {
-						standard: date,
-						timestamp: new Date(date).getTime()
-					},
-					user: {
-						name: $(value).find('.media-block .media-avatar .user-passport .user-name a').text().trim(),
-						id: $(value).find('.media-block .media-avatar .user-passport .user-name a').attr('href').toString().trim().replace('http://www.yelp.com/user_details?userid=', ''),
-						location: $(value).find('.media-block .media-avatar p.reviewer_info').text().trim(),
-						photo: $(value).find('.media-block .media-avatar .user-passport .photo-box a img').attr('src').trim(),
-						link: $(value).find('.media-block .media-avatar .user-passport .user-name a').attr('href').trim(),
-						friend_count: $(value).find('.media-block .media-avatar .user-passport .user-stats .friend-count > span').text().trim(),
-						review_count: $(value).find('.media-block .media-avatar .user-passport .user-stats .review-count > span').text().trim(),
-						is_elite: (elite && elite != '') ? true : false
-					},
-					rating: {
-						score: parseFloat($(value).find('.media-block .media-story .review-meta .rating meta').attr('content')),
-					},
-					review: {
-						text: $(value).find('.media-block .media-story .review_comment').text().trim(),
-						useful_count: reviewAttributes.useful != '' ? parseInt(reviewAttributes.useful, 10) : 0,
-						funny_count: reviewAttributes.funny != '' ? parseInt(reviewAttributes.funny, 10) : 0,
-						cool_count: reviewAttributes.cool != '' ? parseInt(reviewAttributes.cool, 10) : 0
-					},
-					links: {
-						owner_comment: $(value).find('.media-block .media-story .extra-actions .externalReviewActions li a.add-owner-comment').attr('href').trim(),
-						to_review: 'http://www.yelp.com/' + $(value).find('.media-block .media-story .extra-actions .externalReviewActions li a.i-orange-link-common-wrap').attr('href').trim()
-					} 
-				} 
-
-console.log(reviewObject);
-			}) */
-		},
-
-		test: function(itr, cb) {
-			klout = Auth.load('klout');
-
-			klout.get('identity.json/twitter', {screenName: 'SteveMartinToGo', key: klout.client.key}, function(err, res) {
-				console.log(res);
-			})
-			//if(!reviews_update && !rating_update)
-			//	return next(itr, cb);
-
-			/*requester.get('http://maps.google.com/maps/place?cid=10281119596374313554', function(body) {
-				if (this.statusCode != 200)
-					return next(itr, cb, body);
-				console.log(body);
-				console.log(this);
-winston.info(body);
-
-				next(itr, cb);
-			})*/
-		}
 
 	} // End Harvest
 
 
 	return {
-		getData: function(params, callback) {
+		getMetrics: function(user, params, callback) {
+			if(!user)
+				return Log.error('No user provided', {error: err, meta: params, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+
+			User = user[0] || user,
+			Business = User.Business[0] || User.Business,
 			google = Auth.load('google'),
 			data = params,
 			update = false;
 
-			Model.Analytics.findById(data.analytics_id, function(err, analytics) {
+			Model.Analytics.findById(Business.Analytics.id, function(err, analytics) {
 				Analytics = analytics;
 
 				Harvest[data.methods[0]](0, function() {
 					if(update)
 						Analytics.save(function(err,r){
-							// TODO: handle err 
-							//console.log('saved all twitter analytic data from multiple methods');
-							callback(null);
+							if(err)
+								return Log.error('Error saving to Analytics table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							callback(null, update);
 						})
 					else
-						callback(null);//callback({err: 'error occured'});
+						callback(null, update);
 				});
 			})
 		}

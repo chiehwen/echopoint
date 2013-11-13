@@ -3,7 +3,6 @@ var http = require('http'),
 		fs = require('fs'),
 		Database = require('./database').getInstance(),
 		Auth = require('./auth').getInstance(),
-		Log = require('./logger').getInstance().getLogger(),
 		Helper = require('./helpers'),
 		Model = Model || Object;
 
@@ -44,7 +43,7 @@ var LoadServer = (function() {
 				// make sure a controller exists for the model
 				fs.exists(__dirname + '/../controllers/' + name + '.js', function(exists) {
 					if(!exists)
-						Log.warn('No matching Controller. Please create a file named ' + name + '.js in the controllers directory to avoid potential errors.');
+						console.log('No matching Controller. Please create a file named ' + name + '.js in the controllers directory to avoid potential errors.');
 					
 				});
 
@@ -164,7 +163,7 @@ var LoadServer = (function() {
 				server = http.createServer(app);
 				io = require('socket.io').listen(server);
 				server.listen(app.get('port'), function(){
-				  Log.info('Express server listening on port ' + app.get('port'));
+				  console.log('Express server listening on port ' + app.get('port'));
 				});
 				return io;
 			}

@@ -1,19 +1,17 @@
 var Auth = require('../auth').getInstance(),
+		Log = require('../logger').getInstance().getLogger(),
+		Error = require('../error').getInstance(),
 		Helper = require('../helpers'),
 		Model = Model || Object,
 		Requester = require('requester'),
-		cheerio = require('cheerio'),
-		winston = require('winston');
+		cheerio = require('cheerio');
+
 var yelpPageData = require('./tmpPageData/yelpPage'); // TEMP
+
 var YelpHarvester = (function() {
 
-	/*winston.add(winston.transports.File, 
-		{ filename: 'googlePage.log' 
-			, json: true
-		})
-	.remove(winston.transports.Console);*/
-
-	var Analytics,
+	var User,
+			Analytics,
 			requester = new Requester({
 				debug: 1,
 				//proxies: [{ip: '107.17.100.254', port: 8080}]
@@ -23,10 +21,9 @@ var YelpHarvester = (function() {
 			data,
 			update = false,
 			url = false,
-			next = function(i, cb, err) {
+			next = function(i, cb, stop) {
 				var i = i+1
-				if(err) console.log(err)
-				if(data.methods[i])
+				if(!stop && data.methods[i])
 					Harvest[data.methods[i]](i, cb)
 				else
 					cb(null)
@@ -42,6 +39,14 @@ var YelpHarvester = (function() {
 				var cached = Analytics.yelp.business.data,
 						timestamp = Helper.timestamp(),
 						localUpdate = false;
+
+				///Model.User.findById(data.user, function(err, user) {
+					User[0].Business[0].Social.yelp.update.timestamp = timestamp;
+					//data.user.save(function(err) {
+						//if(err)
+						//	return Log.error('Error saving to Users table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					//})
+				//})
 
 				if(
 					response.id != cached.id
@@ -64,16 +69,18 @@ var YelpHarvester = (function() {
 						data: response
 					}
 
-					url = response.url;
-
-					Model.User.findById(data.user, function(err, user) {
-						user.Business[data.index].Social.yelp.business = Analytics.yelp.business.data;
-						user.save(function(err) {console.log(err)});
-					});
+					//Model.User.findById(data.user, function(err, user) {
+						User[0].Business[0].Social.yelp.business = Analytics.yelp.business.data;
+						//data.user.save(function(err) {
+							//if(err)
+							//	return Log.error('Error saving to Users table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						//})
+					//})
 				}
 
 				if(response.review_count != Analytics.yelp.tracking.reviews.total) {
 					update = localUpdate = true;
+					url = response.url || cached.url;
 					Analytics.yelp.tracking.reviews.history.push({
 						timestamp: timestamp,
 						total: response.review_count
@@ -95,14 +102,16 @@ var YelpHarvester = (function() {
 				if(localUpdate)
 					console.log('saved updated Yelp business and review/rating data from API...');
 
-				next(itr, cb);
+				next(itr, cb, url ? false : true);
 			})
 		},
 
 		reviews: function(itr, cb, pagination) {
-			/// only scrape if something has changed from the API data
-			//if(!update)
-			//	return next(itr, cb);
+			// only scrape if something has changed from the API data
+			// although this could give untrue data (such as if someone posts a review and another user deletes a review within the same 24 hour period)
+			// the likelyhood is low. when we get more money we can connect proxies and run this every 24 hours for all businesses
+			if(!url)
+				return next(itr, cb);
 
 			if(!Analytics.yelp.business.data.url)
 				return next(itr, cb);
@@ -112,7 +121,7 @@ var YelpHarvester = (function() {
 					timestamp = Helper.timestamp(),
 					localUpdate = false;
 
-			requester.get(Analytics.yelp.business.data.url + '?sort_by=date_desc' + (pagination ? '&start=' + (pagination * Analytics.yelp.harvest.pagination.multiplier) : ''), function(body) {
+			requester.get(url + '?sort_by=date_desc' + (pagination ? '&start=' + (pagination * Analytics.yelp.harvest.pagination.multiplier) : ''), function(body) {
 				if (this.statusCode != 200)
 					return next(itr, cb, body);
 
@@ -343,7 +352,7 @@ for(var i=0, l=test.length; i<l;i++) {
 					return next(itr, cb, body);
 				console.log(body);
 				console.log(this);
-winston.info(body);
+//winston.info(body);
 				//$ = cheerio.load(body);
 
 				//$('#reviews-other ul li.review').each(function(key, value) {
@@ -358,23 +367,27 @@ winston.info(body);
 
 
 	return {
-		getData: function(params, callback) {
+		getMetrics: function(user, params, callback) {
+			if(!user[0])
+				return Log.error('No user provided', {error: err, meta: params, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+
+			User = user,
 			yelp = Auth.load('yelp'),
 			data = params,
 			update = false;
 
-			Model.Analytics.findById(data.analytics_id, function(err, analytics) {
+			Model.Analytics.findById(User[0].Business[0].Analytics.id, function(err, analytics) {
 				Analytics = analytics;
 
 				Harvest[data.methods[0]](0, function() {
 					if(update)
 						Analytics.save(function(err,r){
-							// TODO: handle err 
-							//console.log('saved all twitter analytic data from multiple methods');
-							callback(null);
+							if(err)
+								return Log.error('Error saving to Analytics table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							callback(null, update);
 						})
 					else
-						callback(null);//callback({err: 'error occured'});
+						callback(null, update);
 				});
 			})
 		}

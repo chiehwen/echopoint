@@ -92,8 +92,26 @@ var ConnectionsModel = {
           }
         },
 
+        facebook: {
+          discovery: {
+            timestamp: {type: Number, default: 0}
+          }
+        },
+
+        twitter: {
+          business_id: {type: String},
+          analytics_id: {type: String},
+          discovery_attempt: {
+            timestamp: {type: Number, default: 0}
+          },
+          //update: {
+          //  timestamp: {type: Number, default: 0}
+          //}
+        },
+
         foursquare: {
-          business_id: {type: String}
+          business_id: {type: String},
+          analytics_id: {type: String}
         }
       }
     },

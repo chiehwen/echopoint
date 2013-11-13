@@ -10,17 +10,17 @@ var passport = require('passport'),
 
 var UserController = {
 	login: {
-		
 		path: '/login',
 		restricted: false,
 		login: true,
+
 		get: function(req, res){
-			if(req.session.passport.user) {
-				if(typeof req.session.returnTo !== 'undefined' && req.session.returnTo)
+			if(req.session.passport.user)
+				if(req.session.returnTo)
 					res.redirect(req.session.returnTo);
 				else
 					res.redirect('/dashboard');
-			} else {
+			else
 				res.render(
 					'user/login', 
 					{
@@ -28,12 +28,10 @@ var UserController = {
 					 	message: req.session.messages
 					}
 				);
-			}
 		},
 		post: passport.authenticate('local', 
 			{ 
 				successRedirect: '/business/select',
-				//successReturnToOrRedirect: '/dashboard',
 				failureRedirect: '/login',
 				failureMessage: true 
 			}
@@ -41,7 +39,6 @@ var UserController = {
 	},
 
 	logout: {
-
 		path: '/logout',
 		restricted: false,
 
@@ -53,8 +50,8 @@ var UserController = {
 	},
 
 	create: {
-
 		restricted: false,
+
 		get: function(req, res) {
 			res.render(
 				'user/create', 
@@ -65,28 +62,38 @@ var UserController = {
 		},
 		post: function(req, res, next) {
 			Model.User.findOne({email: req.body.email}, function(err, user) {
-				if (err) return next(err);
-				if(!user) {
-					var newUser = new Model.User({
-						//name: req.body.name,
-						email: req.body.email,
-						password: req.body.password
-					});
-
-					newUser.save(function(err){
-						if (err) {
-							console.log(err)
-							return next(err)
-						}
-						req.login(newUser, function(err) {
-						  if (err) return next(err);
-						  res.redirect('/business/select');
-						});
-					});
-				} else {
-					req.session.messages.push("This email is already registered");
-					res.redirect('/user/create');
+				if (err) {
+					Log.error(err, {error: err, user_email: req.body.email, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					req.session.messages.push('Error with database query')
+					return res.redirect('/logout')
 				}
+
+				if(user) {
+					req.session.messages.push("This email is already registered");
+					return res.redirect('/login')
+				}
+
+				var newUser = new Model.User({
+					name: req.body.name,
+					email: req.body.email,
+					password: req.body.password
+				});
+
+				newUser.save(function(err){
+					if (err) {
+						Log.error(err, {error: err, user_email: req.body.email, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						req.session.messages.push('Error with mongoose save')
+						return res.redirect('/logout')
+					}
+					req.login(newUser, function(err) {
+					  if (err) {
+							Log.error(err, {error: err, user_email: req.body.email, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							req.session.messages.push('Error with automatic user login')
+							return res.redirect('/logout')
+						}
+					  res.redirect('/business/select')
+					});
+				});
 			});		
 		}
 	},
@@ -104,7 +111,6 @@ var UserController = {
 	},
 
 	account: {
-
 		path: '/account/settings',
 		get: function(req, res) {
 			res.render(
@@ -132,15 +138,21 @@ var UserController = {
 				//res.send(req.session.passport.user);
 		},
 		delete: function(req, res) {
-			if(req.session.passport.user) {
-				var id = req.session.passport.user;
-				Model.User.remove({ _id: id }, function (err) {
-				  if (err) throw err;
-				  req.session.destroy(function(){
-					  res.redirect('/user/create');
-					});
-				});	
-			}
+			if(!req.session.passport.user)
+				res.redirect('/login')
+
+			Model.User.remove({ _id: req.session.passport.user}, function (err) {
+			  if (err) {
+					Log.error(err, {error: err, user_email: req.body.email, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					req.session.messages.push('Error with mongoose remove for User')
+					return res.redirect('/logout')
+				}
+
+			  req.session.destroy(function(){
+				  res.redirect('/user/create');
+				});
+			});	
+			
 		}
 	},
 

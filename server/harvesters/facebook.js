@@ -1,4 +1,6 @@
 var Auth = require('../auth').getInstance(),
+		Log = require('../logger').getInstance().getLogger(),
+		Error = require('../error').getInstance(),
 		Helper = require('../helpers'),
 		Model = Model || Object;
 
@@ -19,11 +21,11 @@ var FacebookHarvester = (function() {
 
 	var Harvest = {
 		page: function(itr, cb) {
-console.log('at page method...');
 
+			// call facebook api (already loaded in public getData function below)
 			facebook.get(data.network_id, {fields: 'name,category,category_list,company_overview,description,likes,about,location,website,username,were_here_count,talking_about_count,checkins'}, function(err, response) {
 				if(err || response.error)
-					console.log(err,response.error);// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
+					return Error.handler('facebook', err || response.error, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 
 					var cached = Analytics.facebook.business.data,
 							timestamp = Helper.timestamp(),
@@ -38,8 +40,11 @@ console.log('at page method...');
 
 						Model.User.findById(data.user, function(err, user) {
 							user.Business[data.index].Social.facebook.account.data = Analytics.facebook.business.data;
-							user.save(function(err) {console.log(err)});
-						});
+							user.save(function(err) {
+								if(err)
+									return Log.error('Error saving Facebook page data to user table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							})
+						})
 					}
 
 					if(response.likes != Analytics.facebook.tracking.page.likes.total) {
@@ -97,7 +102,7 @@ console.log('at posts [new] method...');
 
 			facebook.get(data.network_id, {fields: 'feed.since(' + since + ').limit(100).fields(id,message,message_tags,actions,caption,created_time,description,expanded_height,expanded_width,feed_targeting,full_picture,icon,link,is_published,is_hidden,name,object_id,parent_id,picture,privacy,properties,shares,source,status_type,story,story_tags,subscribed,targeting,timeline_visibility,to,type,updated_time,via,with_tags,comments,likes)'}, function(err, response) {
 				if(err || response.error)
-					console.log(response.error);// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
+					return Error.handler('facebook', err || response.error, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 			
 				if(response.feed && response.feed.data && response.feed.data.length) {
 					var results = response.feed.data;
@@ -108,7 +113,8 @@ console.log('at posts [new] method...');
 						var timestamp = Helper.timestamp(),
 								post = {
 									id: results[i].id,
-									timestamp: timestamp,
+									timestamp: Helper.timestamp(results.created_time),
+									local_timestamp: timestamp,
 									data: results[i],
 									likes: {},
 									comments: {},
@@ -165,7 +171,7 @@ console.log('at the posts [update] method...');
 
 			facebook.get(data.network_id, {fields: 'feed.until(' + since + ').limit(200).fields(likes,comments,shares,updated_time,created_time,status_type,type)'}, function(err, response) {
 				if(err || response.error)
-					console.log(response.error);
+					return Error.handler('facebook', err || response.error, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 
 				if(response.feed && response.feed.data && response.feed.data.length) {
 					
@@ -228,9 +234,11 @@ console.log('at the posts [update] method...');
 		page_insights: function(itr, cb) {
 console.log('at page_insights method...');
 
-			facebook.get(data.network_id, {fields: 'insights', date_format: 'U'}, function(err, res) {
+			facebook.get(data.network_id, {fields: 'insights', date_format: 'U'}, function(err, response) {
+				if(err || response.error)
+					return Error.handler('facebook', err || response.error, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 
-				var insights = res.insights.data,
+				var insights = response.insights.data,
 						initial = !Analytics.facebook.tracking.page.insights ? true : false;
 
 				if(initial)
@@ -273,20 +281,24 @@ console.log('at posts_insights method');
 
 			var timeframe = new Date(),
 					localUpdate = false;
+					
 			timeframe = Math.round(timeframe.setMonth(timeframe.getMonth()-2)/1000);
 
-			facebook.get(data.network_id, {fields: 'posts.fields(insights).since('+timeframe+').limit(200)', date_format: 'U'}, function(err, res) {
+			facebook.get(data.network_id, {fields: 'posts.fields(insights).since('+timeframe+').limit(200)', date_format: 'U'}, function(err, response) {
+				if(err || response.error)
+					return Error.handler('facebook', err || response.error, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+
 				var timestamp = Helper.timestamp()
 
-				for(var x=0,l=res.posts.data.length;x<l;x++) {
+				for(var x=0,l=response.posts.data.length;x<l;x++) {
 					
 					var posts = Analytics.facebook.tracking.posts;
 
 					for(var y=posts.length-1;y>0;y--) {							
-						if(posts[y].id != res.posts.data[x].id)
+						if(posts[y].id != response.posts.data[x].id)
 							continue
 
-						var insights = res.posts.data[x].insights.data,
+						var insights = response.posts.data[x].insights.data,
 								initial = !posts[y].insights ? true : false;
 
 						if(initial)
@@ -320,24 +332,83 @@ console.log('at posts_insights method');
 			})
 		},
 
+		connections: function(itr, cb) {
+			var timestamp = Helper.timestamp(),
+					batchArray = [];
+
+			Model.Connections.find({facebook_id: {$exists: true}, Facebook: {$exists: false}}, null, {limit: 100}, function(err, users) {
+				if (err)
+					return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+
+				if(!users.length)
+					return;
+
+				for(var i=0, l=users.length; i<l; i++)
+					batchArray.push({method: "GET", relative_url: users[i].facebook_id});
+	
+				facebook.get('/', {batch: batchArray, access_token: facebook.client.id+'|'+facebook.client.secret}, function(err, response) {
+					if(err || response.error)
+						return Error.handler('facebook', err || response.error, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+
+					for(var x=0, l=response.length; x<l; x++) {
+
+						if(response[x].code !== 200 || !response[x].body || response[x].body == '') {
+							Error.handler('facebook', response[x].code, response[x].code, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							continue;
+						}
+
+						var responseBody = JSON.parse(response[x].body)
+
+						for(var y=0, len=users.length; y<len; y++)
+							if(responseBody.id == users[y].facebook_id) {
+								users[y].Facebook = {
+									id: users[y].facebook_id,
+									timestamp: timestamp,
+									data: responseBody
+								}
+								users[y].save(function(err, save) {
+									if(err)
+										return Log.error('Error saving to Connection table', {error: err, connections_id: users[y]._id, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+
+								})
+								break
+							}
+					}
+				})
+			})
+		}
+
 	} // End Harvest
 
 	return {
-		getData: function(params, callback) {
+		getMetrics: function(params, callback) {
+			// load facebook api and set access tokens from database
 			facebook = Auth.load('facebook').setAccessToken(params.auth_token),
 			data = params,
 			update = false;
 
 			Model.Analytics.findById(data.analytics_id, function(err, analytics) {
+				if(err)
+					return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+
 				Analytics = analytics;
 				Harvest[data.methods[0]](0, function() {			
 					if(update)
-						Analytics.save(function(err,response){
-							// TODO: handle err 
+						Analytics.save(function(err, response){
+							if(err)
+								return Log.error('Error saving Facebook analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+
 							console.log('saved facebook analytic data');
 							callback(null);
 						})
-				});
+				})
+			})
+		},
+		processConnectionUsers: function(methods, callback) {
+			facebook = Auth.load('facebook');
+			//Harvest.type = 'connections';
+			Harvest[methods[0]](0, function() {
+				callback(null)
 			})
 		}
 	}

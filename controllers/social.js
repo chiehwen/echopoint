@@ -7,235 +7,280 @@ var crypto = require('crypto'),
 		url = require('url'),
 		Auth = require('../server/auth').getInstance(),
 		Log = require('../server/logger').getInstance().getLogger(),
+		Error = require('../server/error').getInstance(),
 		Helper = require('../server/helpers'),
 		Model = Model || Object,
-		Facebook = require('../server/harvesters/facebook');
+		Harvester = {
+			facebook: require('../server/harvesters/facebook'),
+			twitter: require('../server/harvesters/twitter'),
+			foursquare: require('../server/harvesters/foursquare'),
+			google: require('../server/harvesters/google'),
+			yelp: require('../server/harvesters/yelp'),
+			klout: require('../server/harvesters/klout')
+		};
 
 var SocialController = {
 
- 	facebook: {
- 		get: function(req, res) {
-			res.render(Helper.bootstrapRoute);
-		}
- 	},
- 	twitter: {
+	facebook: {
 		get: function(req, res) {
 			res.render(Helper.bootstrapRoute);
 		}
- 	},
- 	foursquare: {
- 		get: function(req, res) {
+	},
+	twitter: {
+		get: function(req, res) {
 			res.render(Helper.bootstrapRoute);
 		}
- 	},
- 	google: {
- 		path: '/social/google',
- 		get: function(req, res) {
+	},
+	foursquare: {
+		get: function(req, res) {
 			res.render(Helper.bootstrapRoute);
 		}
- 	},
- 	/*google_places: {
- 		path: '/social/google',
- 		get: function(req, res) {
+	},
+	google: {
+		path: '/social/google',
+		get: function(req, res) {
 			res.render(Helper.bootstrapRoute);
 		}
- 	},*/
- 	yelp: {
- 		get: function(req, res) {
+	},
+	/*google_places: {
+		path: '/social/google',
+		get: function(req, res) {
 			res.render(Helper.bootstrapRoute);
 		}
- 	},
- 	instagram: {
- 		get: function(req, res) {
+	},*/
+	yelp: {
+		get: function(req, res) {
 			res.render(Helper.bootstrapRoute);
 		}
- 	},
+	},
+	instagram: {
+		get: function(req, res) {
+			res.render(Helper.bootstrapRoute);
+		}
+	},
 
- 	facebook_connect: {
- 		path: '/social/facebook/connect',
- 		json: function(req, res, next) {
+	facebook_connect: {
+		path: '/social/facebook/connect',
+		json: function(req, res, next) {
+			// if no user in session then redirect to login
+			if(!req.session.passport.user)
+				res.redirect('/login')
+
 			Helper.getUser(req.session.passport.user, function(err, user) {
- 					if (err || !user) return res.json({success: false, error: 'User is not logged in'});
+				if (err || !user) {
+					// basic database error handling
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})
+				}
 
- 					// process facebook
- 					var indx = req.session.Business.index,
- 							f = user.Business[indx].Social.facebook;
+				// load business array index and subsequent facebook credentials
+				var indx = req.session.Business.index,
+						f = user.Business[indx].Social.facebook;
 
- 					if(req.session.facebookConnected && req.session.facebook.oauthAccessToken && !req.query.login) {
+				// if we have a facebook session loaded and no forced login GET param then lets load facebook
+				if(req.session.facebook && req.session.facebook.oauthAccessToken && !req.query.login) {
 
-						var facebook = Auth.load('facebook');
-console.log('here second');
-						if(typeof req.query.id !== 'undefined' && typeof req.query.select === 'undefined') {
+						// load facebook api
+					var facebook = Auth.load('facebook');
 
-			 				facebook.get('me', {fields: 'id,accounts.fields(name,picture.type(square),access_token,about,id,website,likes,perms,category_list,category)'}, function(err, response) {
-			 					if(err) res.redirect('/social/facebook?login=true');
-
-			 					if(f.id === 'undefined' || f.id == 0)
-			 						user.Business[indx].Social.facebook.id = response.id;
-
-			 					var accounts = response.accounts.data,
-			 							found = false;
-			 					//response.accounts.data.forEach(function(account, index) {
-			 					for(var i = 0, l = accounts.length; i < l; i++) {
-			 						if(accounts[i].id == req.query.id) {
-			 							user.Business[indx].Social.facebook.account.id = req.query.id;
-										user.Business[indx].Social.facebook.account.oauthAccessToken = accounts[i].access_token;
-
-										user.save(function(err) {
-											req.session.messages.push(err);
-										});
-										found = true;
-										break;
-			 						}
-			 					}
-
-			 					//res.redirect('/social/facebook/connect' + (found ? '' : '?login=true'));
-								//res.json({success: found});
-								res.redirect('/social/facebook/connect');
-
-			 				});
-												
-						} else if(typeof f.account.id !== 'undefined' && f.account.id != '' && typeof req.query.select === 'undefined') {
-
-							// if this is the first time loading Facebook
-							// initilize the data Facebook harvester
-							if(!user.Business[indx].Social.facebook.account.data) {
-
-									Facebook.getData({
-										network: 'facebook',
-										methods: ['page', 'posts', 'page_insights', 'posts_insights'],
-										user: user._id,
-										analytics_id: user.Business[indx].Analytics.id,
-										index: indx,
-										network_id: f.account.id,
-										auth_token: f.account.oauthAccessToken
-									}, function(err) {
-console.log('callbacks complete');							
-										res.json({success: true,connected: true,account: true,data: {businesses: null},url: null});
-									});
-
-							} else {
-//								Graph.getGraphData('facebook', 'days', 30);
-								res.json({
-									success: true,
-									connected: true,
-									account: true,
-									data: {businesses: null}, //response,
-		 					  	url: null
-								});
+					// if select GET param is passed then bring up user business pages list 
+					if(!f.account.id || !f.account.oauthAccessToken || req.query.select)
+						facebook.get('me', {fields: 'accounts.fields(name,picture.type(square),id)'}, function(err, response) {
+							if(err || response.error) {
+								Error.handler('facebook', err || response.error, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+								return res.redirect('/social/facebook/connect?login=true')
 							}
 
-						} else {
-							facebook.get('me', {fields: 'accounts.fields(name,picture.type(square),id)'}, function(err, response) {
+							return res.json({
+								success: true,
+								connected: true,
+								account: false,
+								data: {businesses: response.accounts.data},
+								url: null
+							})
+						})
 
-								if(err || response.error) {
-									res.redirect('/social/facebook/connect?login=true');
-									return;
+					// if we have an id GET param from the above select menu lets load it into the business
+					else if(req.query.id)
+						facebook.get('me', {fields: 'id,accounts.fields(id,access_token)'}, function(err, response) {
+							if(err || response.error) {
+								Error.handler('facebook', err || response.error, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+								return res.redirect('/social/facebook/connect?login=true')
+							}
+
+							// if facebook user id is somehow missing from the credentials then load it in
+							if(!f.id)
+								user.Business[indx].Social.facebook.id = response.id;
+
+							// accounts list and found boolean
+							var accounts = response.accounts.data,
+									found = false;
+
+							// iterate through each business and save basic data
+							// more complete data will be saved on inital page load by the harvester
+							for(var i = 0, l = accounts.length; i < l; i++)
+								if(accounts[i].id == req.query.id) {
+									user.Business[indx].Social.facebook.account.id = req.query.id;
+									user.Business[indx].Social.facebook.account.oauthAccessToken = accounts[i].access_token;
+
+									user.save(function(err) {
+										if(err) {
+											Log.error('Error saving Facebook credentials', {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+											req.session.messages.push('Error saving Facebook credentials to application')
+											res.redirect('/social/facebook/connect?login=true');
+										}
+									});
+									found = true;
+									break;
 								}
 
-								res.json({
-									success: true,
-									connected: true,
-									account: false,
-									data: {businesses: response.accounts.data},
-		 					  	url: null
-								});	
-							});
-						}
-
- 					} else if(
- 						!req.query.login
-						&& f.auth.oauthAccessToken
-						&& f.auth.expires
-						&& f.auth.created
-						&& f.auth.oauthAccessToken != ''
-						&& f.auth.expires != 0
-						&& f.auth.created != 0
-						&& ((f.auth.created + f.auth.expires) * 1000 > Date.now())
-					) {
+							// redirect back to facebook connect to 
+							return res.redirect('/social/facebook/connect' + (found ? '' : '?login=true'));
+							//return res.json({success: found});
+						})
 					
-						var facebook = Auth.load('facebook');
-						facebook.setAccessToken(f.oauthAccessToken);
-						req.session.facebook = {
-							id: f.id,
-							oauthAccessToken: f.auth.oauthAccessToken,
-							expires: f.auth.expires,
-							created: f.auth.created
-						}
-						req.session.facebookConnected = true;
-						res.redirect('/social/facebook/connect');
- 					} else {
+					// if we have database data and session is loaded then we are good to go
+					else if(f.account.id && f.account.oauthAccessToken)
 
-						req.session.facebookState = crypto.randomBytes(10).toString('hex');
-	 		
-						res.json({
-							success: true,
-							connected: false,
-							account: false,
-							data: null,
-							url: Auth.getOauthDialogUrl('facebook', {state: req.session.facebookState, response_type: 'code'})
-						});
+						// if this is the first time loading Facebook initilize the data Facebook harvester
+						// note: this can take a good bit of time, warn user and show loading 
+						if(!user.Business[indx].Social.facebook.account.data)
+								Harvester.facebook.getMetrics({
+									methods: ['page', 'posts', 'page_insights', 'posts_insights'],
+									user: user._id,
+									analytics_id: user.Business[indx].Analytics.id,
+									index: indx,
+									network_id: f.account.id,
+									auth_token: f.account.oauthAccessToken
+								}, function(err) {
+									if (err) {
+										// if things didn't load properly log error and force user to relogin to facebook
+										Log.error(err, {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+										return res.redirect('/social/facebook/connect?login=true')
+									}			
 
-					} // end facebook processing
- 			});
- 		}
- 	},
+									// all is good
+									res.json({
+										success: true,
+										connected: true,
+										account: true,
+										data: {businesses: null},
+										url: null
+									});
+								});
+						else
+							// we have everything we need so lets load the facebook page
+							res.json({
+								success: true,
+								connected: true,
+								account: true,
+								data: {businesses: null}, //response,
+								url: null
+							});
 
- 	twitter_connect: {
- 		path: '/social/twitter/connect',
- 		get: function(req, res, next) {
+					// if all else failed force the user to relogin to facebook	
+					else
+						res.redirect('/social/facebook/connect?login=true')
+
+				} else if(
+					// if we have the needed credentials in the database load them into the session (unless we have a forced login param in GET query)
+					!req.query.login 
+					&& f.auth.oauthAccessToken
+					&& f.auth.expires
+					&& f.auth.created
+					&& ((f.auth.created + f.auth.expires) * 1000 > Date.now())
+				) {
+
+					// load facebook api and set access tokens from database
+					var facebook = Auth.load('facebook').setAccessToken(f.oauthAccessToken);
+
+					// load facebook session
+					req.session.facebook = {
+						id: f.id,
+						oauthAccessToken: f.auth.oauthAccessToken,
+						expires: f.auth.expires,
+						created: f.auth.created
+					}
+
+					// reload page now that session is set
+					res.redirect('/social/facebook/connect');
+
+				} else {
+					// we have nothing, create a state for auth and load the app authorization dialog url
+					req.session.facebookState = crypto.randomBytes(10).toString('hex');
+			
+					res.json({
+						success: true,
+						connected: false,
+						account: false,
+						data: null,
+						url: Auth.getOauthDialogUrl('facebook', {state: req.session.facebookState, response_type: 'code'})
+					})
+				} // end facebook processing
+			})
+		}
+	},
+
+	twitter_connect: {
+		path: '/social/twitter/connect',
+		get: function(req, res, next) {
+			// if no user in session then redirect to login
+			if(!req.session.passport.user)
+				res.redirect('/login')
+
 			Helper.getUser(req.session.passport.user, function(err, user) {
-				if (err || !user) return next(err);
+				if (err || !user) {
+					// basic database error handling
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})
+				}
 
-				// process twitter
+				// load twitter api and database twitter credentials
 				var	twitter = Auth.load('twitter'),
 						t = user.Business[req.session.Business.index].Social.twitter;
 
-				if(req.session.twitterConnected && req.session.twitter.oauthAccessToken && req.session.twitter.oauthAccessTokenSecret && req.session.twitter.id && !req.query.login) {
-
-					//twitter.get('/statuses/user_timeline.json', {user_id: req.session.twitter.id, count: 2, contributor_details: false, trim_user: true, exclude_replies: false, include_rts: true}, function(err, response) {
-					//twitter.get('/account/verify_credentials.json', {include_entities: false, skip_status: true}, function(err, response) {
-					//twitter.get('/statuses/user_timeline.json', {user_id: req.session.twitter.id, contributor_details: true, include_rts: false}, function(err, response) {
-					twitter.get('/statuses/retweets_of_me.json', {count: 20, trim_user: true, include_entities: false, include_user_entities: false}, function(err, response) {
-						if(err) {
-							req.session.messages.push("Error verifying twitter credentials");
-							res.redirect('/social/twitter/connect?login=true');
-						} 
-console.log(response);
-		 				res.json({
+				// if we have all the needed session variables then lets load the page
+				if(req.session.twitter && req.session.twitter.oauthAccessToken && req.session.twitter.oauthAccessTokenSecret && req.session.twitter.id && !req.query.login) {
+					// note: we used to verify credentials but since the harvester is always running any anomaly should reset the access tokens and force the user to relogin
+					// twitter.get('/account/verify_credentials.json', {include_entities: false, skip_status: true}, function(err, response) {})
+						
+						// TODO: check if first load and then call harvester for initial data (refer to facebook above for example)
+						res.json({
 							success: true,
 							connected: true,
 							account: null,
-							data: response,
-		 					url: null
-						});
-					});
+							data: {success: true},
+							url: null
+						})
 
 				} else if (
+					// if we have the needed credentials in the database load them into the session (unless we have a forced login param in GET query)
 					!req.query.login
-					&& typeof t.auth.oauthAccessToken !== 'undefined'
-					&& typeof t.auth.oauthAccessTokenSecret !== 'undefined'
-					&& typeof t.id !== 'undefined'
-					&& t.auth.oauthAccessToken != ''
-					&& t.auth.oauthAccessTokenSecret != ''
 					&& t.auth.oauthAccessToken
 					&& t.auth.oauthAccessTokenSecret
 					&& t.id
 				) {
+					// set twitter access tokens from database
 					twitter.setAccessTokens(t.auth.oauthAccessToken, t.auth.oauthAccessTokenSecret);
+
+					// load twitter session and reload page now that session is set
 					req.session.twitter = {
 						id: t.id,
 						oauthAccessToken: t.auth.oauthAccessToken,
 						oauthAccessTokenSecret: t.auth.oauthAccessTokenSecret,
 					}
-					req.session.twitterConnected = true;
 					res.redirect('/social/twitter/connect');
+
 				} else {
+console.log('we should be in here');
+					// seems we have nothing. lets get the request token used for the app oauth dialog url
+					twitter.oauth.getOAuthRequestToken(function(err, oauthRequestToken, oauthRequestTokenSecret, response) {
+						if (err || response.errors || !oauthRequestToken || !oauthRequestTokenSecret) {
+							Error.handler('twitter', err ? err : 'Error getting twitter request tokens for initial authorize url', err, response, {request_token: oauthRequestToken, token_secret: oauthRequestTokenSecret, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							return res.json({success: false, error: 'Error getting OAuth request token : ' + JSON.stringify(err)});
+						}
 
-					twitter.oauth.getOAuthRequestToken(function(err, oauthRequestToken, oauthRequestTokenSecret, results) {
-						if (err)
-							res.json({success: false, error: 'Error getting OAuth request token : ' + JSON.stringify(err)});
-
+						// save request tokens to session and send back the app authorization dialog url
 						req.session.twitter = {
 							oauthRequestToken: oauthRequestToken,
 							oauthRequestTokenSecret: oauthRequestTokenSecret
@@ -251,193 +296,218 @@ console.log(response);
 
 					});
 				} // end twitter processing
- 			});
- 		}
- 	},
+			});
+		}
+	},
 
- 	foursquare_connect: {
- 		path: '/social/foursquare/connect',
- 		get: function(req, res) {
- 			Helper.getUser(req.session.passport.user, function(err, user) {
- 					if (err || !user) return next(err);
+	foursquare_connect: {
+		path: '/social/foursquare/connect',
+		get: function(req, res) {
+			// if no user in session then redirect to login
+			if(!req.session.passport.user)
+				res.redirect('/login')
 
-					// process foursquare
- 					var f = user.Business[req.session.Business.index].Social.foursquare;
- 					if(req.session.foursquareConnected && req.session.foursquare.oauthAccessToken && !req.query.login) {
- 						foursquare = Auth.load('foursquare');
-
-						if(req.query.id && !req.query.select) {
-
-							foursquare.get('venues/managed', {v: foursquare.client.verified}, function(err, response) {
-			 					if(err || response.meta.code != 200) res.redirect('/social/foursquare?login=true');
-			 					//if(f.id === 'undefined' || f.id == 0)
-			 						//user.Business[indx].Social.foursquare.id = response.id;
-
-			 					var venues = response.response.venues.items,
-			 							found = false;
-
-			 					for(var i = 0, l = venues.length; i < l; i++) {
-			 						if(venues[i].id == req.query.id) {
-			 							user.Business[req.session.Business.index].Social.foursquare.venue = {
-											id: req.query.id,
-											name: venues[i].name,
-											data: venues[i]
-										}
-
-										user.save(function(err) {
-											req.session.messages.push(err);
-										});
-										found = true;
-										break;
-			 						}
-			 					}
-
-			 					//res.redirect('/social/foursquare/connect' + (found ? '' : '?login=true'));
-			 					res.json({success: found});
-			 				});
-												
-						} else if(typeof f.venue.id !== 'undefined' && f.venue.id != '' && typeof req.query.select === 'undefined') {
-							//foursquare.get(('venues/' + f.venue.id), {v: foursquare.client.verified}, function(err, response) {
-	 						//foursquare.get(('multi?requests=' + encodeURIComponent('/venues/' + f.venue.id + '/herenow,/venues/' + f.venue.id + '/hours,/venues/' + f.venue.id + '/likes,/venues/' + f.venue.id + '/stats')), {v: foursquare.client.verified}, function(err, response) {
-								var multi =		
-									'/venues/' + f.venue.id +
-									',/venues/' + f.venue.id + '/stats' +
-									',/venues/' + f.venue.id + '/likes' +
-									',/venues/' + f.venue.id + '/tips?limit=25' +
-									',/venues/' + f.venue.id + '/photos?group=checkin&limit=20',
-								
-								params = {
-									v: foursquare.client.verified,
-									requests: multi
-								}
-
-							foursquare.post('multi', params, function(err, response) {
-	 							if(err || response.meta.code != 200) {
-									console.log(response.meta.code); //res.redirect('/social/foursquare?login=true');
-									res.json({success: false, error: err || response.meta.code});
-								}
-
-								res.json({
-									success: true,
-									connected: true,
-									venue: true,
-									data: response,
-		 					  	url: null
-								});
-		 					});
-
-						} else {
-							foursquare.get('venues/managed', {v: foursquare.client.verified}, function(err, response) {
-								if(err || response.meta.code != 200) 
-									res.redirect('/social/foursquare/connect?login=true');
-
-									res.json({
-										success: true,
-										connected: true,
-										venue: false,
-										data: {businesses:response.response.venues.items},
-		 					  		url: null
-									});
-							});
-						}
-
-	 				} else if(
-	 					!req.query.login
-						&& typeof f.auth.oauthAccessToken !== 'undefined'
-						&& f.auth.oauthAccessToken != ''
-						&& f.auth.oauthAccessToken
-	 				) {
-	 					var foursquare = Auth.load('foursquare').setAccessToken(f.auth.oauthAccessToken);
-						req.session.foursquare = {
-							oauthAccessToken: f.auth.oauthAccessToken
-						}
-						req.session.foursquareConnected = true;
-						res.redirect('/social/foursquare/connect');
- 					} else {
-	 					
-	 					res.json({
-							success: true,
-							connected: false,
-							venue: false,
-							data: null,
-							url: Auth.getOauthDialogUrl('foursquare', {response_type: 'code'})
-						});
-	 				}
- 			});
- 		}
- 	},
-
- 	google_connect: {
- 		path: '/social/google/connect',
- 		json: function(req, res, next) {
 			Helper.getUser(req.session.passport.user, function(err, user) {
- 				if (err || !user) return res.json({success: false, error: 'User is not logged in'});
- 				
- 				 	// process google
- 					var indx = req.session.Business.index,
- 							g = user.Business[indx].Social.google;
- 							
-//console.log(req.session.googleConnected);
-//console.log(req.session.google);
- 					if(req.session.googleConnected && req.session.google.oauthAccessToken && req.session.google.oauthRefreshToken && !req.query.login) {
- 						if((req.session.google.created + req.session.google.expires) * 1000 <= Date.now())
- 							res.redirect('/social/google/login');
+				if (err || !user) {
+					// basic database error handling
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})
+				}
 
- 						if(g.business.id && g.business.id != '' && g.business.id != 0) {
- 							res.json({
+				// load foursquare business credentials
+				var f = user.Business[req.session.Business.index].Social.foursquare;
+
+				// if we have a foursquare session loaded and no forced login GET param then lets load foursquare
+				if(req.session.foursquare && req.session.foursquare.oauthAccessToken && !req.query.login) {
+
+					// load foursquare api
+					foursquare = Auth.load('foursquare');
+
+					// if select GET param is passed then bring up user's managed venues list
+					if(f.venue.id && !req.query.id && !req.query.select)
+
+						// TODO: check if first load and then call harvester for initial data (refer to facebook above for example)
+						res.json({
+							success: true,
+							connected: true,
+							venue: true,
+							data: {},
+							url: null
+						})
+
+					// if we have database data and session is loaded then we are good to go
+					else if(req.query.id)
+						foursquare.get('venues/managed', {v: foursquare.client.verified}, function(err, response) {
+							if(err || response.meta.code !== 200 || response.meta.errorType) {
+								Error.handler('foursquare', err || response.meta.errorType, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber()})
+								return res.redirect('/social/foursquare/connect?login=true');
+							}
+
+							// venues list and wasFound boolean
+							var venues = response.response.venues.items,
+									found = false;
+
+							// iterate through each venue and if we find a match then load needed venue credentials
+							for(var i = 0, l = venues.length; i < l; i++) {
+								if(venues[i].id == req.query.id) {
+									user.Business[req.session.Business.index].Social.foursquare.venue = {
+										id: req.query.id,
+										name: venues[i].name,
+										data: venues[i]
+									}
+
+									user.save(function(err) {
+										if(err) {
+											Log.error('Error saving Foursquare credentials', {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+											req.session.messages.push('Error saving Foursquare credentials to application')
+											res.redirect('/social/foursquare/connect?login=true');
+										}
+									});
+									found = true;
+									break;
+								}
+							}
+
+							// return success
+							res.json({success: found}) // res.redirect('/social/foursquare/connect' + (found ? '' : '?login=true'));
+						})
+
+					// send back user business pages list
+					else if(f.auth.oauthAccessToken)
+
+						foursquare.get('venues/managed', {v: foursquare.client.verified}, function(err, response) {
+							if(err || response.meta.code !== 200 || response.meta.errorType) {
+								Error.handler('foursquare', err || response.meta.errorType, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber()})
+								return res.redirect('/social/foursquare/connect?login=true');
+							}
+
+							// send back our venues list
+							res.json({
 								success: true,
 								connected: true,
-								data: {success: true} //data,
-							});
- 						} else {
- 							res.json({
-								success: true,
-								connected: true,
-								setup: true,
-								data: {success: true} //data,
-							});
- 						}
-/*google = Auth.load('google');
-google.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {key: google.client.key, query: 'Roll On Sushi Diner, Austin, Texas', sensor: false}, function(err, response) {
-console.log(err, response);
-							    	res.json({
-											success: true,
-											connected: true,
-											account: true,
-											data: {success: true}, //data,
-				 					  	url: null
-										});
-});*/
+								venue: false,
+								data: {businesses:response.response.venues.items},
+ 								url: null
+							})
+						})
 
+					// if all else failed force the user to relogin to foursquare	
+					else
+						res.redirect('/social/foursquare/connect?login=true')
+							
+				} else if(
+					// if we have the needed credentials in the database load them into the session (unless we have a forced login param in GET query)
+					!req.query.login
+					&& f.auth.oauthAccessToken
+				) {
+
+ 					// load foursquare api and set access tokens from database
+ 					var foursquare = Auth.load('foursquare').setAccessToken(f.auth.oauthAccessToken);
+					req.session.foursquare = {
+						oauthAccessToken: f.auth.oauthAccessToken
+					}
+
+					// reload page now that session is set
+					res.redirect('/social/foursquare/connect');
+
+				} else {
+					// we have nothing so load the app authorization dialog url
+					res.json({
+						success: true,
+						connected: false,
+						venue: false,
+						data: null,
+						url: Auth.getOauthDialogUrl('foursquare', {response_type: 'code'})
+					})
+				}
+			})
+		}
+	},
+
+	google_connect: {
+		path: '/social/google/connect',
+		json: function(req, res, next) {
+			// if no user in session then redirect to login
+			if(!req.session.passport.user)
+				res.redirect('/login')
+
+			Helper.getUser(req.session.passport.user, function(err, user) {
+				if (err || !user) {
+					// basic database error handling
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})	
+				}
+
+				// load google business credentials
+				var g = user.Business[req.session.Business.index].Social.google;
+
+				// if we have a google session loaded and no forced login GET param then lets load foursquare
+				if(req.session.google && req.session.google.oauthAccessToken && req.session.google.oauthRefreshToken && !req.query.login) {
+
+					// if tokens have expired then force user to relogin to google plus
+					if((req.session.google.created + req.session.google.expires) * 1000 <= Date.now())
+						res.redirect('/social/google/login');
+
+					// TODO: fix this cluster f**k below
+					// TODO: check if first load and then call harvester for initial data (refer to facebook above for example)
+					if(g.business.id) {
+						res.json({
+							success: true,
+							connected: true,
+							data: {success: true} //data,
+						})
+					} else {
+						res.json({
+							success: true,
+							connected: true,
+							setup: true,
+							data: {success: true} //data,
+						})
+					}
+
+					/*
+					google = Auth.load('google');
+					google.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {key: google.client.key, query: 'Roll On Sushi Diner, Austin, Texas', sensor: false}, function(err, response) {
+						console.log(err, response);
+						res.json({
+							success: true,
+							connected: true,
+							account: true,
+							data: {success: true}, //data,
+ 					  	url: null
+						})
+					})
+					*/
 
 				} else if(
+					// if we have the needed credentials in the database load them into the session (unless we have a forced login param in GET query)
 					!req.query.login
 					&& g.auth.oauthAccessToken
 					&& g.auth.oauthRefreshToken
 					&& g.auth.expires
 					&& g.auth.created
-					&& g.auth.oauthAccessToken != ''
-					&& g.auth.oauthRefreshToken != ''
-					&& g.auth.expires != 0
-					&& g.auth.created != 0
 					&& ((g.auth.created + g.auth.expires) * 1000 > Date.now())
 				) {
+
+					// load google api and set access tokens from database
 					google = Auth.load('google_discovery');
 					google.oauth.setAccessTokens({
 						access_token: g.auth.oauthAccessToken,
 						refresh_token: g.auth.oauthRefreshToken
 					});
+
+					// load google session and reload page now that session is set
 					req.session.google = {
 						oauthAccessToken: g.auth.oauthAccessToken,
 						oauthRefreshToken: g.auth.oauthRefreshToken,
 						expires: g.auth.expires,
 						created: g.auth.created
 					}
-					req.session.googleConnected = true;
 					res.redirect('/social/google/connect');
 				
 				} else {
-	 				req.session.googleState = crypto.randomBytes(10).toString('hex');
+					// we have nothing, create a state for auth and load the app authorization dialog url
+					req.session.googleState = crypto.randomBytes(10).toString('hex');
 					
 					res.json({
 						success: true,
@@ -445,50 +515,69 @@ console.log(err, response);
 						venue: false,
 						data: null,
 						url: Auth.getOauthDialogUrl('google', {response_type: 'code', access_type: 'offline', state: req.session.googleState, approval_prompt: 'force'})
-					});
+					})
 				}
- 			})
- 		}
- 	},
+			})
+		}
+	},
 
- 	yelp_connect: {
- 		path: '/social/yelp/connect',
- 		get: function(req, res) {
- 			Helper.getUser(req.session.passport.user, function(err, user) {
- 				if (err || !user) return next(err);
+	yelp_connect: {
+		path: '/social/yelp/connect',
+		get: function(req, res) {
+			// if no user in session then redirect to login
+			if(!req.session.passport.user)
+				res.redirect('/login')
 
+			Helper.getUser(req.session.passport.user, function(err, user) {
+				if (err || !user) {
+					// basic database error handling
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})
+				}
+
+				// load google business credentials
 				var y = user.Business[req.session.Business.index].Social.yelp;
-				if (req.query.url) {
 
+				// if url GET param is sent then process if it's valid and load into business
+				if (req.query.url) {
+					// uri decode the sent url
 					var page = decodeURIComponent(req.query.url);
 
-					if (page.indexOf('yelp.com/') != -1) {
-						if (page.indexOf('http://') != -1 || page.indexOf('https://') != -1)
-							page = 'http://' + page;
-
-						var path = url.parse(page).pathname;
-
-						user.Business[req.session.Business.index].Social.yelp = {
-							id: path.substring(path.lastIndexOf('/') + 1)
-						}
-
-						user.save(function(err) {
-							req.session.messages.push(err);
-						});
-						res.redirect('/social/yelp/connect');	
-					} else {
-						// not a proper yelp url
-						req.session.messages.push('invalid url');
+					// check if url is a proper yelp.com address
+					if (page.indexOf('yelp.com/') === -1) {
+						req.session.messages.push('Invalid Yelp URL');
 						res.redirect('/social/yelp/connect?setup=true');
 					}
 
-				} else if (y.id && y.id != '' && y.id && !req.query.setup)	{
-				
+					// if http/https is missing from link then add it
+					if (page.indexOf('http://') != -1 || page.indexOf('https://') != -1)
+						page = 'http://' + page;
+
+					// use node built in url module to get path data
+					var path = url.parse(page).pathname;
+
+					// get business name from last index in path and load into database
+					user.Business[req.session.Business.index].Social.yelp = {
+						id: path.substring(path.lastIndexOf('/') + 1)
+					}
+
+					user.save(function(err) {
+						if(err) {
+							Log.error('Error saving Yelp url', {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							req.session.messages.push('Error saving Yelp url to application')
+							res.redirect('/social/yelp/connect?setup=true');
+						}
+					});
+					res.redirect('/social/yelp/connect');	
+
+				} else if (y.id && !req.query.setup)	{
+
+					// load yelp api
 					yelp = Auth.load('yelp');
 					yelp.business(y.id, function(err, response) {
-						if(err) {
-							console.log(err);
-							res.redirect('/social/yelp/connect?setup=true');
+						if(err || response.error) {
+							Error.handler('yelp', err || response.error, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							return res.redirect('/social/yelp/connect?setup=true')
 						}
 
 						res.json({
@@ -500,9 +589,13 @@ console.log(err, response);
 
 				} else {
 
+					// load yelp api
 					yelp = Auth.load('yelp');
 					yelp.search({term: 'Roll On Sushi Diner', location: 'Austin'}, function(err, response){
-console.log(err, response);
+						if(err || response.error) {
+							Error.handler('yelp', err || response.error, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							return res.redirect('/social/yelp/connect?setup=true')
+						}
 
 						res.json({
 							success: true,
@@ -512,57 +605,82 @@ console.log(err, response);
 						});
 					})
 				}
- 			});
- 		}
- 	},
+			});
+		}
+	},
 
- 	instagram_connect: {
- 		path: '/social/instagram/connect',
+	instagram_connect: {
+		path: '/social/instagram/connect',
 		get: function(req, res) {
- 			Helper.getUser(req.session.passport.user, function(err, user) {
-				if (err || !user) return next(err);	
+			// if no user in session then redirect to login
+			if(!req.session.passport.user)
+				res.redirect('/login')
 
-				// process instagram
+ 			Helper.getUser(req.session.passport.user, function(err, user) {
+				if (err || !user) {
+					// basic database error handling
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})
+				}	
+
+				// load instagram business credentials
 				var i = user.Business[req.session.Business.index].Social.instagram;
-				if(req.session.instagramConnected && req.session.instagram.oauthAccessToken && !req.query.login) {
+
+				// if we have a instagram session loaded and no forced login GET param then lets load instagram
+				if(req.session.instagram && req.session.instagram.oauthAccessToken && !req.query.login) {
+					
+					// load instagram api
 					instagram = Auth.load('instagram');
+
+					// TODO: check if first load and then call harvester for initial data (refer to facebook above for example)
+
+					// load feed just to check connect (will most likely be removed)
 					instagram.get('users/self/feed', function(err, response) {
-						if(err || !response)
+						if(err || (response.meta && (response.meta.code !== 200 || response.meta.error_type))) {
+							Error.handler('instagram', err || response.meta, response.meta, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 							res.redirect('/social/instagram/connect?login=true');
+						}
 
 						res.json({
 							success: true,
 							connected: true,
 							data: response,
 		 					url: null
-						});
+						})
 					});
 
 				} else if(
+					// if we have the needed credentials in the database load them into the session (unless we have a forced login param in GET query)
 					!req.query.login
-					&& typeof i.auth.oauthAccessToken !== 'undefined'
-					&& i.auth.oauthAccessToken != ''
 					&& i.auth.oauthAccessToken
 				) {
+
+					// load facebook api and set access tokens from database
 					var instagram = Auth.load('instagram');
 					instagram.setAccessToken(i.auth.oauthAccessToken);
+
+					// load facebook session
 					req.session.instagram = {
 						oauthAccessToken: i.auth.oauthAccessToken
 					}
-					req.session.instagramConnected = true;
+
+					// reload page now that session is set
 					res.redirect('/social/instagram/connect');
+
 				} else {
+
+					// we have nothing, create a state for auth and load the app authorization dialog url
 					req.session.instagramState = crypto.randomBytes(10).toString('hex');
-					
 					res.json({
 						success: true,
 						connected: false,
 						url: Auth.getOauthDialogUrl('instagram', {response_type: 'code', state: req.session.instagramState})
-					});
+					})
+
 				}
- 			});
- 		}
- 	},
+			})
+		}
+	},
 }
 
 module.exports = SocialController;

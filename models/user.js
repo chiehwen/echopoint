@@ -103,9 +103,15 @@ var UserModel = {
             },
             business: {
               id: {type: String},
+              timestamp: {type: Number, default: 0}, // this is the last api call time
               oauthAccessToken: {type: String},
               data: {}
             },
+            reviews: {
+              //scraped: {type: Boolean, default: false},
+              timestamp: {type: Number, default: 0}, // this is the last web scrape
+              //override: {type: Boolean, default: false} // this marks if the the rating changed and we need to call reviews before the 24 hour check
+            }
           },
 
           yelp: {
@@ -119,7 +125,7 @@ var UserModel = {
             business: {},
             update: {
               scraped: { type: Boolean, default: false},
-              timestamp: {type: Number, default: 0}
+              timestamp: {type: Number, default: 0} // this is the last api call time
             }
           },
           instagram: {

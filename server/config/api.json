@@ -16,7 +16,8 @@
 		"version": "1.0A",
 		"signature": "HMAC-SHA1",
 		"dialog": "https://api.twitter.com/oauth/authenticate",
-		"callback": "http://127.0.0.1:3000/oauth/twitter"
+		"callback": "http://127.0.0.1:3000/oauth/twitter",
+		"oauth_bearer_token": "AAAAAAAAAAAAAAAAAAAAANbqSAAAAAAAVGJ9wYukomG62Mj6t42iXrhpaNs%3DbKsXPBLlB6RwMZZI8NTwmVHwW9w3N4XtRRHjn0VNTU"
 	},
 	"foursquare": {
 		"id": "YCWRKYI02XUPMIQBX15H3Z54ARGFOS4ZXHP3CQHZ2KIA3MDA",
@@ -55,5 +56,15 @@
 		"key": "8f27znf5xgf3fhupeb4dvj5r",
 		"secret": "4FVu95bxdx",
 		"callback": "http://127.0.0.1:3000/oauth/klout"
+	},
+	"flickr": {
+		"consumerKey": "135618fa5c8277a0668b644df2d2e6f5",
+		"consumerSecret": "4882d1005a9c13a3",
+		"requestUrl": "http://www.flickr.com/services/oauth/request_token",
+		"accessUrl": "http://www.flickr.com/services/oauth/access_token",
+		"version": "1.0",
+		"signatureMethod": "HMAC-SHA1",
+		"dialog": "http://www.flickr.com/services/oauth/authorize",
+		"callback": "http://127.0.0.1:3000/oauth/flickr"
 	}
 }

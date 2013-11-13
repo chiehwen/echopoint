@@ -26,8 +26,7 @@ var BusinessController = {
 				if (err || !user) {
 					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
 					req.session.messages.push('Error finding user for business')
-					res.redirect(err ? '/logout' : '/login')
-					return
+					return res.redirect(err ? '/logout' : '/login')
 				}
 
 				//var generated = Helper.timestamp(true) + Helper.randomInt(10000, 99999);
@@ -36,15 +35,13 @@ var BusinessController = {
 					if (err) {
 						Log.error('Error querying business by name', {error: err, user_id: user._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
 						req.session.messages.push('Error finding business')
-						res.redirect('/logout')
-						return
+						return res.redirect('/logout')
 					}
 
 					// check that user isn't creating a business with the same name
 					if(named[0].Business) {
 						req.session.messages.push('You already have a Business with that name')
-						res.redirect('/business/create')
-						return
+						return res.redirect('/business/create')
 					}
 
 					var analytics = new Model.Analytics();
@@ -62,16 +59,14 @@ var BusinessController = {
 						if(err) {
 							Log.error('Error saving new Business to User model with Mongoose', {error: err, user_id: user._id, business_id: named[0]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
 							req.session.messages.push('Error creating new Business!')
-							res.redirect('/business/create')
-							return
+							return res.redirect('/business/create')
 						}
 
 						analytics.save(function(err) {
 							if (err) {
 								Log.error('Error saving new Analytic model with Mongoose', {error: err, user_id: user._id, business_id: named[0]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
 								req.session.messages.push('Error creating new Business!')
-								res.redirect('/business/create')
-								return
+								return res.redirect('/business/create')				
 							}
 							
 							res.redirect('/business/select');
@@ -91,8 +86,7 @@ var BusinessController = {
 				if (err || !user) {
 					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
 					req.session.messages.push('Error finding user for business')
-					res.redirect(err ? '/logout' : '/login')
-					return
+					return res.redirect(err ? '/logout' : '/login')		
 				}
 				
 				if(typeof user.Business === 'undefined' || !user.Business.length)
@@ -197,24 +191,21 @@ var BusinessController = {
 				if (err || !user) {
 					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
 					req.session.messages.push('Error finding user for business')
-					res.redirect(err ? '/logout' : '/login')
-					return
+					return res.redirect(err ? '/logout' : '/login')
 				}
 
 				Helper.getBusiness(user._id, req.body.id, function(err, business) {
 					if (err || !business) {
 						Log.error(err ? err : 'No business returned', {error: err, user_id: user._id, business_id: req.body.id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
 						req.session.messages.push('Error finding user for business')
-						res.redirect(err ? '/logout' : '/login')
-						return
+						return res.redirect(err ? '/logout' : '/login')
 					}
 
 					Model.Analytics.findById(business.Analytics.id, function(err, analytics) {
 						if (err) {
 							Log.error(err, {error: err, user_id: user._id, business_id: req.body.id, analytics_id: business.Analytics.id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
 							req.session.messages.push('Error finding analytics for business')
-							res.redirect('/logout')
-							return
+							return res.redirect('/logout')
 						}
 
 						if(!analytics)
