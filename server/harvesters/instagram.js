@@ -34,8 +34,10 @@ var InstagramHarvester = (function() {
 					return
 
 				instagram.get('/users/' + instagram_id, {client_id: instagram.client.id}, function(err, response) {		
-					if(err || response.meta.code !== 200)
-						return console.log(err, response)
+					if(err || (response && response.meta && response.meta.code !== 200)) {
+						Error.handler('instagram', err || response.meta.code, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						return next(itr, cb)
+					}
 
 					user.Instagram = {
 						id: response.data.id,
@@ -62,7 +64,6 @@ var InstagramHarvester = (function() {
 			});
 		}
 	}
-
 })();
 
 module.exports = InstagramHarvester;

@@ -124,8 +124,11 @@ var CronJobs = {
 		})
 	},
 
+	// call together every 5 min (must be called together)
+	// every 5 minutes will cover 288 businesses
+	// increase call time when app has more businesses!
 	google: {
-		// run every 10 minutes
+		// run every 5 minutes
 		business: new CronJob({
 			cronTime: '0 */10 * * * *',
 			onTick: function() {
@@ -150,6 +153,9 @@ var CronJobs = {
 	},
 
 
+	// call together every 5 min (must be called together)
+	// every 5 minutes will cover 288 businesses
+	// increase call time when app has more businesses!
 	yelp: new CronJob({
 		cronTime: '35 * * * * *',
 		onTick: function() {

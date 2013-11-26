@@ -22,7 +22,7 @@ var FoursquareCron = (function() {
 			metrics: function(methods) {
 				Model.User.find(function(err, users) {
 					if (err || !users)
-						return Log.error(err ? err : 'No users returned', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						return Log.error(err ? err : 'No users returned', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 console.log(methods);
 					users.forEach(function(user) {
 						user.Business.forEach(function(business, index) {
@@ -53,7 +53,7 @@ console.log(methods);
 			tips: function(methods) {
 				Model.Analytics.findOne({'foursquare.business.id': {$exists: true}, 'foursquare.tracking.tips.update': true}, function(err, business) {
 					if (err)
-						return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
 					if(!business)
 						return
@@ -65,7 +65,7 @@ console.log(methods);
 						console.log('Foursquare tips callback complete');							
 						business.save(function(err, save) {
 							if(err)
-								return Log.error('Error saving to Analytics table', {error: err, analytics_id: business._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+								return Log.error('Error saving to Analytics table', {error: err, analytics_id: business._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 						})
 					})
 				})

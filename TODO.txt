@@ -13,23 +13,35 @@ http://www.google.com/mapmaker?ui_type=pc&cid=17751536374062546769&src=1&continu
 
 3.5) DONE! get retweeter data for retweeted tweets
 
-4.)setup klout data gathering via API
+4.) DONE! setup klout data gathering via API
 
 5.?) DONE! setup foursquare tips to be gathered and stored as well (same as reviews for yelp and google)?
 
-5.5) add a cron job the detects duplicate twitter handles and checks those id's for updated screen names
+5.5) DONE! add a cron job the detects duplicate twitter handles and checks those id's for updated screen names
 
-6.) SCRAPED (until later)! look into business places using admin user id
+6.) SCRAPED (until later)! look into business plus page using admin user id
 
-7.) Setup in-depth logging system for... everything!
+7.) DONE! Setup in-depth logging system for... everything!
 
-7.a) add fallbacks and logs for errors/changes in data scraping to notify if something has changed
+7.a) DONE! add fallbacks and logs for errors/changes in data scraping to notify if something has changed
 
 IF HERE LOOK BACK AND REFER TO 5.5!
 
-8.) setup headers for web scraping to resemble browser
+8.) DONE!setup headers for web scraping to resemble browser
 
-24.) Need to look into anonymous proxies for web scraping 
+9.) setup request abstraction layer to handle poxies and compressed file returns!
+
+10.) Yelp claim business link and directions 
+
+24.) Need to look into anonymous proxies for web scraping
+
+10.) nodejitsu deploy and test
+10.1) Move solicaite out from modules folder
+10.2) create nodejitsu database connection 
+
+
+11.) Graphing (graphing.js to be called from socket.io to produce graph data)
+
 
 
 { twitter: 'bradbogus', facebook: '1634735498' }
@@ -57,3 +69,93 @@ IF HERE LOOK BACK AND REFER TO 5.5!
 { twitter: 'andyviral', facebook: '1432417383' }
 
 
+
+{foursquare_id: 28706346, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 2904015, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 12588455, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 8617217, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 16911328, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 3115127, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 12987298, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 12742228, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 11858283, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 4477130, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 12452125, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}}
+
+Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: {'Social.yelp.update.timestamp': { $lt : Helper.timestamp() - 86400 /* 86400 seconds = 1 day  */}}}}, function(err, user) {
+					if (err)
+
+
+
+
+
+
+pageChangesAlert: function() {
+			request.get('http://www.yelp.com/biz/speak-social-austin?sort_by=date_desc',
+				{
+					headers: {
+						'accept-charset' : 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+  					'accept-language' : 'en-US,en;q=0.8',
+  					'accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+						'accept-encoding': 'gzip,deflate,sdch',
+						'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36'
+					}
+				},
+				function(res) {
+				//if (this.statusCode !== 200)
+					//return Error.handler('yelp', this.statusCode, null, body, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+
+/*var chunks = [];
+var output;
+if(this.headers['content-encoding'] === 'gzip' ) {
+	console.log('here');
+	var gzip = zlib.createGunzip();
+//console.log(gzip);
+	this.pipe(gzip);
+	output = gzip;
+	//console.log(output);
+} else {
+	output = this;
+}*/
+
+res.on('end', function() {
+	console.log('WHY');
+})
+
+
+
+if(false) {
+				var $ = cheerio.load(body),
+						reviewsCount = $('#reviews-other .reviews-header').length,
+						filteredReviewsCount = $('.filtered-reviews #filtered-reviews-link').length || $('#paginationControls #filtered-reviews-link').length,
+						yelpBusinessId = $('#edit_cat_link').length,
+						reviews = $('#reviews-other ul li.review').length;
+
+				if(!reviewsCount || !filteredReviewsCount || !yelpBusinessId || !reviews) {
+					// ALERT! change in the html elements structure!
+					ScrapingLog.error('necessary Yelp html page element not found!', {reviewsCount: reviewsCount, filteredReviewsCount: filteredReviewsCount, yelpBusinessId: yelpBusinessId, reviews: reviews, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+
+					if(!reviews)
+						return;
+				}
+
+				// go through reviews and detect missing elements
+				var review = $('#reviews-other ul li.review')[0],
+						elementsArray = [
+							$(review).attr('id'), // 0 - review_id
+							$(review).find('.media-block .media-avatar .user-passport .user-name a').length, // 1 - user name and id
+							$(review).find('.media-block .media-avatar p.reviewer_info').length,
+							$(review).find('.media-block .media-avatar .user-passport .photo-box a img').length,
+							$(review).find('.media-block .media-avatar .user-passport .user-name a').length,
+							$(review).find('.media-block .media-avatar .user-passport .user-stats .friend-count > span').length,
+							$(review).find('.media-block .media-avatar .user-passport .user-stats .review-count > span').length,
+							$(review).find('.media-block .media-story .review-meta .rating meta').length,
+							$(review).find('.media-block .media-story .review_comment').length,
+							$(review).find('.media-block .media-story .review-meta > meta').length,
+							//$(review).find('.media-block .media-avatar .user-passport .user-stats li.is-elite').length,
+							$(review).find('.media-block .media-story .extra-actions .rateReview ul li.useful a span.count').length,
+							$(review).find('.media-block .media-story .extra-actions .rateReview ul li.funny a span.count').length,
+							$(review).find('.media-block .media-story .extra-actions .rateReview ul li.cool a span.count').length,
+							$(review).find('.media-block .media-story .extra-actions .externalReviewActions li a.add-owner-comment').length,
+							$(review).find('.media-block .media-story .extra-actions .externalReviewActions li a.i-orange-link-common-wrap').length,
+							//$(review).find('.review-photos .more-review-photos a').length
+						]
+
+				for(var i=0, l=elementsArray.length; i<l;i++) {
+					if(!elementsArray[i])
+						// ALERT! change in the html elements structure!
+						ScrapingLog.error('necessary Yelp html page element not found!', {elementsArray: elementsArray, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+				}
+}
+			})
+		},

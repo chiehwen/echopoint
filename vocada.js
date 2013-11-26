@@ -105,9 +105,9 @@ oauth2.getOAuthAccessToken('', {
 });*/
 
 // Remove all 
-Model.Connections.remove(function(err){if(err) throw err})
-Model.Analytics.remove(function(err){if(err) throw err})
-Model.User.remove(function(err){if(err) throw err})
+//Model.Connections.remove(function(err){if(err) throw err})
+//Model.Analytics.remove(function(err){if(err) throw err})
+//Model.User.remove(function(err){if(err) throw err})
 
 //var connections = new Model.Connections({});
 //connections.save(function(err,com) {});
@@ -246,7 +246,7 @@ console.log('data me! ', err, dats)
 	{foursquare_id: 3115127, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},{foursquare_id: 12987298, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},{foursquare_id: 12742228, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},{foursquare_id: 11858283, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},{foursquare_id: 4477130, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},{foursquare_id: 12452125, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}}], {safe: true, continueOnError: true}, 
 	function(err, save) {
 	if(err)
-		//return Log.error('Error saving to Connection table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+		//return Log.error('Error saving to Connection table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 		console.log(err);
 })*/
 
@@ -266,6 +266,19 @@ Model.Analytics.findOne({}, function(err, res) {
 Model.Connections.findById('527ad3e186569f404000008b', function(err, huh) {
 //console.log(huh);
 })
+
+
+/*Harvester.yelp.directToMethod({
+		methods: ['pageChangesAlert'],
+	}, function(err, update) {
+
+	})*/
+
+Harvester.google.directToMethod({
+		methods: ['savePage'],
+	}, function(err, update) {
+
+	})
 
 
 Model.User.findOne({email: "123"}, function(err, user) {
@@ -304,6 +317,7 @@ Model.User.findOne({email: "123"}, function(err, user) {
 });
 
 
+//Crons.yelp.getJob('metrics', ['savePage'])
 
 	var Cron = require('./server/cron');
 	// !!!! IMPORTANT: BELOW IS THE TOGGLE FOR 

@@ -7,7 +7,7 @@ var Auth = require('../auth').getInstance(),
 		Helper = require('../helpers'),
 		Cron = require('cron').CronJob,
 		Model = Model || Object,
-		Harvester = {twitter: require('../harvesters/facebook')};
+		Harvester = {facebook: require('../harvesters/facebook')};
 
 
 var FacebookCron = (function() {
@@ -23,7 +23,7 @@ var FacebookCron = (function() {
 				Model.User.find(function(err, users) {
 					if (err || !users)
 						return Log.error(err ? err : 'No users returned', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
-console.log(methods);
+
 					users.forEach(function(user) {
 						user.Business.forEach(function(business, index) {
 
@@ -54,15 +54,9 @@ console.log(methods);
 			},
 
 			connections: function(methods) {
-				Harvester.facebook.processConnectionUsers({
-					methods: methods, //['populateById', 'populateByScreenName', 'detect_duplicates'],
-					user: user._id,
-					analytics_id: business.Analytics.id,
-					index: index,
-					network_id: t.id,
-					auth_token: t.auth.oauthAccessToken,
-					token_secret: t.auth.oauthAccessTokenSecret
-				}, function(err) {
+				Harvester.facebook.appData(
+					methods || ['connections'] //['populateById', 'populateByScreenName', 'detect_duplicates'],
+				, function(err) {
 					console.log('Facebook callbacks complete');
 				})
 			}

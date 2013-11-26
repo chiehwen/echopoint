@@ -51,20 +51,33 @@ var KloutHarvester = (function() {
 				if(!user)
 					return next(itr, cb);
 
+				user.meta.klout.attempt_timestamp = Helper.timestamp();
+				user.save(function(err) {
+					if(err)
+						Log.error('Error saving to Connection table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+				})
+
 				if(user.twitter_id)
 					var endpoint = 'identity.json/tw/' + user.twitter_id;
 				else if(user.google_id)
 					var endpoint = 'identity.json/gp/' + user.google_id;
 
 				klout.get(endpoint, {key: klout.client.key}, function(err, response) {
-					if(err || !response || !response.id)
-						return next(itr, cb) // TODO: put in klout error handling
+					if (err || (response && response.error)) {
+						Error.handler('klout', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						return next(itr, cb)
+					}
+
+					if(!response || !response.id) {
+						Error.handler('klout', 'No response or response ID from Klout', null, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'warn'})
+						return next(itr, cb)
+					}
 
 					console.log(response);
 					user.klout_id = response.id;
 					user.save(function(err, save) {
 						if(err)
-							return Log.error('Error saving to Connection table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							return Log.error('Error saving to Connection table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
 						next(itr, cb, true)
 					})
@@ -85,8 +98,15 @@ var KloutHarvester = (function() {
 					return next(itr, cb);
 
 				klout.get('user.json/' + user.klout_id, {key: klout.client.key}, function(err, response) {
-					if(err || !response || !response.id)
-						return next(itr, cb); // TODO: put in klout error handling
+					if (err || (response && response.error)) {
+						Error.handler('klout', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						return next(itr, cb)
+					}
+
+					if(!response || !response.id) {
+						Error.handler('klout', 'No response or response ID from Klout', null, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'warn'})
+						return next(itr, cb)
+					}
 
 					var timestamp = Helper.timestamp();
 
@@ -146,8 +166,15 @@ var KloutHarvester = (function() {
 					return next(itr, cb);
 
 				klout.get('user.json/' + user.klout_id, {key: klout.client.key}, function(err, response) {
-					if(err || !response)
-						return next(itr, cb, err); // TODO: put in klout error handling
+					if (err || (response && response.error)) {
+						Error.handler('klout', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						return next(itr, cb)
+					}
+
+					if(!response) {
+						Error.handler('klout', 'No response from Klout', null, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'warn'})
+						return next(itr, cb)
+					}
 
 					user.Klout.handle = response.nick;
 					user.Klout.handle_lower = response.nick ? response.nick.toLowerCase() : '',
@@ -216,8 +243,10 @@ var KloutHarvester = (function() {
 				// since we must have at least one id type to get here
 				if(!user.twitter_id && !user.meta.klout.discovery.twitter.success)
 					klout.get('identity.json/klout/' + user.klout_id +'/tw', {key: klout.client.key}, function(err, response) {
-						if(err)
-							console.log(err);
+						if (err || (response && response.error)) {
+							Error.handler('klout', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							return next(itr, cb)
+						}
 
 						if(response && response.id) {							
 							user.twitter_id = response.id;
@@ -232,8 +261,10 @@ var KloutHarvester = (function() {
 
 				if(!user.google_id && !user.meta.klout.discovery.google.success)
 					klout.get('identity.json/klout/' + user.klout_id +'/gp', {key: klout.client.key}, function(err, response) {
-						if(err)
-							console.log(err);
+						if (err || (response && response.error)) {
+							Error.handler('klout', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							return next(itr, cb)
+						}
 
 						if(response && response.id) {									
 							user.google_id = response.id;	
@@ -248,8 +279,10 @@ var KloutHarvester = (function() {
 
 				if(!user.instagram_id && !user.meta.klout.discovery.instagram.success)
 					klout.get('identity.json/klout/' + user.klout_id +'/ig', {key: klout.client.key}, function(err, response) {
-						if(err)
-							console.log(err);
+						if (err || (response && response.error)) {
+							Error.handler('klout', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							return next(itr, cb)
+						}
 
 						if(response && response.id) {
 							user.instagram_id = response.id;
@@ -293,7 +326,6 @@ var KloutHarvester = (function() {
 			});
 		}
 	}
-
 })();
 
 module.exports = KloutHarvester;

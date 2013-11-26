@@ -29,7 +29,7 @@ var GoogleCron = (function() {
 			metrics: function(methods) {
 				Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: {'Social.google.business.timestamp': { $lt : Helper.timestamp() - 86400 /* 86400 seconds = 1 day  */}}}}, function(err, user) {
 					if (err)
-						return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
 					if(!user[0] || !user[0].Business || !user[0].Business.length)
 						return
@@ -41,10 +41,10 @@ var GoogleCron = (function() {
 							network_id: g.id,
 							network_ref: g.data.reference
 						}, function(err, update) {
-							if(update)
+							//if(update)
 								user.save(function(err) {
 									if(err)
-										return Log.error('Error saving to Users table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+										return Log.error('Error saving to Users table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 									console.log('Google callback complete')
 								})
 						})
@@ -59,7 +59,7 @@ var GoogleCron = (function() {
 				// TODO: possibly skip user table for this call and just use analytics table directly
 				Model.User.findOne({Business: {$exists: true}}, options[itr], function(err, user) {
 					if (err)
-						return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
 					if(!user[0] || !user[0].Business || !user[0].Business.length)
 						jobs.metrics(methods, itr++)
@@ -70,7 +70,7 @@ var GoogleCron = (function() {
 						if(update)
 							user.save(function(err) {
 								if(err)
-									return Log.error('Error saving to Users table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+									return Log.error('Error saving to Users table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 								console.log('Google reviews callback complete')
 							})
 					})

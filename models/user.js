@@ -124,7 +124,7 @@ var UserModel = {
             },
             business: {},
             update: {
-              scraped: { type: Boolean, default: false},
+              //scraped: { type: Boolean, default: false},
               timestamp: {type: Number, default: 0} // this is the last api call time
             }
           },

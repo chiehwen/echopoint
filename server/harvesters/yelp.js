@@ -1,5 +1,10 @@
-var Auth = require('../auth').getInstance(),
-		Log = require('../logger').getInstance().getLogger(),
+var fs = require('fs'),
+		zlib = require('zlib'),
+		request = require('request'),
+		Auth = require('../auth').getInstance(),
+		Logger = require('../logger').getInstance(),
+		Log = Logger.getLogger(),
+		ScrapingLog = Logger.getLogger('scraping'),
 		Error = require('../error').getInstance(),
 		Helper = require('../helpers'),
 		Model = Model || Object,
@@ -33,18 +38,20 @@ var YelpHarvester = (function() {
 
 		business: function(itr, cb) {
 			yelp.business(data.network_id, function(err, response) {
-				if(err || response.error)
-					return console.log(err, response.meta); //data = {timestamp: 1, posts: [{id: 'error'}]}// user token may have expired, send an email, text, and /or notification  Also check error message and log if it isn't an expired token (also send admin email)
+				if(err || (response && response.error)) {
+					Error.handler('yelp', err || response.error, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+					return next(itr, cb)
+				}
 
 				var cached = Analytics.yelp.business.data,
 						timestamp = Helper.timestamp(),
 						localUpdate = false;
 
 				///Model.User.findById(data.user, function(err, user) {
-					User[0].Business[0].Social.yelp.update.timestamp = timestamp;
+					User.Business[0].Social.yelp.update.timestamp = timestamp;
 					//data.user.save(function(err) {
 						//if(err)
-						//	return Log.error('Error saving to Users table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						//	return Log.error('Error saving to Users table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 					//})
 				//})
 
@@ -70,10 +77,10 @@ var YelpHarvester = (function() {
 					}
 
 					//Model.User.findById(data.user, function(err, user) {
-						User[0].Business[0].Social.yelp.business = Analytics.yelp.business.data;
+						User.Business[0].Social.yelp.business = Analytics.yelp.business.data;
 						//data.user.save(function(err) {
 							//if(err)
-							//	return Log.error('Error saving to Users table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							//	return Log.error('Error saving to Users table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 						//})
 					//})
 				}
@@ -107,31 +114,53 @@ var YelpHarvester = (function() {
 		},
 
 		reviews: function(itr, cb, pagination) {
+
+			// mark the attempt time 
+			var timestamp = Helper.timestamp();
+			User.Business[0].Social.yelp.update.timestamp = timestamp;
+
 			// only scrape if something has changed from the API data
 			// although this could give untrue data (such as if someone posts a review and another user deletes a review within the same 24 hour period)
 			// the likelyhood is low. when we get more money we can connect proxies and run this every 24 hours for all businesses
 			if(!url)
 				return next(itr, cb);
 
-			if(!Analytics.yelp.business.data.url)
-				return next(itr, cb);
+			//if(!Analytics.yelp.business.data.url)
+				//return next(itr, cb);
 
+//var url = 'http://www.yelp.com/biz/speak-social-austin';//'http://www.yelp.com/biz/midas-auto-service-experts-austin-6'; //Analytics.yelp.business.data.url;
+			
 			var cached = Analytics.yelp.business.data,
 					pagination = (pagination || 0),
 					timestamp = Helper.timestamp(),
 					localUpdate = false;
 
 			requester.get(url + '?sort_by=date_desc' + (pagination ? '&start=' + (pagination * Analytics.yelp.harvest.pagination.multiplier) : ''), function(body) {
-				if (this.statusCode != 200)
-					return next(itr, cb, body);
+				if (this.statusCode !== 200) {
+					Error.handler('yelp', this.statusCode, null, body, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+					return next(itr, cb);
+				}
 
+				//fs.writeFile('server/harvesters/output/yelp-' + timestamp + '.html', body, function(err) {
+					//console.log('totes here? ',err);
+					
+					//return
+				//})
+
+console.log(this.statusCode);
+
+//console.log('body by yelp: ', body);
 				var $ = cheerio.load(body),
-						reviewsCount = parseInt($('#reviews-other .reviews-header').text().trim(), 10) || parseInt($('#review-count-search h2#total_reviews').text().trim(), 10),
-						filteredReviewsCount = parseInt($('#paginationControls #filtered-reviews-link').text().trim(), 10),
+						reviewsCount = parseInt($('#reviews-other .reviews-header').text().trim(), 10), // TODO: add || #rpp-count
+						filteredReviewsCount = parseInt($('.filtered-reviews #filtered-reviews-link').text().trim() || $('#paginationControls #filtered-reviews-link').text().trim(), 10),
 						reviewObject = {},
 						complete = false;
 
-				if(!Analytics.yelp.business.id) {
+				reviewsCount = (!reviewsCount || Number.isNaN(reviewsCount)) ? 0 : reviewsCount;
+				filteredReviewsCount = (!filteredReviewsCount || Number.isNaN(filteredReviewsCount)) ? 0 : filteredReviewsCount;
+
+
+				if(!Analytics.yelp.business.id && $('#edit_cat_link').attr('href')) {
 					update = localUpdate = true;
 					Analytics.yelp.business.id = $('#edit_cat_link').attr('href').trim().replace('/biz_attribute?biz_id=', '')
 				}
@@ -187,7 +216,7 @@ var YelpHarvester = (function() {
 						},
 						user: {
 							name: $(value).find('.media-block .media-avatar .user-passport .user-name a').text().trim(),
-							id: $(value).find('.media-block .media-avatar .user-passport .user-name a').attr('href').toString().trim().replace('http://www.yelp.com/user_details?userid=', ''),
+							id: $(value).find('.media-block .media-avatar .user-passport .user-name a').attr('href') ? $(value).find('.media-block .media-avatar .user-passport .user-name a').attr('href').toString().trim().replace('http://www.yelp.com/user_details?userid=', '') : '',
 							location: $(value).find('.media-block .media-avatar p.reviewer_info').text().trim(),
 							photo: $(value).find('.media-block .media-avatar .user-passport .photo-box a img').attr('src').trim(),
 							link: $(value).find('.media-block .media-avatar .user-passport .user-name a').attr('href').trim(),
@@ -216,7 +245,7 @@ var YelpHarvester = (function() {
 					}
 
 					// if this is the initial load then .push() in order, else .splice() to the front in order
-					if(Analytics.yelp.harvest.initial)
+					if(!Analytics.yelp.harvest.timestamp || !Analytics.yelp.reviews.active || !Analytics.yelp.reviews.active.length)
 						Analytics.yelp.reviews.active.push(reviewObject)
 					else
 						Analytics.yelp.reviews.active.splice(i, 0, reviewObject)
@@ -226,15 +255,104 @@ var YelpHarvester = (function() {
 				if(!complete && ((pagination*Analytics.yelp.harvest.pagination.multiplier)+Analytics.yelp.harvest.pagination.multiplier) < reviewsCount )
 					return Harvest.reviews(itr, cb, pagination+1)
 
-				if(Analytics.yelp.harvest.initial)
-					Analytics.yelp.harvest.initial = false
-
 				Analytics.yelp.harvest.timestamp = timestamp
 				next(itr, cb)
-
 			})
-
 		},
+
+		savePage: function(itr, cb) {
+			requester.get('http://www.yelp.com/biz/midas-green-tech-austin?sort_by=date_desc', function(body) {
+				fs.writeFileSync('server/harvesters/output/yelp.' + Helper.timestamp() + '.html', body)
+			})
+		},
+
+		// every 5 minutes with proxies, every 4 hours without
+		pageChangesAlert: function() {
+			requester.get('http://www.yelp.com/biz/speak-social-austin?sort_by=date_desc',
+				{
+					headers: {
+						'accept-charset' : 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+  					'accept-language' : 'en-US,en;q=0.8',
+  					'accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+						//'accept-encoding': 'gzip,deflate,sdch',
+						'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36'
+					},
+					//dataType: 'RAW',
+					processResponse: function (stream) {
+						if(this.headers['content-encoding'] == 'gzip' ) {
+	            var raw = fs.createReadStream('yelpy.html');
+							return raw.pipe(zlib.createGunzip()).pipe(this);
+						} else {
+							return stream
+						}
+        	}
+				}, function(body) {
+				if (this.statusCode !== 200)
+					return Error.handler('yelp', this.statusCode, null, body, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+
+				// failed attempt at compression request
+				// TODO need to fix to use gzip
+				//var stream;
+//this.body = [];
+//this.headers = [];
+//console.log(this.headers);
+//return				
+				/*var raw = fs.createReadStream('yelpy.html');
+				if(this.headers['content-encoding'] == 'gzip' ) {
+					console.log('zomg')
+				 raw.pipe(zlib.createGunzip()).pipe(this);
+				} else { 
+					console.log('here');
+					stream = this;
+				}*/
+				/*zlib.unzip(JSON.stringify(this.headers)+body, function(err, res) {
+					console.log(err, res);
+				})*/
+
+				var $ = cheerio.load(body),
+						reviewsCount = $('#reviews-other .reviews-header').length,
+						filteredReviewsCount = $('.filtered-reviews #filtered-reviews-link').length || $('#paginationControls #filtered-reviews-link').length,
+						yelpBusinessId = $('#edit_cat_link').length,
+						reviews = $('#reviews-other ul li.review').length;
+
+				if(!reviewsCount || !filteredReviewsCount || !yelpBusinessId || !reviews) {
+					// ALERT! change in the html elements structure!
+					ScrapingLog.error('necessary Yelp html page element not found!', {reviewsCount: reviewsCount, filteredReviewsCount: filteredReviewsCount, yelpBusinessId: yelpBusinessId, reviews: reviews, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+
+					if(!reviews)
+						return;
+				}
+
+				// go through reviews and detect missing elements
+				var review = $('#reviews-other ul li.review')[0],
+						elementsArray = [
+							$(review).attr('id'), // 0 - review_id
+							$(review).find('.media-block .media-avatar .user-passport .user-name a').length, // 1 - user name and id
+							$(review).find('.media-block .media-avatar p.reviewer_info').length,
+							$(review).find('.media-block .media-avatar .user-passport .photo-box a img').length,
+							$(review).find('.media-block .media-avatar .user-passport .user-name a').length,
+							$(review).find('.media-block .media-avatar .user-passport .user-stats .friend-count > span').length,
+							$(review).find('.media-block .media-avatar .user-passport .user-stats .review-count > span').length,
+							$(review).find('.media-block .media-story .review-meta .rating meta').length,
+							$(review).find('.media-block .media-story .review_comment').length,
+							$(review).find('.media-block .media-story .review-meta > meta').length,
+							//$(review).find('.media-block .media-avatar .user-passport .user-stats li.is-elite').length,
+							$(review).find('.media-block .media-story .extra-actions .rateReview ul li.useful a span.count').length,
+							$(review).find('.media-block .media-story .extra-actions .rateReview ul li.funny a span.count').length,
+							$(review).find('.media-block .media-story .extra-actions .rateReview ul li.cool a span.count').length,
+							$(review).find('.media-block .media-story .extra-actions .externalReviewActions li a.add-owner-comment').length,
+							$(review).find('.media-block .media-story .extra-actions .externalReviewActions li a.i-orange-link-common-wrap').length,
+							//$(review).find('.review-photos .more-review-photos a').length
+						]
+
+				for(var i=0, l=elementsArray.length; i<l;i++) {
+					if(!elementsArray[i])
+						// ALERT! change in the html elements structure!
+						ScrapingLog.error('necessary Yelp html page element not found!', {elementsArray: elementsArray, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+				}
+			})
+		},
+
 
 		cheer: function(itr, cb, pagination) {
 
@@ -311,7 +429,7 @@ var YelpHarvester = (function() {
 				}
 
 				// if this is the initial load then .push() in order, else .splice() to the front in order
-				if(Analytics.yelp.harvest.initial)
+				if(!Analytics.yelp.harvest.timestamp || !Analytics.yelp.reviews.active || !Analytics.yelp.reviews.active.length)
 					Analytics.yelp.reviews.active.push(reviewObject)
 				else
 					Analytics.yelp.reviews.active.splice(i, 0, reviewObject)
@@ -320,9 +438,6 @@ var YelpHarvester = (function() {
 
 			if(((pagination*Analytics.yelp.harvest.pagination.multiplier)+Analytics.yelp.harvest.pagination.multiplier) < reviewsCount )
 				return Harvest.reviews(itr, cb, pagination+1)
-
-			if(Analytics.yelp.harvest.initial)
-				Analytics.yelp.harvest.initial = false
 
 			Analytics.yelp.harvest.timestamp = timestamp
 			next(itr, cb)
@@ -368,28 +483,37 @@ for(var i=0, l=test.length; i<l;i++) {
 
 	return {
 		getMetrics: function(user, params, callback) {
-			if(!user[0])
-				return Log.error('No user provided', {error: err, meta: params, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+			if(!user)
+				return Log.error('No user provided', {error: err, meta: params, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
 			User = user,
 			yelp = Auth.load('yelp'),
 			data = params,
 			update = false;
 
-			Model.Analytics.findById(User[0].Business[0].Analytics.id, function(err, analytics) {
+			Model.Analytics.findById(User.Business[0].Analytics.id, function(err, analytics) {
 				Analytics = analytics;
 
 				Harvest[data.methods[0]](0, function() {
 					if(update)
 						Analytics.save(function(err,r){
 							if(err)
-								return Log.error('Error saving to Analytics table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+								return Log.error('Error saving to Analytics table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 							callback(null, update);
 						})
 					else
 						callback(null, update);
 				});
 			})
+		},
+		directToMethod: function(params, callback) {
+			//yelp = Auth.load('yelp'),
+			data = params,
+			update = false;
+
+			Harvest[data.methods[0]](0, function() {
+				callback(null, update);
+			});
 		}
 	}
 

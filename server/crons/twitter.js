@@ -20,8 +20,8 @@ var TwitterCron = (function() {
 			metrics: function(methods) {
 				Model.User.find(function(err, users) {
 					if (err || !users)
-						return Log.error(err ? err : 'No users returned', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
-console.log(methods);
+						return Log.error(err ? err : 'No users returned', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+
 					users.forEach(function(user) {
 						user.Business.forEach(function(business, index) {
 

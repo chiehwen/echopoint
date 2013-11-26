@@ -20,7 +20,7 @@ var OauthController = {
 			Helper.getUser(req.session.passport.user, function(err, user) {
 				// default error handler for database query error
 				if (err || !user) {
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 					req.session.messages.push('Error connecting to Facebook')
 					return res.redirect(err ? '/logout' : '/login')
 					
@@ -28,7 +28,7 @@ var OauthController = {
 
 				// check if code return state param matches the user state in session variable 
 				if(!req.session.facebookState || req.session.facebookState != req.query.state) {
-					Log.error(!req.session.facebookState ? 'Missing facebook oauth state in session' : 'Facebook oauth state discrepancy', {error: 'Facebook oauth state discrepancy or missing state in session', user_id: user._id, business_id: user.Business[req.session.Business.index]._id, state: {session: req.session.facebookState, returned: req.query.state}, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(!req.session.facebookState ? 'Missing facebook oauth state in session' : 'Facebook oauth state discrepancy', {error: 'Facebook oauth state discrepancy or missing state in session', user_id: user._id, business_id: user.Business[req.session.Business.index]._id, state: {session: req.session.facebookState, returned: req.query.state}, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 					req.session.messages.push('Error connecting Vocada application to Facebook.')
 					return res.redirect('/social/facebook?error=true')
 				}
@@ -91,7 +91,7 @@ var OauthController = {
 						user.save(function(err) {
 							if(err) {
 								// default error handler for database save error
-								Log.error('Error saving Facebook credentials', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+								Log.error('Error saving Facebook credentials', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 								req.session.messages.push('Error saving Facebook credentials to application')
 								return res.redirect('/social/facebook?error=true')
 							}
@@ -113,7 +113,7 @@ var OauthController = {
 
 			Helper.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) {
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 					req.session.messages.push('Error connecting to Twitter')
 					return res.redirect(err ? '/logout' : '/login')
 				}
@@ -164,7 +164,7 @@ var OauthController = {
 							user.Business[req.session.Business.index].Social.twitter.username = credentials.username;
 							user.save(function(err) {
 								if(err) {
-									Log.error('Error saving Twitter credentials', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+									Log.error('Error saving Twitter credentials', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 									req.session.messages.push('Error saving Twitter credentials to application')
 									return res.redirect('/social/twitter?error=true');
 								}
@@ -188,7 +188,7 @@ var OauthController = {
 
 			Helper.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) {
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 					req.session.messages.push('Error connecting to Foursquare')
 					return res.redirect(err ? '/logout' : '/login')
 				}
@@ -228,7 +228,7 @@ var OauthController = {
 						user.Business[req.session.Business.index].Social.foursquare.auth  = credentials;
 						user.save(function(err) {
 							if(err) {
-								Log.error('Error saving Foursquare credentials', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+								Log.error('Error saving Foursquare credentials', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 								req.session.messages.push('Error saving Foursquare credentials to application')
 								return res.redirect('/social/foursquare?error=true');
 							}
@@ -249,14 +249,14 @@ var OauthController = {
 
 			Helper.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) {
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 					req.session.messages.push('Error connecting to Google')
 					return res.redirect(err ? '/logout' : '/login')
 				}
 
 				// check if code return state param matches the user state in session variable 
 				if(!req.session.googleState || req.session.googleState != req.query.state) {
-					Log.error(!req.session.googleState ? 'Missing google oauth state in session' : 'Google oauth state discrepancy', {error: 'Google oauth state discrepancy or missing state in session', user_id: user._id, business_id: user.Business[req.session.Business.index]._id, state: {session: req.session.googleState, returned: req.query.state}, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(!req.session.googleState ? 'Missing google oauth state in session' : 'Google oauth state discrepancy', {error: 'Google oauth state discrepancy or missing state in session', user_id: user._id, business_id: user.Business[req.session.Business.index]._id, state: {session: req.session.googleState, returned: req.query.state}, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 					req.session.messages.push('Error connecting Vocada application to Google.')
 					return res.redirect('/social/google?error=true')
 				}
@@ -317,7 +317,7 @@ var OauthController = {
 							
 							user.save(function(err) {
 								if(err) {
-									Log.error('Error saving Google credentials', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+									Log.error('Error saving Google credentials', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 									req.session.messages.push('Error saving Google credentials to application')
 									return res.redirect('/social/google?error=true');
 								}
@@ -340,13 +340,13 @@ var OauthController = {
 
 			Helper.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) {
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 					req.session.messages.push('Error connecting to Instagram')
 					return res.redirect(err ? '/logout' : '/login')
 				}
 
 				if(!req.session.instagramState || req.session.instagramState != req.query.state) {
-					Log.error(!req.session.instagramState ? 'Missing instagram oauth state in session' : 'Instagram oauth state discrepancy', {error: 'Instagram oauth state discrepancy or missing state in session', user_id: user._id, business_id: user.Business[req.session.Business.index]._id, state: {session: req.session.instagramState, returned: req.query.state}, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(!req.session.instagramState ? 'Missing instagram oauth state in session' : 'Instagram oauth state discrepancy', {error: 'Instagram oauth state discrepancy or missing state in session', user_id: user._id, business_id: user.Business[req.session.Business.index]._id, state: {session: req.session.instagramState, returned: req.query.state}, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 					req.session.messages.push('Error connecting Vocada application to Instagram.')
 					return res.redirect('/social/instagram?error=true')
 				}
@@ -384,7 +384,7 @@ var OauthController = {
 						user.Business[req.session.Business.index].Social.instagram.auth  = credentials;
 						user.save(function(err) {
 							if(err) {
-								Log.error('Error saving Instagram credentials', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+								Log.error('Error saving Instagram credentials', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 								req.session.messages.push('Error saving Instagram credentials to application')
 								return res.redirect('/social/instagram?error=true');
 							}
@@ -406,14 +406,14 @@ var OauthController = {
 
 			Helper.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) {
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 					req.session.messages.push('Error connecting to Bitly')
 					return res.redirect(err ? '/logout' : '/login')
 				}
 
 				// check if code return state param matches the user state in session variable 
 				if(!req.session.bitlyState || req.session.bitlyState != req.query.state) {
-					Log.error(!req.session.bitlyState ? 'Missing bitly oauth state in session' : 'Bitly oauth state discrepancy', {error: 'Bitly oauth state discrepancy or missing state in session', user_id: user._id, business_id: user.Business[req.session.Business.index]._id, state: {session: req.session.bitlyState, returned: req.query.state}, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(!req.session.bitlyState ? 'Missing bitly oauth state in session' : 'Bitly oauth state discrepancy', {error: 'Bitly oauth state discrepancy or missing state in session', user_id: user._id, business_id: user.Business[req.session.Business.index]._id, state: {session: req.session.bitlyState, returned: req.query.state}, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 					req.session.messages.push('Error connecting Vocada application to Bitly.')
 					return res.redirect('/tools/bitly?error=true')
 				}
@@ -454,7 +454,7 @@ var OauthController = {
 					user.Business[req.session.Business.index].Tools.bitly.auth = credentials;
 					user.save(function(err) {
 						if(err) {
-							Log.error('Error saving Bitly credentials', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							Log.error('Error saving Bitly credentials', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 							req.session.messages.push('Error saving Bitly credentials to application')
 							return res.redirect('/social/bitly?error=true');
 						}

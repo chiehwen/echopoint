@@ -18,24 +18,23 @@ var YelpCron = (function() {
 		// private functions
 		var jobs = {
 			metrics: function(methods) {
-				Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: {'Social.yelp.update.timestamp': { $lt : Helper.timestamp() - 86400 /* 86400 seconds = 1 day  */}}}}, function(err, user) {
+				Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: { $or: [{'Social.yelp.update.timestamp': {$exists: false}}, {'Social.yelp.update.timestamp': {$lt : Helper.timestamp() - 86400 /* 86400 seconds = 1 day  */}}]}   }}, function(err, user) {
 					if (err)
-						return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
-					if(!user[0] || !user[0].Business || !user[0].Business.length)
+					if(!user || !user.Business || !user.Business.length)
 						return
 
-					var y = user[0].Business[0].Social.yelp;
-					if (y.id && y.id != '') {
-
+					var y = user.Business[0].Social.yelp;					
+					if (y.id) {
 						Harvester.yelp.getMetrics(user, {
 							methods: methods,
 							network_id: y.id
 						}, function(err, update) {
-							if(update)
+							//if(update)
 								user.save(function(err) {
 									if(err)
-										return Log.error('Error saving to Users table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+										return Log.error('Error saving to Users table', {error: err, user_id: user._id, business_id: user.Business[0]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 									console.log('Yelp callbacks complete')
 								})
 						})

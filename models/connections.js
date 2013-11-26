@@ -111,7 +111,11 @@ var ConnectionsModel = {
 
         foursquare: {
           business_id: {type: String},
-          analytics_id: {type: String}
+          analytics_id: {type: String},
+          twitter_handle: {type: String},
+          discovery_attempt: {
+            timestamp: {type: Number, default: 0}
+          }
         }
       }
     },

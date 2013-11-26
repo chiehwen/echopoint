@@ -428,6 +428,48 @@ var Logger = (function() {
 				return logger.bitly
 			},
 
+			scraping: function () {
+				if(!logger.scraping)
+					logger.scraping = new (winston.Logger)({
+						transports: [
+							new winston.transports.Console({
+								colorize: true
+							}),
+							new (winston.transports.File)({
+								handleExceptions: false,
+								name: 'scraping_warnings',
+								filename: 'server/logs/scraping/warnings.json',
+								level: 'warn',
+								json: true
+							}),
+							new (winston.transports.File)({
+								handleExceptions: false,
+								name: 'scraping_errors',
+								filename: 'server/logs/scraping/errors.json',
+								level: 'error',
+								json: true
+							}),
+	/*
+							new (winston.transports.Loggly)(
+								{
+									subdomain: "vocada",
+									inputToken: "3373e727-da7a-4d97-a317-20464e47d77e", 
+									json: true
+								}
+							),
+							new (winston.transports.Papertrail)({
+								host: 'logs.papertrailapp.com',
+								port: 28648
+			        })
+	*/
+						],
+
+						exitOnError: false
+					})
+
+				return logger.scraping
+			},
+
 			//sentiment: function () { // sentiment140.com
 
 			//},

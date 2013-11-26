@@ -3,6 +3,12 @@ var url = require('url'),
 		//Log = require('./logger').getInstance().getLogger(),
 		Model = Model || Object;
 
+// google uses a timestamp hash to verify calls to it's ajax loadreview url
+// this must be updated manually AT LEAST once every 24 hours (more if possible)
+// to get this you must look at request headers from a legit browser request on a business locals page
+// after load more review has been clicked
+exports.googleTimestampHash = 'AObGSAhGQXCUtHTiy6Dti8GgWD_A3jSg2w:1385489464893' 
+
 // this is for Angular JS bootstraped pages
 exports.bootstrapRoute = 'bootstrap';
 

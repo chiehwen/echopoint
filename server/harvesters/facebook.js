@@ -42,7 +42,7 @@ var FacebookHarvester = (function() {
 							user.Business[data.index].Social.facebook.account.data = Analytics.facebook.business.data;
 							user.save(function(err) {
 								if(err)
-									return Log.error('Error saving Facebook page data to user table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+									return Log.error('Error saving Facebook page data to user table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 							})
 						})
 					}
@@ -338,7 +338,7 @@ console.log('at posts_insights method');
 
 			Model.Connections.find({facebook_id: {$exists: true}, Facebook: {$exists: false}}, null, {limit: 100}, function(err, users) {
 				if (err)
-					return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
 				if(!users.length)
 					return;
@@ -368,7 +368,7 @@ console.log('at posts_insights method');
 								}
 								users[y].save(function(err, save) {
 									if(err)
-										return Log.error('Error saving to Connection table', {error: err, connections_id: users[y]._id, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+										return Log.error('Error saving to Connection table', {error: err, connections_id: users[y]._id, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
 								})
 								break
@@ -389,14 +389,14 @@ console.log('at posts_insights method');
 
 			Model.Analytics.findById(data.analytics_id, function(err, analytics) {
 				if(err)
-					return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
 				Analytics = analytics;
 				Harvest[data.methods[0]](0, function() {			
 					if(update)
 						Analytics.save(function(err, response){
 							if(err)
-								return Log.error('Error saving Facebook analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+								return Log.error('Error saving Facebook analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
 							console.log('saved facebook analytic data');
 							callback(null);
@@ -404,7 +404,7 @@ console.log('at posts_insights method');
 				})
 			})
 		},
-		processConnectionUsers: function(methods, callback) {
+		appData: function(methods, callback) {
 			facebook = Auth.load('facebook');
 			//Harvest.type = 'connections';
 			Harvest[methods[0]](0, function() {
