@@ -459,23 +459,27 @@
               star_breakdown: {}
             }],
             total: {type: Number},
-            timestamp: {type: Number}
+            timestamp: {type: Number, default: 0},
+            api_timestamp: {type: Number, default: 0}, // mark when the api timestamp was last updated (not harvesting)
           },
           rating: {
             history: [{
               timestamp: {type: Number},
               score: {type: Number}
             }],
-            score: {type: Number},
-            timestamp: {type: Number}
+            score: {type: Number}, // this is the more accurate score found from page harvesting
+            timestamp: {type: Number, default: 0},
+            api_timestamp: {type: Number, default: 0}, // mark when the api timestamp was last updated (not harvesting)
+            api_score: {type: Number, default: 0} // this is used to compare score to identify new reviews and initiate page harvest
           }
         },
         reviews: {
           active: [],
-          retracted: []
+          retracted: [],
           //TODO: Need to add a removed flag variable 
           // to show removed reviews, put removed in this object
           // so review count will still work
+          api_samples: []  // this is the sample api reviews, if these change then we call the harvester
         }
       },
 
@@ -492,11 +496,15 @@
             url: {type: String},
             phone: {type: String},
             snippet: {type: String},
+            categories: [],
             location: {
-              address: {type: String},
+              address: [],
+              display_address: [],
+              neighborhoods: [],
               city: {type: String},
-              state: {type: String},
-              postal: {type: String}
+              state_code: {type: String},
+              postal_code: {type: String},
+              country_code: {type: String}
             }
           }
         },
@@ -508,7 +516,7 @@
               //data: {}
             }],
             total: {type: Number},
-            timestamp: {type: Number}
+            timestamp: {type: Number, default: 0}
           },
           rating: {
             history: [{
@@ -516,7 +524,7 @@
               score: {type: Number}
             }],
             score: {type: Number},
-            timestamp: {type: Number}
+            timestamp: {type: Number, default: 0}
           }
         },
         reviews: {

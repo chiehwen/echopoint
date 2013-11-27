@@ -103,9 +103,11 @@ var UserModel = {
             },
             business: {
               id: {type: String},
-              timestamp: {type: Number, default: 0}, // this is the last api call time
               oauthAccessToken: {type: String},
               data: {}
+            },
+            update: {
+              timestamp: {type: Number, default: 0} // this is the last api call time
             },
             reviews: {
               //scraped: {type: Boolean, default: false},
@@ -202,12 +204,35 @@ var UserModel = {
           if (err) callback(err)
           callback(null, match)
         });
+      },
+      getBusinessIndex: function(business_id, callback) {
+        for(var i=0,l=this.Business.length;i<l;i++) {
+          var index = i;
+          if(this.Business[i]._id.toString() === business_id.toString())
+            return callback(null, index);
+        }
+
+        callback('No matching business')
       }
     },
 
     statics: {
       findByName: function(name, callback) {
         this.find({name: new RegExp(name, 'i')}, callback);
+      },
+      getUserBusinessIndex: function(user_id, business_id, callback) {      
+        this.findById(user_id, function(err, user) {
+          if(err)
+            return callback(err)
+
+          for(var i=0,l=user.Business.length;i<l;i++) {
+            var index = i;
+            if(user.Business[i]._id.toString() === business_id.toString())
+              return callback(err, user, index);
+          }
+
+          callback('No matching business')
+        })
       }
     },
 

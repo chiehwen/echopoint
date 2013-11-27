@@ -29,9 +29,9 @@ IF HERE LOOK BACK AND REFER TO 5.5!
 
 8.) DONE!setup headers for web scraping to resemble browser
 
-9.) setup request abstraction layer to handle poxies and compressed file returns!
+9.) setup request abstraction layer to handle poxies and compressed file returns! [http://nickfishman.com/post/49533681471/nodejs-http-requests-with-gzip-deflate-compression]
 
-10.) Yelp claim business link and directions 
+10.) Yelp claim business link and directions in guide
 
 24.) Need to look into anonymous proxies for web scraping
 

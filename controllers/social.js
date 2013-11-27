@@ -440,7 +440,7 @@ console.log('we should be in here');
 
 				// load google business credentials
 				var g = user.Business[req.session.Business.index].Social.google;
-
+console.log(g.business.data);
 				// if we have a google session loaded and no forced login GET param then lets load foursquare
 				if(req.session.google && req.session.google.oauthAccessToken && req.session.google.oauthRefreshToken && !req.query.login) {
 
@@ -450,13 +450,40 @@ console.log('we should be in here');
 
 					// TODO: fix this cluster f**k below
 					// TODO: check if first load and then call harvester for initial data (refer to facebook above for example)
-					if(g.business.id) {
+					if(g.business.id && g.business.data.reference) {
 						res.json({
 							success: true,
 							connected: true,
 							data: {success: true} //data,
 						})
 					} else {
+						user.Business[req.session.Business.index].Social.google.business = {
+							id: 'e4353411a15c29a7f2f815a3d9cecf4fcad0c87f',
+							data: { 
+								formatted_address: '5350 Burnet Road #2, Austin, TX, United States',
+					       icon: 'http://maps.gstatic.com/mapfiles/place_api/icons/restaurant-71.png',
+					       id: 'e4353411a15c29a7f2f815a3d9cecf4fcad0c87f',
+					       name: 'Roll On Sushi Diner',
+					       price_level: 2,
+					       rating: 4.6,
+					       reference: 'CoQBdQAAALO078NBmk-qhyi42NaMhwIoKqdJtkyIHvnfI5YnmBKWNR8nhk61XtxUtr_lxFKSCRbcZDbLYp2rdQaxw8GVY7mm5fO8EqNPP9QAZp9Sc11pYzdqrv93uEiAbOxeYfYG6PiPiADUFnRAvnpxCxFGDd43-OHoVEgNSKjSiX3DAtAqEhCBICO8NNA9HK2jes1iDUN5GhRdhjetEewmfhY_P2-MIutpL3Pzcw',
+					     }
+						}
+						user.save(function(err, save) {
+
+						})
+						// set this up via sockets and not GET http request
+						/*google = Auth.load('google');
+						google.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {key: google.client.key, query: 'Roll On Sushi Diner, Austin, Texas', sensor: false}, function(err, response) {
+							console.log(err, response);
+							res.json({
+								success: true,
+								connected: true,
+								account: true,
+								data: {success: true}, //data,
+							})
+						})*/
+
 						res.json({
 							success: true,
 							connected: true,
@@ -464,20 +491,6 @@ console.log('we should be in here');
 							data: {success: true} //data,
 						})
 					}
-
-					/*
-					google = Auth.load('google');
-					google.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {key: google.client.key, query: 'Roll On Sushi Diner, Austin, Texas', sensor: false}, function(err, response) {
-						console.log(err, response);
-						res.json({
-							success: true,
-							connected: true,
-							account: true,
-							data: {success: true}, //data,
- 					  	url: null
-						})
-					})
-					*/
 
 				} else if(
 					// if we have the needed credentials in the database load them into the session (unless we have a forced login param in GET query)

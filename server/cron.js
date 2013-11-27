@@ -136,7 +136,7 @@ var CronJobs = {
 			},
 
 	// THIS IS A SCRAPER, REMOVE MASS USER CALL AND call only one user at a time
-	// then call this cron often(every 1- 5 min). otherwise we will call google in one second for every user
+	// then call this cron often(every 1- 5 min). otherwise we will call google in a single second for every user
 	// also need to add a field of last lookup so we wont crawl again for 24 hours 
 
 			start: false

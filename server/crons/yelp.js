@@ -18,27 +18,39 @@ var YelpCron = (function() {
 		// private functions
 		var jobs = {
 			metrics: function(methods) {
-				Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: { $or: [{'Social.yelp.update.timestamp': {$exists: false}}, {'Social.yelp.update.timestamp': {$lt : Helper.timestamp() - 86400 /* 86400 seconds = 1 day  */}}]}   }}, function(err, user) {
+				Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: { $and: [{'Social.yelp.id': {$exists: true}}, {$or : [{'Social.yelp.update.timestamp': {$exists: false}}, {'Social.yelp.update.timestamp': {$lt : Helper.timestamp() /*- 86400 /* 86400 seconds = 24 hours */}} ]} ]} }}, function(err, match) {
 					if (err)
 						return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
-					if(!user || !user.Business || !user.Business.length)
+					if(!match || !match.Business || !match.Business.length)
 						return
 
-					var y = user.Business[0].Social.yelp;					
-					if (y.id) {
-						Harvester.yelp.getMetrics(user, {
-							methods: methods,
-							network_id: y.id
-						}, function(err, update) {
-							//if(update)
+					Helper.getBusinessIndex(match._id, match.Business[0]._id, function(err, user, index) {
+						if (err) // a failure here is really bad because the attempt time isn't updated so this User/Business will be called repeatedly
+							return Log.error('index lookup failure', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+			
+						// mark the lookup time so this isn't called again for 24 hours
+						user.Business[index].Social.yelp.update.timestamp = Helper.timestamp();
+						user.save(function(err) {
+							if(err)
+								Log.error('Error saving to Users table', {error: err, user_id: user._id, business_id: user.Business[0]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						})
+
+						var y = user.Business[index].Social.yelp;
+						if (y.id) {
+							Harvester.yelp.getMetrics(user, {
+								methods: methods,
+								index: index,
+								network_id: y.id
+							}, function(err, update) {
 								user.save(function(err) {
 									if(err)
 										return Log.error('Error saving to Users table', {error: err, user_id: user._id, business_id: user.Business[0]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 									console.log('Yelp callbacks complete')
 								})
-						})
-					} // End of Yelp credentials if statement
+							})
+						}
+					})
 				})
 			}
 		}

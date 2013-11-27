@@ -66,7 +66,7 @@ Model.Analytics.find(function(err, analytic) {
 });
 // remove  1382807555173
 Model.Analytics.findOne({id: 1382807555173/*'foursquare.business.data.id': {$exists: true}, 'foursquare.tracking.tips.update': false*/}, function(err, u) {
-	console.log('anal: ', u);
+	//console.log('anal: ', u);
 	//u.foursquare.tracking.tips.update = true;
 	//u.save(function(err,save) {})
 	//u.remove(function(err, gone) {
@@ -192,6 +192,22 @@ var Harvester = {
 			klout: require('./server/harvesters/klout')
 		};
 
+var Crons = {
+			facebook: require('./server/crons/facebook').getInstance(),
+			twitter: require('./server/crons/twitter').getInstance(),
+			foursquare: require('./server/crons/foursquare').getInstance(),
+			google: require('./server/crons/google').getInstance(),
+			yelp: require('./server/crons/yelp').getInstance(),
+			instagram: require('./server/crons/instagram').getInstance(),
+			klout: require('./server/crons/klout').getInstance()
+		};
+
+		//Crons.google.getJob('metrics', ['business', 'reviews'])
+		//Crons.google.getJob('reviews', ['reviews'])
+		//Harvester.google.directToMethod(['pageChangesAlert'], function() {})
+
+		Crons.yelp.getJob('metrics', ['business', 'reviews'])
+
 /*Harvester.foursquare.appData({
 					methods: ['user'],
 					//Model: business
@@ -206,8 +222,8 @@ var Harvester = {
 				})*/
 
 Model.Connections.find({'Twitter.screen_name_lower' : 'andyviral'}, function(err, dataa) {
-	console.log('here',err, dataa[0]);
-	dataa= dataa[0];
+	//console.log('here',err, dataa[0]);
+	//dataa= dataa[0];
 	//dataa.Twitter = {screen_name: 'andyviral', screen_name_lower: 'andyviral'}
 	//dataa[0].twitter_handle = 'notandyviral'
 	//dataa.save(function(err, savey) {
@@ -234,7 +250,7 @@ Model.Connections.aggregate(
 	//{ $sort : {total : -1} },
 	//{ $limit : 5 }, 
 	function(err, dats) {
-console.log('data me! ', err, dats)
+//console.log('data me! ', err, dats)
 	}
 )
 
@@ -250,10 +266,20 @@ console.log('data me! ', err, dats)
 		console.log(err);
 })*/
 
-Model.Analytics.findOne({}, function(err, res) {
+Model.Analytics.findOne({}, function(err, Analytics) {
 
 	//res.forEach(function(dat) {
-		console.log(res.id);
+		//console.log(res.google.);
+
+//console.log(Analytics.google.business);
+//		console.log(Analytics.google.tracking.reviews);
+//console.log(Analytics.google.tracking.rating);
+//console.log(Analytics.google.reviews.active[0]);
+
+//console.log(Analytics.yelp.tracking.reviews);
+//console.log(Analytics.yelp.tracking.rating);
+//console.log(Analytics.yelp.reviews.active.length);
+
 		//res.foursquare.tips.active = []
 		/*res.foursquare.tracking.tips.update = true
 		res.markModified('foursquare.tracking.tips.update')
@@ -272,19 +298,22 @@ Model.Connections.findById('527ad3e186569f404000008b', function(err, huh) {
 		methods: ['pageChangesAlert'],
 	}, function(err, update) {
 
-	})*/
+	})*
 
 Harvester.google.directToMethod({
 		methods: ['savePage'],
 	}, function(err, update) {
 
-	})
+	})*/
 
 
 Model.User.findOne({email: "123"}, function(err, user) {
 	//console.log(user);
-	console.log(user.Business[0].Analytics.id)
+//	console.log(user.Business[0].Social.google)
 
+
+//user.Business[0].Social.google.update.timestamp = 0;
+//user.Business[0].Social.google.reviews.timestamp = 0;
 	//console.log(user.Business[0].Social.google.auth.oauthAccessToken);
 	//user.Business[0].Social.google.auth.oauthAccessToken = '';
 	//user.Business[0].Social.yelp.id = '';

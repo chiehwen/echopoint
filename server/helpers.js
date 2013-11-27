@@ -7,7 +7,7 @@ var url = require('url'),
 // this must be updated manually AT LEAST once every 24 hours (more if possible)
 // to get this you must look at request headers from a legit browser request on a business locals page
 // after load more review has been clicked
-exports.googleTimestampHash = 'AObGSAhGQXCUtHTiy6Dti8GgWD_A3jSg2w:1385489464893' 
+exports.googleTimestampHash = 'AObGSAimcSm8ccwx421g2gRaPHI1iTERaA:1385524924096' 
 
 // this is for Angular JS bootstraped pages
 exports.bootstrapRoute = 'bootstrap';
@@ -38,6 +38,21 @@ exports.getBusinessByName = function(user_id, business_name, lean, callback) {
 
 	Model.User.find({_id: user_id, Business: {$exists: true}}, {'Business': {$elemMatch: {'name': business_name}}}, {lean: lean}, function(err, business) {
 		callback(err, business);
+	})
+}
+
+exports.getBusinessIndex = function(user_id, business_id, callback) {
+	Model.User.findById(user_id, function(err, user) {
+		if(err)
+			return callback(err)
+
+		for(var i=0, l=user.Business.length;i<l;i++) {
+			var index = i;
+			if(user.Business[i]._id.toString() === business_id.toString())
+				return callback(err, user, index);
+		}
+
+		callback('No matching business')
 	})
 }
 
