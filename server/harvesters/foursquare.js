@@ -1,3 +1,12 @@
+/*
+ * Foursquare Harvester
+ *
+ * Rate limit: 5000/hr userless requests to venues/* endpoint | 500/hr userless to all other top level endpoints
+ * Rate limts: 500/hr per user auth requests for all endpoints | rate limit is meaused by top level endpoint not actual API calls (see link for all details) 
+ * https://developer.foursquare.com/overview/ratelimits
+ *
+ */
+
 var Auth = require('../auth').getInstance(),
 		Log = require('../logger').getInstance().getLogger(),
 		Error = require('../error').getInstance(),
@@ -25,10 +34,12 @@ var FoursquareHarvester = (function() {
 
 		// up-to-date venue data [call every 1 hour?]
 		venue: function(itr, cb) {
-
+console.log('at foursquare venue method');
 			foursquare.get('venues/' + data.network_id, {v: foursquare.client.verified}, function(err, response) {
-				if(err || response.meta.code !== 200 || response.meta.errorType)
-					return Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+				if(err || !response || !response.meta || response.meta.code !== 200 || response.meta.errorType) {
+					Error.handler('foursquare', err || response, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+					return next(itr, cb);
+				}
 
 				var venue = response.response.venue,
 						cached = Analytics.foursquare.business.data || {},
@@ -114,7 +125,6 @@ var FoursquareHarvester = (function() {
 
 
 				if(venue.tips.count != Analytics.foursquare.tracking.tips.total) {
-
 					// Lets update tips left for the venue
 					update = localUpdate = true;
 					Analytics.foursquare.tracking.tips.history.push({
@@ -147,9 +157,12 @@ var FoursquareHarvester = (function() {
 		// daily stats data
 		// updated every 24 hours
 		stats: function(itr, cb) {
+console.log('at foursquare stats method');
 			foursquare.get('venues/' + data.network_id + '/stats', {v: foursquare.client.verified}, function(err, response) {
-				if(err || response.meta.code !== 200 || response.meta.errorType)
-					return Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+				if(err || !response || !response.meta || response.meta.code !== 200 || response.meta.errorType) {
+					Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+					return next(itr, cb);
+				}
 
 				var stats = response.response.stats,
 						timestamp = Helper.timestamp();
@@ -286,14 +299,14 @@ var FoursquareHarvester = (function() {
 			})
 		},
 
-		// call every 1 hour, used to gather user data
-		here_now: function(itr, cb) {
+		// call every 1 hour, used to gather user data (using venue call instead)
+		/*here_now: function(itr, cb) {
 
-		},
+		},*/
 
 		// call every 10 seconds
 		tips: function(itr, cb, offset) {
-
+console.log('at foursquare tips method');
 				// note that the business here is actually the Analytics table
 				if(!data.business) {
 					Log.error('No business was specified', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
@@ -306,9 +319,11 @@ var FoursquareHarvester = (function() {
 						timestamp = Helper.timestamp();
 
 				foursquare.get('venues/' + business.foursquare.business.id + '/tips', {v: foursquare.client.verified, limit: count, offset: offset, client_id: foursquare.client.id, client_secret: foursquare.client.secret}, function(err, response) {
-					if(err || response.meta.code !== 200 || response.meta.errorType)
-						return Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
-
+					if(err || !response || !response.meta || response.meta.code !== 200 || response.meta.errorType) {
+						Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						return next(itr, cb);
+					}
+//console.log(response.response.tips);
 					if(response.response.tips.count < 1 || !response.response.tips.items.length)
 						return next(itr, cb)
 
@@ -338,6 +353,7 @@ var FoursquareHarvester = (function() {
 
 						business.foursquare.tracking.tips.update = false
 						business.foursquare.tips.previous = []
+						console.log('saved new Foursquare tips...');
 						next(itr, cb)
 					}
 				})
@@ -386,8 +402,10 @@ var FoursquareHarvester = (function() {
 					foursquare.setAccessToken(f.auth.oauthAccessToken)
 
 					foursquare.get('users/' + connection.foursquare_id, {v: foursquare.client.verified}, function(err, response) {
-						if(err || response.meta.code !== 200 || response.meta.errorType)
-							return Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {user_id: user[0]._id, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						if(err || !response || !response.meta || response.meta.code !== 200 || response.meta.errorType) {
+							Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {user_id: user[0]._id, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+							return next(itr, cb);
+						}
 console.log(response.response.user.contact);
 						if(response.response.user.contact.facebook || response.response.user.contact.twitter || response.response.user.contact.email) {
 							
@@ -496,6 +514,7 @@ console.log('match found! ', match);
 					return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
 				Analytics = analytics;
+				analytics = null;
 
 				Harvest[data.methods[0]](0, function() {
 					if(connections.length) 
@@ -505,14 +524,30 @@ console.log('match found! ', match);
 						})
 
 					if(update) 
-						Analytics.save(function(err,r){
-							if(err)
-								return Log.error('Error saving Foursquare analytics to Analytics table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						Analytics.save(function(err, save) {
+							if(err && err.name !== 'VersionError')
+								return Log.error('Error saving Foursquare analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+
+							// if we have a versioning overwrite error than load up the analytics document again
+							if(err && err.name === 'VersionError')
+								Model.Analytics.findById(data.analytics_id, function(err, analytics) {
+									if(err)
+										return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+
+									analytics.foursquare = Analytics.foursquare;
+									analytics.markModified('foursquare')
+
+									analytics.save(function(err, save) {
+										if(err)
+											return Log.error('Error saving Foursquare analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+										callback(null);
+									})
+								})
 
 							callback(null);
 						})
 					else 
-						callback(null);//callback({err: 'error occured'});
+						callback(null);
 				});
 			})
 		},

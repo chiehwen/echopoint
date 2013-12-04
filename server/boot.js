@@ -22,6 +22,7 @@ var AppSetup = (function() {
 			}
 
 			// attach the .equals method to Array's prototype
+			// http://stackoverflow.com/a/14853974
 			Array.prototype.equals = function (array) {
 				if (!array)
         	return false;

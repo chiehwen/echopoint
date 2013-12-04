@@ -1,9 +1,17 @@
+/*
+ * Yelp Harvester
+ *
+ * Rate limit: 10,000/day | 416.66/min | 6.944/min [no user specific calls, only application based]
+ * http://www.yelp.com/developers/getting_started
+ *
+ */
+
 var fs = require('fs'),
 		zlib = require('zlib'),
 		request = require('request'),
 		Auth = require('../auth').getInstance(),
 		Log = require('../logger').getInstance().getLogger(),
-		//Alert = require('../logger').getInstance().getLogger('alert'),
+		Alert = require('../logger').getInstance().getLogger('alert'),
 		ScrapingLog = require('../logger').getInstance().getLogger('scraping'),
 		Error = require('../error').getInstance(),
 		Helper = require('../helpers'),
@@ -119,8 +127,7 @@ console.log('here1');
 			if(!Analytics.yelp.business.data.url)
 				return next(itr, cb);
 
-			//url = url || Analytics.yelp.business.data.url;
-
+/// use this to set specific pages for testing TMP
 //var url = 'http://www.yelp.com/biz/speak-social-austin';//'http://www.yelp.com/biz/midas-auto-service-experts-austin-6'; //Analytics.yelp.business.data.url;
 			
 			var cached = Analytics.yelp.business.data,
@@ -143,39 +150,26 @@ console.log('here1');
 					return next(itr, cb);
 				}
 
-console.log(res.statusCode);
-
 				var $ = cheerio.load(res.body),
 						reviewsCount = $('#reviews-other .reviews-header').length ? parseInt($('#reviews-other .reviews-header').text().trim(), 10) : 0, // TODO: add || #rpp-count
 						filteredReviewsCount = $('.filtered-reviews #filtered-reviews-link').length ? parseInt($('.filtered-reviews #filtered-reviews-link').text().trim()) : ( $('#paginationControls #filtered-reviews-link').length ? parseInt($('#paginationControls #filtered-reviews-link').text().trim(), 10) : 0),
 						reviewObject = {},
 						complete = false;
-//console.log('business',Analytics.yelp.business);
+
 				// if NaN then set to 0
 				reviewsCount = (!reviewsCount || Number.isNaN(reviewsCount)) ? 0 : reviewsCount;
 				filteredReviewsCount = (!filteredReviewsCount || Number.isNaN(filteredReviewsCount)) ? 0 : filteredReviewsCount;
-console.log(Analytics.yelp.business.id);
-console.log(Analytics.yelp.reviews.filtered.count, filteredReviewsCount);
-				if(!Analytics.yelp.business.id && $('#edit_cat_link').length && $('#edit_cat_link').attr('href')) {
-console.log('here1.1');					
+
+				if(!Analytics.yelp.business.id && $('#edit_cat_link').length && $('#edit_cat_link').attr('href')) {		
 					update = localUpdate = true;
 					Analytics.yelp.business.id = $('#edit_cat_link').attr('href').trim().replace('/biz_attribute?biz_id=', '')
 				}
 
 				if(Analytics.yelp.reviews.filtered.count != filteredReviewsCount) {	
-console.log('here1.2');		
 					update = localUpdate = true;
 					Analytics.yelp.reviews.filtered.count = filteredReviewsCount;
 				}
 
-				/*var check = $('#reviews-other ul li.review')[0]
-				Harvest.reviewStructureCheck($(value).attr('id'), value, function(err) {
-						if(err) {
-							console.log('UBER ERROR ALERT')// ALERT LOG
-							return next(itr, cb);
-						}
-				})*/
-console.log('locUpdate', localUpdate); return //next(itr, cb);
 				reviewsLoop:
 				for(var i=0, l=$('#reviews-other ul li.review').length; i<l;i++) {
 					var value = $('#reviews-other ul li.review')[i];
@@ -185,7 +179,7 @@ console.log('locUpdate', localUpdate); return //next(itr, cb);
 							complete = true;
 							break reviewsLoop;
 						}
-
+console.log('not here');
 					// these should stop review processing and send an alert!
 					if(
 							!$(value).attr('id') || $(value).attr('id') === ''
@@ -199,26 +193,21 @@ console.log('locUpdate', localUpdate); return //next(itr, cb);
 							|| !$(value).find('.media-block .media-story .review_comment').length // review text
 					) {
 						console.log('ERROR ALERT OMG');
-						ScrapingLog.error('Missing one or more critical Yelp review DOM elements!', {review: $('.media-block').html().toString(), file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						ScrapingLog.error('Missing one or more critical Yelp review DOM elements!', {review: $(value).html().toString(), iteration: i, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 						return next(itr, cb);
 					}
 
 					// these send an error to logs but shouldn't stop review processing
 					if(
-							!$(value).find('.media-block .media-story .extra-actions .rateReview ul li.useful a span.count').length // useful
-							|| !$(value).find('.media-block .media-story .extra-actions .rateReview ul li.funny a span.count').length // funny
-							|| !$(value).find('.media-block .media-story .extra-actions .rateReview ul li.cool a span.count').length // cool
-							|| !$(value).find('.media-block .media-avatar p.reviewer_info').length // location
-							|| !$(value).find('.review-photos .more-review-photos a').length // images url
-							|| !$(value).find('.review-photos .more-review-photos a').attr('href') // images url attribute
+							!$(value).find('.media-block .media-avatar p.reviewer_info').length // location
 							|| !$(value).find('.media-block .media-avatar .user-passport .user-stats .friend-count > span').length // friend count
 							|| !$(value).find('.media-block .media-avatar .user-passport .user-stats .review-count > span').length // review count
 							|| !$(value).find('.media-block .media-story .extra-actions .externalReviewActions li a.add-owner-comment').length // owner comment url
 							|| !$(value).find('.media-block .media-story .extra-actions .externalReviewActions li a.add-owner-comment').attr('href') // owner comment url attribute
 					) {
 						console.log('not as error alerting ');
-						Error.handler('yelp', 'Missing a non-critical review DOM element!', null, null, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
-						ScrapingLog.error('Missing one or more non-critical Yelp review DOM element!', {review: $('.media-block').html().toString(), file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						Error.handler('yelp', 'Missing a non-critical review DOM element!', null, null, {iteration: i, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						ScrapingLog.error('Missing one or more non-critical Yelp review DOM element!', {review: $(value).html().toString(), iteration: i, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 					}
 
 					update = localUpdate = true;
@@ -283,11 +272,11 @@ console.log('locUpdate', localUpdate); return //next(itr, cb);
 						},
 						lists: listArray,
 						images: {
-							url: $(value).find('.review-photos .more-review-photos a').length && $(value).find('.review-photos .more-review-photos a').attr('href') ? $(value).find('.review-photos .more-review-photos a').attr('href') : '',
+							url: $(value).find('.review-photos .more-review-photos a').length && $(value).find('.review-photos .more-review-photos a').attr('href') ? $(value).find('.review-photos .more-review-photos a').attr('href') : undefined,
 							list: imageArray
 						}
 					}
-console.log(reviewObject); return
+
 					// if this is the initial load then .push() in order, else .splice() to the front in order
 					if(!Analytics.yelp.harvest.timestamp || !Analytics.yelp.reviews.active || !Analytics.yelp.reviews.active.length)
 						Analytics.yelp.reviews.active.push(reviewObject)
@@ -297,6 +286,11 @@ console.log(reviewObject); return
 
 				if(!complete && ((pagination*Analytics.yelp.harvest.pagination.multiplier)+Analytics.yelp.harvest.pagination.multiplier) < reviewsCount )
 					return Harvest.reviews(itr, cb, pagination+1)
+
+				if(localUpdate) {
+					console.log('updated Yelp active reviews')
+					Analytics.markModified('yelp.reviews.active')
+				}
 
 				Analytics.yelp.harvest.timestamp = timestamp
 				next(itr, cb)
@@ -548,14 +542,31 @@ for(var i=0, l=test.length; i<l;i++) {
 
 			Model.Analytics.findById(User.Business[index].Analytics.id, function(err, analytics) {
 				Analytics = analytics;
+				analytics = null;
 
 				Harvest[data.methods[0]](0, function() {
 					if(update)
-						Analytics.save(function(err,r){
-							if(err)
-								return Log.error('Error saving to Analytics table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-							console.log('saving...');
-							callback(null, update);
+						Analytics.save(function(err, save) {
+							if(err && err.name !== 'VersionError')
+								return Log.error('Error saving Yelp analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+
+							// if we have a versioning overwrite error than load up the analytics document again
+							if(err && err.name === 'VersionError')
+								Model.Analytics.findById(User.Business[index].Analytics.id, function(err, analytics) {
+									if(err)
+										return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+
+									analytics.yelp = Analytics.yelp;
+									analytics.markModified('yelp')
+
+									analytics.save(function(err, save) {
+										if(err)
+											return Log.error('Error saving Yelp analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+										callback(null);
+									})
+								})
+
+							callback(null);
 						})
 					else
 						callback(null, update);

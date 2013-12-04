@@ -1,7 +1,8 @@
 /*
  * Klout Harvester
  *
- * Rate limit: 10,000 day / 10 second 
+ * Rate limit: 20,000 day [10 a second maximum]
+ * Rate limit cited within Klout API signup email
  *
  */
 

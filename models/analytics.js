@@ -160,7 +160,7 @@
         },
         
         search: {
-          since_id: {type: String, default: '1'}, // this is time of last check used with the .since parameter of facebook graph
+          since_id: {type: String, default: '1'}, // this is time of last check
           timestamp: {type: Number},
           tweets: []
         },
@@ -430,7 +430,13 @@
       },
 
       google: {
-        business: {
+        plus: {
+          id: {type: String},
+          timestamp: {type: Number},
+          data: {}
+        },
+        places: {
+          id: {type: String},
           timestamp: {type: Number},
           data: {
             /*id: {type: String},
@@ -440,15 +446,6 @@
             international_phone_number: {type: String},
             url: {type: String},
             website: {type: String}*/
-          },
-          page: {
-            local: {
-              id: {type: String}, // used to get reviews from google
-              data:{}
-            },
-            plus: {
-              id: {type: String}
-            }
           }
         },
         tracking: {
@@ -480,7 +477,8 @@
           // to show removed reviews, put removed in this object
           // so review count will still work
           api_samples: []  // this is the sample api reviews, if these change then we call the harvester
-        }
+        },
+        activities: []
       },
 
       yelp: {

@@ -1,5 +1,9 @@
 /*
  * Cron-based Analytics Processing
+ *
+ * Rate limit: 5000 hr [application by access_token] / 5000 hr [user by client_id]
+ * http://instagram.com/developer/endpoints/#limits
+ *
  */
 var Auth = require('../auth').getInstance(),
 		Log = require('../logger').getInstance().getLogger(),

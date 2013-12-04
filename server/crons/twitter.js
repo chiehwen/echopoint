@@ -1,5 +1,8 @@
 /*
  * Cron-based Analytics Processing
+ *
+ * https://dev.twitter.com/docs/rate-limiting/1.1
+ *
  */
 var Auth = require('../auth').getInstance(),
 		Log = require('../logger').getInstance().getLogger(),

@@ -2,6 +2,7 @@
  * Instagram Harvester
  *
  * Rate limit: 5000 hr [application by access_token] / 5000 hr [user by client_id]
+ * http://instagram.com/developer/endpoints/#limits
  *
  */
 
@@ -26,11 +27,11 @@ var InstagramHarvester = (function() {
 	var Harvest = {
 
 		user: function(itr, cb) {
-			Model.Connections.findOne({instagram_id: {$exists: true}, Instagram: {$exists: false}}, function(err, user) {
+			Model.Connections.findOne({instagram_id: {$exists: true}, Instagram: {$exists: false}}, function(err, connection) {
 				if(err)
 					return Log.error('Error querying Connections table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
-				if(!user)
+				if(!connection)
 					return
 
 				instagram.get('/users/' + instagram_id, {client_id: instagram.client.id}, function(err, response) {		
@@ -39,15 +40,15 @@ var InstagramHarvester = (function() {
 						return next(itr, cb)
 					}
 
-					user.Instagram = {
+					connection.Instagram = {
 						id: response.data.id,
 						timestamp: Helper.timestamp(),
 						data: response.data
 					}
 
-					user.save(function(err, save) {
+					connection.save(function(err, save) {
 						if(err)
-							return Log.error('Error saving to Connection table', {error: err, user_id: user[0]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+							return Log.error('Error saving to Connection table', {error: err, connection_id: connection._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 					})
 				})
 			})

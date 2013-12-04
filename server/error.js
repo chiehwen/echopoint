@@ -28,7 +28,7 @@ var ErrorHandler = (function() {
 						timestamp = Helper.timestamp(),
 						level = meta.level || 'warn';
 
-				if(err && error.code)
+				if(err && err.code)
 					error = err
 				else if(response && response.error && response.error.code)
 					error = response.error

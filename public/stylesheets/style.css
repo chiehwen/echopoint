@@ -117,7 +117,6 @@ li {
 	-webkit-box-shadow: 1px 1px 7px 1px #bbb;
 	box-shadow: 1px 1px 7px 1px #bbb;
 	border: 1px solid #E5E5E5;*/
-
 }
 .module div fieldset {
   width: auto;
@@ -188,7 +187,6 @@ li {
 	margin: -49px 0 0 246px;
 	padding: .5em;
 	padding-left: 12px;*/
-
   height: 28px;
   border: 0;
   padding-right: 3px;
@@ -664,7 +662,6 @@ li.top-divider {
   /*-moz-box-shadow: 1px 1px 7px 1px #bbb;
 	-webkit-box-shadow: 1px 1px 7px 1px #bbb;
 	box-shadow: 1px 1px 7px 1px #bbb;*/
-
   border: 1px solid #CCC;
 }
 .simple-select-menu h4 {
@@ -753,7 +750,6 @@ li.top-divider {
 .module {
   /*border: 1px solid #BBB;
 	box-shadow: 1px 1px 8px 1px #ccc;*/
-
   width: 468px;
   margin: 0 0 30px 20px;
   float: left;
@@ -936,7 +932,6 @@ footer.location {
   background-color: rgba(0, 0, 0, 0.6);
   background-color: rgba(40, 40, 40, 0.7);
   /*background: #e1e1e1;*/
-
 }
 footer.location .current-page {
   display: inline-block;
@@ -1080,14 +1075,11 @@ footer.viewport > a {
   float: right;
 }
 /* Large desktop */
-@media (min-width: 1200px) {
-  
-}
 /* Portrait tablet to landscape and desktop */
 @media (min-width: 800px) and (max-width: 999px) {
   /*
-  	 * Analytic data boxes
-  	 */
+	 * Analytic data boxes
+	 */
   .module {
     margin: 0 auto 25px;
   }
@@ -1108,21 +1100,21 @@ footer.viewport > a {
     width: 768px;
   }
   /*
-  	 * social media page fixed footer 
-  	 */
+	 * social media page fixed footer 
+	 */
   /*footer.location {
-  		background: #555;
-  	}
-  
-  	footer.location .current-page > span {
-  		display: block;
-  	}*/
+		background: #555;
+	}
+
+	footer.location .current-page > span {
+		display: block;
+	}*/
 }
 /* Landscape phone to portrait tablet */
 @media (max-width: 799px) {
   /*
-  	 * Top Bar Navigation Menu
-  	 */
+	 * Top Bar Navigation Menu
+	 */
   #user-menu > a span {
     display: none;
   }
@@ -1130,8 +1122,8 @@ footer.viewport > a {
     margin-left: 0px;
   }
   /*
-  	 * Overlay Navigation Menu
-  	 */
+	 * Overlay Navigation Menu
+	 */
   .overlay-menu .menu-block h1,
   .menu-block .menu {
     width: 100%;
@@ -1144,11 +1136,11 @@ footer.viewport > a {
     margin: 9px 0 7px 20px;
   }
   /*.menu-block .menu div a:first-child {
-  		margin-left: 0px;
-  	}*/
+		margin-left: 0px;
+	}*/
   /*
-  	 * Analytic data boxes
-  	 */
+	 * Analytic data boxes
+	 */
   .module {
     margin: 0 auto 25px;
   }
@@ -1170,27 +1162,27 @@ footer.viewport > a {
     width: 444px;
   }
   /*
-  	 * social media page fixed footer 
-  	 */
+	 * social media page fixed footer 
+	 */
   /*footer.location {
-  		background: #555;
-  	}
-  
-  	footer.location .current-page > span {
-  		display: block;
-  	}*/
+		background: #555;
+	}
+
+	footer.location .current-page > span {
+		display: block;
+	}*/
 }
 /* Landscape phones and down */
 @media (max-width: 480px) {
   /*
-  	 * Top Bar Navigation Menu
-  	 */
+	 * Top Bar Navigation Menu
+	 */
   #top-navigation-bar .logo em {
     display: none;
   }
   /*
-  	 * Overlay Navigation Menu
-  	 */
+	 * Overlay Navigation Menu
+	 */
   .icon {
     width: 75px;
     height: 75px;
@@ -1216,8 +1208,8 @@ footer.viewport > a {
     font-size: 42px;
   }
   /*
-  	 * Analytic data boxes
-  	 */
+	 * Analytic data boxes
+	 */
   .module .content > * {
     padding: 8px 10px;
   }

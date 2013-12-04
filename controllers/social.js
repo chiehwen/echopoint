@@ -36,18 +36,20 @@ var SocialController = {
 			res.render(Helper.bootstrapRoute);
 		}
 	},
-	google: {
-		path: '/social/google',
+	google_plus: {
+		path: '/social/google/plus',
 		get: function(req, res) {
+			req.session.googleChildNetwork = 'plus'
 			res.render(Helper.bootstrapRoute);
 		}
 	},
-	/*google_places: {
-		path: '/social/google',
+	google_places: {
+		path: '/social/google/places',
 		get: function(req, res) {
+			req.session.googleChildNetwork = 'places'
 			res.render(Helper.bootstrapRoute);
 		}
-	},*/
+	},
 	yelp: {
 		get: function(req, res) {
 			res.render(Helper.bootstrapRoute);
@@ -58,6 +60,7 @@ var SocialController = {
 			res.render(Helper.bootstrapRoute);
 		}
 	},
+
 
 	facebook_connect: {
 		path: '/social/facebook/connect',
@@ -439,6 +442,156 @@ console.log('we should be in here');
 				}
 
 				// load google business credentials
+				var g = user.Business[req.session.Business.index].Social.google,
+						network = req.query.child_network || req.session.googleChildNetwork || 'plus';
+console.log('child_network', network);
+//console.log(g.business.data);
+				// if we have a google session loaded and no forced login GET param then lets load foursquare
+				if(req.session.google && req.session.google.oauthAccessToken && req.session.google.oauthRefreshToken && !req.query.login) {
+
+					// if tokens have expired then force user to relogin to google plus
+					// Scratch this, I believe that the google_discovery api will automatically update token with refresh token
+					//if((req.session.google.created + req.session.google.expires) * 1000 <= Date.now())
+						//res.redirect('/social/google/login');
+
+					// TODO: fix this cluster f**k below
+					// TODO: check if first load and then call harvester for initial data (refer to facebook above for example)
+					if(g.business.id && g.business.data.reference) {
+
+						google = Auth.load('google_discovery');
+
+						var tokens = {
+							access_token: g.auth.oauthAccessToken,
+							refresh_token: g.auth.oauthRefreshToken
+						}
+
+						google.oauth.setAccessTokens(tokens);
+
+						google
+							.discover('plus', 'v1')
+							.execute(function(err, client) {
+								client
+								.plus.people.search({ query: 'Speak Social' })
+								//.plus.people.get({ userId: 'me' })
+								//.plus.people.get({ userId: '100941364374251988809' }) // andy
+								//.plus.activities.list({ userId: '100941364374251988809', collection: 'public' })
+								.withAuthClient(google.oauth)
+								.execute(function(err, data) {
+									if(err || !data) {
+										Error.handler('google', 'Failure on google plus execute after oauth process', err, data, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+										req.session.messages.push(err);
+										//return res.redirect('/social/google?error=true');
+										data = err || 'error';
+									}
+
+
+									res.json({
+										success: true,
+										connected: true,
+										data: {success: true, plus: data}, //data,
+										child_network: network
+									})
+
+								})
+							})
+
+						
+					} else {
+						user.Business[req.session.Business.index].Social.google.places = {
+							id: 'e4353411a15c29a7f2f815a3d9cecf4fcad0c87f',
+							data: { 
+								formatted_address: '5350 Burnet Road #2, Austin, TX, United States',
+					       icon: 'http://maps.gstatic.com/mapfiles/place_api/icons/restaurant-71.png',
+					       id: 'e4353411a15c29a7f2f815a3d9cecf4fcad0c87f',
+					       name: 'Roll On Sushi Diner',
+					       price_level: 2,
+					       rating: 4.6,
+					       reference: 'CoQBdQAAALO078NBmk-qhyi42NaMhwIoKqdJtkyIHvnfI5YnmBKWNR8nhk61XtxUtr_lxFKSCRbcZDbLYp2rdQaxw8GVY7mm5fO8EqNPP9QAZp9Sc11pYzdqrv93uEiAbOxeYfYG6PiPiADUFnRAvnpxCxFGDd43-OHoVEgNSKjSiX3DAtAqEhCBICO8NNA9HK2jes1iDUN5GhRdhjetEewmfhY_P2-MIutpL3Pzcw',
+					     }
+						}
+						user.save(function(err, save) {
+
+						})
+						// set this up via sockets and not GET http request
+						/*google = Auth.load('google');
+						google.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {key: google.client.key, query: 'Roll On Sushi Diner, Austin, Texas', sensor: false}, function(err, response) {
+							console.log(err, response);
+							res.json({
+								success: true,
+								connected: true,
+								account: true,
+								data: {success: true}, //data,
+							})
+						})*/
+
+						res.json({
+							success: true,
+							connected: true,
+							setup: true,
+							data: {success: true}, //data,
+							child_network: network
+						})
+					}
+
+				} else if(
+					// if we have the needed credentials in the database load them into the session (unless we have a forced login param in GET query)
+					!req.query.login
+					&& g.auth.oauthAccessToken
+					&& g.auth.oauthRefreshToken
+					//&& g.auth.expires
+					//&& g.auth.created
+					//&& ((g.auth.created + g.auth.expires) * 1000 > Date.now())
+				) {
+
+					// load google api and set access tokens from database
+					google = Auth.load('google_discovery');
+					google.oauth.setAccessTokens({
+						access_token: g.auth.oauthAccessToken,
+						refresh_token: g.auth.oauthRefreshToken
+					});
+
+					// load google session and reload page now that session is set
+					req.session.google = {
+						oauthAccessToken: g.auth.oauthAccessToken,
+						oauthRefreshToken: g.auth.oauthRefreshToken,
+						expires: g.auth.expires,
+						created: g.auth.created
+						//network: network
+					}
+					res.redirect('/social/google/connect');
+				
+				} else {
+					// we have nothing, create a state for auth and load the app authorization dialog url
+					req.session.googleState = crypto.randomBytes(10).toString('hex');
+					req.session.googleChildNetwork = network;
+
+					res.json({
+						success: true,
+						connected: false,
+						venue: false,
+						data: null,
+						url: Auth.getOauthDialogUrl('google', {response_type: 'code', access_type: 'offline', state: req.session.googleState, approval_prompt: 'force'})
+					})
+				}
+			})
+		}
+	},
+
+	google_plus_connect: {
+		path: '/social/google/plus/connect',
+		json: function(req, res, next) {
+			// if no user in session then redirect to login
+			if(!req.session.passport.user)
+				res.redirect('/login')
+
+			Helper.getUser(req.session.passport.user, function(err, user) {
+				if (err || !user) {
+					// basic database error handling
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})	
+				}
+
+				// load google business credentials
 				var g = user.Business[req.session.Business.index].Social.google;
 console.log(g.business.data);
 				// if we have a google session loaded and no forced login GET param then lets load foursquare
@@ -451,13 +604,190 @@ console.log(g.business.data);
 					// TODO: fix this cluster f**k below
 					// TODO: check if first load and then call harvester for initial data (refer to facebook above for example)
 					if(g.business.id && g.business.data.reference) {
+
+						google = Auth.load('google_discovery');
+
+						var tokens = {
+							access_token: g.auth.oauthAccessToken,
+							refresh_token: g.auth.oauthRefreshToken
+						}
+
+						google.oauth.setAccessTokens(tokens);
+
+						google
+							.discover('plus', 'v1')
+							.execute(function(err, client) {
+								client
+								.plus.people.search({ query: 'Speak Social' })
+								//.plus.people.get({ userId: 'me' })
+								//.plus.people.get({ userId: '100941364374251988809' }) // andy
+								//.plus.activities.list({ userId: '100941364374251988809', collection: 'public' })
+								.withAuthClient(google.oauth)
+								.execute(function(err, data) {
+									if(err || !data) {
+										Error.handler('google', 'Failure on google plus execute after oauth process', err, data, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+										req.session.messages.push(err);
+										//return res.redirect('/social/google?error=true');
+										data = err || 'error';
+									}
+
+
+									res.json({
+										success: true,
+										connected: true,
+										data: {success: true, plus: data} //data,
+									})
+
+								})
+							})
+
+						
+					} else {
+						user.Business[req.session.Business.index].Social.google.places = {
+							id: 'e4353411a15c29a7f2f815a3d9cecf4fcad0c87f',
+							data: { 
+								formatted_address: '5350 Burnet Road #2, Austin, TX, United States',
+					       icon: 'http://maps.gstatic.com/mapfiles/place_api/icons/restaurant-71.png',
+					       id: 'e4353411a15c29a7f2f815a3d9cecf4fcad0c87f',
+					       name: 'Roll On Sushi Diner',
+					       price_level: 2,
+					       rating: 4.6,
+					       reference: 'CoQBdQAAALO078NBmk-qhyi42NaMhwIoKqdJtkyIHvnfI5YnmBKWNR8nhk61XtxUtr_lxFKSCRbcZDbLYp2rdQaxw8GVY7mm5fO8EqNPP9QAZp9Sc11pYzdqrv93uEiAbOxeYfYG6PiPiADUFnRAvnpxCxFGDd43-OHoVEgNSKjSiX3DAtAqEhCBICO8NNA9HK2jes1iDUN5GhRdhjetEewmfhY_P2-MIutpL3Pzcw',
+					     }
+						}
+						user.save(function(err, save) {
+
+						})
+						// set this up via sockets and not GET http request
+						/*google = Auth.load('google');
+						google.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {key: google.client.key, query: 'Roll On Sushi Diner, Austin, Texas', sensor: false}, function(err, response) {
+							console.log(err, response);
+							res.json({
+								success: true,
+								connected: true,
+								account: true,
+								data: {success: true}, //data,
+							})
+						})*/
+
 						res.json({
 							success: true,
 							connected: true,
+							setup: true,
 							data: {success: true} //data,
 						})
+					}
+
+				} else if(
+					// if we have the needed credentials in the database load them into the session (unless we have a forced login param in GET query)
+					!req.query.login
+					&& g.auth.oauthAccessToken
+					&& g.auth.oauthRefreshToken
+					&& g.auth.expires
+					&& g.auth.created
+					&& ((g.auth.created + g.auth.expires) * 1000 > Date.now())
+				) {
+
+					// load google api and set access tokens from database
+					google = Auth.load('google_discovery');
+					google.oauth.setAccessTokens({
+						access_token: g.auth.oauthAccessToken,
+						refresh_token: g.auth.oauthRefreshToken
+					});
+
+					// load google session and reload page now that session is set
+					req.session.google = {
+						oauthAccessToken: g.auth.oauthAccessToken,
+						oauthRefreshToken: g.auth.oauthRefreshToken,
+						expires: g.auth.expires,
+						created: g.auth.created
+					}
+					res.redirect('/social/google/connect');
+				
+				} else {
+					// we have nothing, create a state for auth and load the app authorization dialog url
+					req.session.googleState = crypto.randomBytes(10).toString('hex');
+					
+					res.json({
+						success: true,
+						connected: false,
+						venue: false,
+						data: null,
+						url: Auth.getOauthDialogUrl('google', {response_type: 'code', access_type: 'offline', state: req.session.googleState, approval_prompt: 'force'})
+					})
+				}
+			})
+		}
+	},
+
+
+	google_places_connect: {
+		path: '/social/google/places/connect',
+		json: function(req, res, next) {
+			// if no user in session then redirect to login
+			if(!req.session.passport.user)
+				res.redirect('/login')
+
+			Helper.getUser(req.session.passport.user, function(err, user) {
+				if (err || !user) {
+					// basic database error handling
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})	
+				}
+
+				// load google business credentials
+				var g = user.Business[req.session.Business.index].Social.google;
+console.log(g.business.data);
+				// if we have a google session loaded and no forced login GET param then lets load foursquare
+				if(req.session.google && req.session.google.oauthAccessToken && req.session.google.oauthRefreshToken && !req.query.login) {
+
+					// if tokens have expired then force user to relogin to google plus
+					if((req.session.google.created + req.session.google.expires) * 1000 <= Date.now())
+						res.redirect('/social/google/login');
+
+					// TODO: fix this cluster f**k below
+					// TODO: check if first load and then call harvester for initial data (refer to facebook above for example)
+					if(g.business.id && g.business.data.reference) {
+
+						google = Auth.load('google_discovery');
+
+						var tokens = {
+							access_token: g.auth.oauthAccessToken,
+							refresh_token: g.auth.oauthRefreshToken
+						}
+
+						google.oauth.setAccessTokens(tokens);
+
+						google
+							.discover('plus', 'v1')
+							.execute(function(err, client) {
+								client
+								.plus.people.search({ query: 'Speak Social' })
+								//.plus.people.get({ userId: 'me' })
+								//.plus.people.get({ userId: '100941364374251988809' }) // andy
+								//.plus.activities.list({ userId: '100941364374251988809', collection: 'public' })
+								.withAuthClient(google.oauth)
+								.execute(function(err, data) {
+									if(err || !data) {
+										Error.handler('google', 'Failure on google plus execute after oauth process', err, data, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+										req.session.messages.push(err);
+										//return res.redirect('/social/google?error=true');
+										data = err || 'error';
+									}
+
+
+									res.json({
+										success: true,
+										connected: true,
+										data: {success: true, plus: data} //data,
+									})
+
+								})
+							})
+
+						
 					} else {
-						user.Business[req.session.Business.index].Social.google.business = {
+						user.Business[req.session.Business.index].Social.google.places = {
 							id: 'e4353411a15c29a7f2f815a3d9cecf4fcad0c87f',
 							data: { 
 								formatted_address: '5350 Burnet Road #2, Austin, TX, United States',

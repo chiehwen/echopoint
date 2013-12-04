@@ -23,8 +23,15 @@ var Logger = (function() {
 			vocada: function() {
 				if(!logger.vocada)		
 					logger.vocada = new (winston.Logger)({
+						levels: {
+							info: 0,
+							warn: 1,
+							error: 2,
+							alert: 3
+						},
 						colors: {
-							info: 'blue'
+							info: 'blue',
+							alert: 'red'
 						},
 						transports: [
 							new winston.transports.Console({
@@ -71,7 +78,7 @@ var Logger = (function() {
 								filename: 'server/logs/excemptions.json',
 								json: true
 							}),
-							/*new (winston.transports.Mail)({
+							new (winston.transports.Mail)({
 								handleExceptions: true,
 								to: 'scottcarlsonjr@gmail.com',
 								from: 'error@vocada.co',
@@ -84,7 +91,7 @@ var Logger = (function() {
 							new (winston.transports.Papertrail)({
 								host: 'logs.papertrailapp.com',
 								port: 28648
-			        })*/
+			        })
 						],
 						exitOnError: false
 					})
@@ -428,6 +435,10 @@ var Logger = (function() {
 				return logger.bitly
 			},
 
+			//sentiment: function () { // sentiment140.com
+
+			//},
+
 			scraping: function () {
 				if(!logger.scraping)
 					logger.scraping = new (winston.Logger)({
@@ -469,10 +480,63 @@ var Logger = (function() {
 
 				return logger.scraping
 			},
+			alert: function () {
+				if(!logger.alert)
+					logger.alert = new (winston.Logger)({
+						levels: {
+							file: 0,
+							broadcast: 1
+						},
+						transports: [
+							new (winston.transports.Mail)({
+								handleExceptions: false,
+								to: 'scottcarlsonjr@gmail.com,2108679398@txt.att.net',
+								from: 'ALERT@VOCADA.CO',
+								subject: 'ALERT from Vocada System!',
+								host: 'smtp.gmail.com',
+								username: 'scottcarlsonjr',
+								password: 'h34dtr1p',
+								ssl: true,
+								level: 'broadcast'
+							}),
+							new (winston.transports.File)({
+								handleExceptions: false,
+								name: 'scraping_errors',
+								filename: 'server/logs/alerts.json',
+								level: 'file',
+								json: true
+							}),
+							/*new (winston.transports.Mail)({
+								handleExceptions: false,
+								to: '2108679398@txt.att.net',
+								from: 'ALERT@VOCADA.CO',
+								subject: 'ALERT from Vocada System!',
+								host: 'smtp.gmail.com',
+								username: 'scottcarlsonjr',
+								password: 'h34dtr1p',
+								ssl: true
+							})
+	/*
+							new (winston.transports.Loggly)(
+								{
+									subdomain: "vocada",
+									inputToken: "3373e727-da7a-4d97-a317-20464e47d77e", 
+									json: true
+								}
+							),
+							new (winston.transports.Papertrail)({
+								host: 'logs.papertrailapp.com',
+								port: 28648
+			        })
+	*/
+						],
 
-			//sentiment: function () { // sentiment140.com
+						exitOnError: false
+					})
 
-			//},
+				return logger.alert
+			}
+			
 		}
 
 		// public members

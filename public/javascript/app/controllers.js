@@ -148,12 +148,16 @@ console.log(ref);
 				}
 			}
 
-			//if($scope.page.action === 'plus') $scope.network.icon = 'google-plus-sign';
-			//if($scope.page.action === 'places') $scope.network.icon = 'google-places';
-			if($scope.network.name === 'google') 
-				$scope.network.icon = 'google-places';
+			var childNetwork = '';
+			if($scope.network.name === 'google') {
+				childNetwork = '?child_network=' + $scope.page.action;
+				if($scope.page.action === 'places') $scope.network.icon = 'google-places';
+				else $scope.network.icon = 'google-plus-sign';
+			}
+			//if($scope.network.name === 'google') 
+				//$scope.network.icon = 'google-places';
 
-			$http.get('/social/'+$scope.network.name+'/connect').success(function(res) {
+			$http.get('/social/'+$scope.network.name+'/connect' + childNetwork).success(function(res) {
 				console.log(res);
 				
 				if(res.success)

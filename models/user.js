@@ -101,14 +101,29 @@ var UserModel = {
               id: {type: String},
               data: {}
             },
-            business: {
+            places: {
               id: {type: String},
               oauthAccessToken: {type: String},
-              data: {}
+              data: {},
+              update: {
+                timestamp: {type: Number, default: 0} // this is the last places/maps api call time
+              }
             },
-            update: {
-              timestamp: {type: Number, default: 0} // this is the last api call time
+            plus: {
+              id: {type: String},
+              data: {},
+              update: {
+                timestamp: {type: Number, default: 0} // this is the last plus api call time
+              }
             },
+            /*update: {
+              plus: {
+                timestamp: {type: Number, default: 0} // this is the last plus api call time
+              },
+              places: {
+                timestamp: {type: Number, default: 0} // this is the last places/map api call time
+              }
+            },*/
             reviews: {
               //scraped: {type: Boolean, default: false},
               timestamp: {type: Number, default: 0}, // this is the last web scrape

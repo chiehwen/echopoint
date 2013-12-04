@@ -18,11 +18,55 @@ Boot.start(function(app) {
 
 
 
-// TEMP: removes all users from User collection
 var Model = Model || Object;
-//console.log(Model.User.Business);
-//Model.User.remove(function(err){if(err) throw err});Model.Analytics.remove(function(err){if(err) throw err});Model.Followers.remove(function(err){if(err) throw err});
-//console.log(Model.User.schema);`
+/*
+//////// START OF CRON TESTING ////////
+var Cron = require('./server/cron');
+
+Cron.facebook.feed.start();
+Cron.facebook.insights.start();
+//Cron.facebook.users.start();
+
+Cron.twitter.timeline.start();
+Cron.twitter.interactions.start();
+Cron.twitter.search.start();
+//Cron.twitter.connections.start();
+//Cron.twitter.duplicates.start();
+//Cron.twitter.update.start();
+
+Cron.foursquare.venue.start();
+Cron.foursquare.stats.start();
+Cron.foursquare.tips.start();
+//Cron.foursquare.users.start();
+
+Cron.google.business.start();
+Cron.google.reviews.start();
+
+Cron.yelp.start();
+
+//Cron.instagram.users.start();
+
+//Cron.klout.start();
+
+//////// END OF CRON TESTING ////////
+*/
+
+/////// REMOVE ALL USER DATA ////////
+//Model.Connections.remove(function(err){if(err) throw err})
+//Model.Analytics.remove(function(err){if(err) throw err})
+//Model.User.remove(function(err){if(err) throw err})
+
+
+
+
+
+
+
+
+
+
+
+
 Model.Analytics.find(function(err, analytic) {
 	analytic.forEach(function(user) {
 		//console.log(user.facebook.tracking.posts[0]);
@@ -43,13 +87,13 @@ Model.Analytics.find(function(err, analytic) {
 		//user.save(function(err,res){});
 
 //		console.log(user.twitter.mentions.list[0])
-		for(var i=0,l=user.twitter.timeline.tweets.length; i<l;i++) {
+		/*for(var i=0,l=user.twitter.timeline.tweets.length; i<l;i++) {
 			if(user.twitter.timeline.tweets[i].retweets)
 				if(user.twitter.timeline.tweets[i].retweets.retweeters) {
 					//console.log(user.twitter.timeline.tweets[i])
 					break;
 				}
-		}
+		}*/
 		/*var hol = 0;
 		for(var i=0,l=user.google.reviews.active.length; i<l;i++) {
 			//if(user.google.reviews.active[i].user.id)
@@ -104,10 +148,7 @@ oauth2.getOAuthAccessToken('', {
       console.log(e, access_token); //string that we can use to authenticate request
 });*/
 
-// Remove all 
-//Model.Connections.remove(function(err){if(err) throw err})
-//Model.Analytics.remove(function(err){if(err) throw err})
-//Model.User.remove(function(err){if(err) throw err})
+
 
 //var connections = new Model.Connections({});
 //connections.save(function(err,com) {});
@@ -202,11 +243,34 @@ var Crons = {
 			klout: require('./server/crons/klout').getInstance()
 		};
 
+Log = require('./server/logger').getInstance().getLogger()
+Alert = require('./server/logger').getInstance().getLogger('alert'),
+Helper = require('./server/helpers')
+
+//Alert.file('Error TEST loggin', {meta: 'none of this please'})
+//Alert.broadcast('Broadcast message ALERT', {file: __filename, line: Helper.stack()[0].getLineNumber()})
+
+		//Crons.facebook.getJob('metrics', ['page', 'posts'])
+		//Crons.facebook.getJob('metrics', ['page_insights', 'posts_insights'])
+		//Crons.facebook.getJob('connections', ['connections'])
+
+		//Crons.twitter.getJob('metrics', ['credentials', 'timeline', 'dm', 'mentions', 'retweets', 'favorited'])
+		//Crons.twitter.getJob('metrics', ['retweeters', 'friends', 'followers'])
+		//Crons.twitter.getJob('connections', ['populateById', 'populateByScreenName'])
+		//Crons.twitter.getJob('connections', ['duplicates'])
+		//Crons.twitter.getJob('connections', ['update'])
+
+		//Crons.foursquare.getJob('metrics', ['venue'])
+		//Crons.foursquare.getJob('metrics', ['stats'])
+		//Crons.foursquare.getJob('tips', ['tips'])
+
 		//Crons.google.getJob('metrics', ['business', 'reviews'])
 		//Crons.google.getJob('reviews', ['reviews'])
 		//Harvester.google.directToMethod(['pageChangesAlert'], function() {})
 
-		Crons.yelp.getJob('metrics', ['business', 'reviews'])
+		//Crons.yelp.getJob('metrics', ['business', 'reviews'])
+
+
 
 /*Harvester.foursquare.appData({
 					methods: ['user'],
@@ -283,7 +347,8 @@ Model.Analytics.findOne({}, function(err, Analytics) {
 		//res.foursquare.tips.active = []
 		/*res.foursquare.tracking.tips.update = true
 		res.markModified('foursquare.tracking.tips.update')
-		res.save(function(err, saved) {
+		Analytics.markModified('twitter.timeline.tweets')
+		Analytics.save(function(err, saved) {
 			console.log(err);
 		})*/
 	//})
@@ -345,34 +410,15 @@ Model.User.findOne({email: "123"}, function(err, user) {
 	//user.remove(function(err,res){});
 });
 
+var googleTimestampHash = require('./server/harvesters/config/google').getInstance();
 
+console.log(googleTimestampHash.getTimestampHash());
+
+//googleTimestampHash.setTimestampHash('this is just a test damnit!')
+
+console.log(googleTimestampHash.getTimestampHash());
 //Crons.yelp.getJob('metrics', ['savePage'])
 
-	var Cron = require('./server/cron');
-	// !!!! IMPORTANT: BELOW IS THE TOGGLE FOR 
-	// !!!! CRON TESTING !!!
-	
-//Cron.facebook.feed.start();
-//Cron.facebook.insights.start();
-//Cron.facebook.users.start();
-
-//Cron.twitter.timeline.start();
-//Cron.twitter.connections.start();
-//Cron.twitter.users.start();
-//Cron.twitter.duplication_discovery.start();
-
-//Cron.foursquare.venue.start();
-//Cron.foursquare.stats.start();
-//Cron.foursquare.tips.start();
-//Cron.foursquare.users.start();
-
-//Cron.google.start();
-
-//Cron.yelp.start();
-
-//Cron.instagram.users.start();
-
-//Cron.klout.start();
 
 
 //var googlePageData = require('./server/harvesters/tmpPageData/googlePage'); // TEMP

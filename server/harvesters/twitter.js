@@ -1,3 +1,11 @@
+/*
+ * Twitter Harvester
+ *
+ * Rate limit: dependent on endpoint
+ * https://dev.twitter.com/docs/rate-limiting/1.1
+ *
+ */
+
 var Auth = require('../auth').getInstance(),
 		Log = require('../logger').getInstance().getLogger(),
 		Error = require('../error').getInstance(),
@@ -23,17 +31,57 @@ var TwitterHarvester = (function() {
 
 		metrics: {
 
+			// call every minute NOTE: let user know that search tweets will be removed after 30 days 
 			search: function(itr, cb) {
-				
+	console.log('at twitter search method');
+
+				var tweets = Analytics.twitter.search.tweets.sort(Helper.sortBy('created_timestamp', false, parseInt)),
+					localUpdate = false;
+
+				twitter.get('/search/tweets.json', {q: '"Roll On Sushi Diner" "Roll On Sushi"', since_id: Analytics.twitter.search.since_id, result_type: 'recent', count: 20, include_entities: true}, function(err, response) {
+					if (err || !response || response.errors) {
+						Error.handler('twitter', err || credentials, err, credentials, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						return next(itr, cb)
+					}
+
+					if(!response.statuses || !response.statuses.length)
+						return next(itr, cb);
+
+					if(tweets.length && response.statuses[0].id_str === tweets[0].id)
+						return next(itr, cb);
+
+					update = localUpdate = true;
+
+					searchTweetsLoop:
+					for(var x=0, l=response.statuses.length; x<l; x++) {
+						for(var y=0, l=tweets.length; y<l; y++)
+							if(response.statuses[x].id_str === tweets[y].id)
+								break searchTweetsLoop;
+
+						Analytics.twitter.search.tweets.push({
+							id: response.statuses[x].id_str,
+							created_timestamp: Helper.timestamp(response.statuses[x].created_at),
+							timestamp: Helper.timestamp(),
+							data: response.statuses[x]
+						});
+
+						//connections.push({twitter_id: response.statuses[x].id_str, meta: {twitter: {analytics_id: Analytics._id}}})
+					}
+
+					if(localUpdate)
+						console.log('saved twitter user search...');
+
+					next(itr, cb);
+				})
 			},
 
 			// this is used to gather new follower count, 
 			// profile updates, favorites data, friends data, # of statuses(tweets) ever posted, etc 
 			credentials: function(itr, cb) {
-
+console.log('at twitter credentials update method');
 				twitter.get('/account/verify_credentials.json', {include_entities: false, skip_status: true}, function(err, credentials) {
-					if (err || (credentials && credentials.errors)) {
-						Error.handler('twitter', err || credentials.errors, err, credentials, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+					if (err || !credentials || credentials.errors) {
+						Error.handler('twitter', err || credentials, err, credentials, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}
 
@@ -106,10 +154,10 @@ var TwitterHarvester = (function() {
 
 			// new tweets 
 			timeline: function(itr, cb) {
-
+console.log('at twitter timeline update method');
 				twitter.get('/statuses/user_timeline.json', {user_id: data.network_id, since_id: Analytics.twitter.timeline.since_id, count: 100, contributor_details: true, include_rts: true}, function(err, response) {
-					if (err || (response && response.errors)) {
-						Error.handler('twitter', err || response.errors, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+					if (err || !response || response.errors) {
+						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}
 					
@@ -133,12 +181,43 @@ var TwitterHarvester = (function() {
 				})
 			},
 
+			// direct message tracking
+			dm: function(itr, cb) {
+console.log('at twitter new direct messages method');
+				twitter.get('/direct_messages.json', {since_id: Analytics.twitter.messages.since_id, count: 200}, function(err, response) {
+					if (err || !response || response.errors) {
+						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						return next(itr, cb)
+					}
+					
+					if(!response.length)
+						return next(itr, cb);
+
+					var timestamp = Helper.timestamp();
+
+					update = true;
+					for(var i = 0, l = response.length; i < l; i++) {
+						response[i].timestamp = timestamp;
+						response[i].recipient = null;
+						Analytics.twitter.messages.list.push(response[i])
+						connections.push({twitter_id: response[i].sender.id_str, meta: {twitter: {analytics_id: Analytics._id}}})
+					}
+
+					Analytics.twitter.messages.since_id = response[0].id_str;
+					Analytics.twitter.messages.timestamp = timestamp;
+
+					console.log('saved new direct messages...');
+
+					next(itr, cb);
+				})
+			},
+
 			// @ mentions tracking
 			mentions: function(itr, cb) {
-
+console.log('at twitter new mentions method');
 				twitter.get('/statuses/mentions_timeline.json', {since_id: Analytics.twitter.mentions.since_id, count: 200, contributor_details: true, include_rts: true}, function(err, response) {
-					if (err || (response && response.errors)) {
-						Error.handler('twitter', err || response.errors, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+					if (err || !response || response.errors) {
+						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}
 					
@@ -171,10 +250,10 @@ var TwitterHarvester = (function() {
 
 			// retweets tracking
 			retweets: function(itr, cb) {
-
+console.log('at twitter retweets method');
 				twitter.get('/statuses/retweets_of_me.json', {count: 100, trim_user: true, include_entities: false, include_user_entities: false}, function(err, response) {
-					if (err || (response && response.errors)) {
-						Error.handler('twitter', err || response.errors, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+					if (err || !response || response.errors) {
+						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}
 					
@@ -201,7 +280,7 @@ var TwitterHarvester = (function() {
 									}],
 									timestamp: timestamp,
 									total: count,
-									updated: true
+									update: true
 								}
 								Analytics.markModified('twitter.timeline.tweets');
 							} else if(Analytics.twitter.timeline.tweets[y].retweets.total != count) {
@@ -212,7 +291,7 @@ var TwitterHarvester = (function() {
 								});
 								Analytics.twitter.timeline.tweets[y].retweets.timestamp = timestamp;
 								Analytics.twitter.timeline.tweets[y].retweets.total = count;
-								Analytics.twitter.timeline.tweets[y].retweets.updated = (count <= 1200) ? true : false; // for rate limiting purposes, we no longer update over 1200 retweets
+								Analytics.twitter.timeline.tweets[y].retweets.update = (count <= 1000) ? true : false; // for rate limiting purposes, we no longer update over 1200 retweets
 							}
 							break;
 
@@ -226,69 +305,137 @@ var TwitterHarvester = (function() {
 				})
 			},
 
+			// find new favorited tweets
+			favorited: function(itr, cb) {
+console.log('at twitter new favorited tweets method');			
+				twitter.get('/statuses/user_timeline.json', {user_id: data.network_id, since_id: Analytics.twitter.timeline.since_id, count: 200, contributor_details: false, trim_user: true, exclude_replies: false, include_rts: true}, function(err, response) {
+					if (err || !response || response.errors) {
+						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						return next(itr, cb)
+					}
+					
+					if(!response.length)
+						return next(itr, cb);
+
+					var timestamp = Helper.timestamp(),
+							localUpdate = false;
+
+					for(var x = 0, l = response.length; x < l; x++) {
+						for(var y = 0, len = Analytics.twitter.timeline.tweets.length; y < len; y++) {
+
+							if(Analytics.twitter.timeline.tweets[y].id != response[x].id_str)
+								continue;
+
+							var count = parseInt(response[x].favorite_count, 10);
+							if(!Analytics.twitter.timeline.tweets[y].favorited_count) {
+								update = localUpdate = true;
+								Analytics.twitter.timeline.tweets[y].favorited_count = {
+									history: [{
+										timestamp: timestamp,
+										total: count
+									}],
+									timestamp: timestamp,
+									total: count
+								}
+								Analytics.markModified('twitter.timeline.tweets');
+							} else if(Analytics.twitter.timeline.tweets[y].favorited_count.total != count) {
+								update = localUpdate = true;
+								Analytics.twitter.timeline.tweets[y].favorited_count.history.push({
+									timestamp: timestamp,
+									total: count
+								});
+								Analytics.twitter.timeline.tweets[y].favorited_count.timestamp = timestamp;
+								Analytics.twitter.timeline.tweets[y].favorited_count.total = count;
+							}
+							break;
+						}
+					}
+
+					if(localUpdate)
+						console.log('saved tweet favorited count update...');
+
+					next(itr, cb);
+				})
+			},
+
+
 			// load retweeters list for tweets
 			retweeters: function(itr, cb, tweet, iteration) {
-
+console.log('at twitter list of retweeters method');
 				if(iteration > 11)
 					return next(itr, cb);
 
-				var tweet = tweet || false;
+				var tweet = tweet || false,
+						previousRetweeters = [],
+						localUpdate = false;
 
 				if(!tweet)
 					for(var i=0, l=Analytics.twitter.timeline.tweets.length; i < l; i++)
 						if(Analytics.twitter.timeline.tweets[i].retweets && Analytics.twitter.timeline.tweets[i].retweets.update) {
-							// If the tweet already has 1200+ ids stored then don't bother updating because of twitter rate limits
-							if(Analytics.twitter.timeline.tweets[i].retweets.retweeters && Analytics.twitter.timeline.tweets[i].retweets.retweeters.length > 1199) {
+							// If the tweet already has 1000+ ids stored then don't bother updating because of twitter rate limits
+							if(Analytics.twitter.timeline.tweets[i].retweets.retweeters && Analytics.twitter.timeline.tweets[i].retweets.retweeters.length > 1000) {
 								Analytics.twitter.timeline.tweets[i].retweets.update = false,
 								update = true;
+								Analytics.markModified('twitter.timeline.tweets')
 								continue;
 							}
 
 							tweet = {
-								id: Analytics.twitter.timeline.tweets[i].id,
+								id: Analytics.twitter.timeline.tweets[i].id_str,
 								index: i,
 								cursor: -1,
 								iteration: 0
 							}
-							Analytics.twitter.timeline.tweets[i].retweets.retweeters = [];
+
+
+							if(Analytics.twitter.timeline.tweets[i].retweets.retweeters && Analytics.twitter.timeline.tweets[i].retweets.retweeters.length)
+								previousRetweeters = Analytics.twitter.timeline.tweets[i].retweets.retweeters;
+
+							Analytics.twitter.timeline.tweets[i].retweets.update = false;
+							//Analytics.twitter.timeline.tweets[i].retweets.retweeters = [];
+							//Analytics.markModified('twitter.timeline.tweets')
+							update = true;
 							break;
 						}
 
 
+// TODO: set this up so that we load the old list of retweeters and loop through, if we come accross an Id from before then break out that way we only see new retweeters and save on api calls
 				if(tweet)
 					twitter.get('/statuses/retweeters/ids.json', {id: tweet.id, cursor: tweet.cursor, stringify_ids: true}, function(err, response) {
-						if (err || (response && response.errors)) {
-							Error.handler('twitter', err || response.errors, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						if (err || !response || response.errors) {
+							Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 							return next(itr, cb)
 						}				
 
 						if(!response.ids || !response.ids.length)
 							return next(itr, cb);
 
-						var //usersArray = [],
-								timestamp = Helper.timestamp(),
-								localUpdate = false;
+						var timestamp = Helper.timestamp();
 
-						for(var i=0, l=response.ids.length; i<l; i++) {
-							Analytics.twitter.timeline.tweets[tweet.index].retweets.retweeters.push(response.ids[i])
-							connections.push({twitter_id: response.ids[i], meta: {twitter: {analytics_id: Analytics._id}}})
+						Analytics.twitter.timeline.tweets[tweet.index].retweets.update = false;
+
+						retweetersLoop:
+						for(var x=0, l=response.ids.length; x<l; x++) {
+							for(var y=0, len=previousRetweeters.length; y<len; y++)
+								if(response.ids[x] === previousRetweeters[y])
+									break retweetersLoop;
+
+							localUpdate = true;
+							Analytics.twitter.timeline.tweets[tweet.index].retweets.retweeters.push(response.ids[x])
+							connections.push({twitter_id: response.ids[x], meta: {twitter: {analytics_id: Analytics._id}}})
 						}
 
-						// insert user ids into Twitter user model for cron lookup 
-						//Model.Connections.collection.insert(usersArray, {continueOnError: true}, function(err, save) {
-							// TODO: put any errors in logs
-						//})
-
-						if(response.next_cursor > 0) {
+						if(localUpdate && response.next_cursor > 0) {
 							tweet.iteration++;
 							tweet.cursor = response.next_cursor_str;
 							return Harvest.retweeters(itr, cb, tweet, tweet.iteration);
 						}
-
-						if(localUpdate)
-							console.log('saved/updated retweeters id list to tweet...');
 						
-						Analytics.markModified('twitter.timeline.tweets');
+						if(localUpdate) {
+							console.log('saved/updated retweeters id list to tweet...');	
+							Analytics.markModified('twitter.timeline.tweets');
+						}
+
 						next(itr, cb);
 					})
 				else
@@ -296,6 +443,7 @@ var TwitterHarvester = (function() {
 			},
 
 			friends: function(itr, cb, params, iteration) {
+console.log('at twitter list of friends method');				
 				if(!Analytics.twitter.tracking.friends.update)
 					return next(itr, cb);
 
@@ -315,8 +463,8 @@ var TwitterHarvester = (function() {
 
 				if(params)
 					twitter.get('/friends/ids.json', {user_id: data.network_id, cursor: params.cursor, stringify_ids: true, count: 5000}, function(err, response) {
-						if (err || (response && response.errors)) {
-							Error.handler('twitter', err || response.errors, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						if (err || !response || response.errors) {
+							Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 							return next(itr, cb)
 						}
 
@@ -387,6 +535,7 @@ var TwitterHarvester = (function() {
 			},
 
 			followers: function(itr, cb, params, iteration) {
+console.log('at twitter list of followers method');		
 				if(!Analytics.twitter.tracking.followers.update)
 					return next(itr, cb);
 
@@ -406,8 +555,8 @@ var TwitterHarvester = (function() {
 
 				if(params)
 					twitter.get('/followers/ids.json', {user_id: data.network_id, cursor: params.cursor, stringify_ids: true, count: 5000}, function(err, response) {
-						if (err || (response && response.errors)) {
-							Error.handler('twitter', err || response.errors, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						if (err || !response || response.errors) {
+							Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 							return next(itr, cb)
 						}
 
@@ -480,89 +629,7 @@ var TwitterHarvester = (function() {
 
 			},
 
-			// direct message tracking
-			dm: function(itr, cb) {
 
-				twitter.get('/direct_messages.json', {since_id: Analytics.twitter.messages.since_id, count: 200}, function(err, response) {
-					if (err || (response && response.errors)) {
-						Error.handler('twitter', err || response.errors, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
-						return next(itr, cb)
-					}
-					
-					if(!response.length)
-						return next(itr, cb);
-
-					var timestamp = Helper.timestamp();
-
-					update = true;
-					for(var i = 0, l = response.length; i < l; i++) {
-						response[i].timestamp = timestamp;
-						response[i].recipient = null;
-						Analytics.twitter.messages.list.push(response[i])
-						connections.push({twitter_id: response[i].sender.id_str, meta: {twitter: {analytics_id: Analytics._id}}})
-					}
-
-					Analytics.twitter.messages.since_id = response[0].id_str;
-					Analytics.twitter.messages.timestamp = timestamp;
-
-					console.log('saved new direct messages...');
-
-					next(itr, cb);
-				})
-			},
-
-			// find new favorited tweets
-			favorited: function(itr, cb) {
-
-				twitter.get('/statuses/user_timeline.json', {user_id: data.network_id, since_id: Analytics.twitter.timeline.since_id, count: 200, contributor_details: false, trim_user: true, exclude_replies: false, include_rts: true}, function(err, response) {
-					if (err || (response && response.errors)) {
-						Error.handler('twitter', err || response.errors, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
-						return next(itr, cb)
-					}
-					
-					if(!response.length)
-						return next(itr, cb);
-
-					var timestamp = Helper.timestamp(),
-							localUpdate = false;
-
-					for(var x = 0, l = response.length; x < l; x++) {
-						for(var y = 0, len = Analytics.twitter.timeline.tweets.length; y < len; y++) {
-
-							if(Analytics.twitter.timeline.tweets[y].id != response[x].id_str)
-								continue;
-
-							var count = parseInt(response[x].favorite_count, 10);
-							if(!Analytics.twitter.timeline.tweets[y].favorited_count) {
-								update = localUpdate = true;
-								Analytics.twitter.timeline.tweets[y].favorited_count = {
-									history: [{
-										timestamp: timestamp,
-										total: count
-									}],
-									timestamp: timestamp,
-									total: count
-								}
-								Analytics.markModified('twitter.timeline.tweets');
-							} else if(Analytics.twitter.timeline.tweets[y].favorited_count.total != count) {
-								update = localUpdate = true;
-								Analytics.twitter.timeline.tweets[y].favorited_count.history.push({
-									timestamp: timestamp,
-									total: count
-								});
-								Analytics.twitter.timeline.tweets[y].favorited_count.timestamp = timestamp;
-								Analytics.twitter.timeline.tweets[y].favorited_count.total = count;
-							}
-							break;
-						}
-					}
-
-					if(localUpdate)
-						console.log('saved tweet favorited count update...');
-
-					next(itr, cb);
-				})
-			},
 
 			// check for dropped followers, only run every 24 at night
 			// note these accounts may also have been deleted
@@ -581,8 +648,8 @@ var TwitterHarvester = (function() {
 						console.log(err);
 
 					twitter.get('/followers/ids.json', {user_id: data.network_id, cursor: (cursor ? cursor : -1), stringify_ids: true, count: 1000}, function(err, followers) {
-						if (err || (followers && followers.errors)) {
-							Error.handler('twitter', err || followers.errors, err, followers, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						if (err || !followers || followers.errors) {
+							Error.handler('twitter', err || followers, err, followers, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 							return next(itr, cb)
 						}
 
@@ -643,8 +710,8 @@ var TwitterHarvester = (function() {
 									usersIdString += droppedFollowersArray[a] + ','
 
 								twitter.get('/users/lookup.json', {user_id: usersIdString.toString().slice(0,-1), include_entities: false}, function(err, leavers) {
-									if (err || (leavers && leavers.errors)) {
-										Error.handler('twitter', err || leavers.errors, err, leavers, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+									if (err || !leavers || leavers.errors) {
+										Error.handler('twitter', err || leavers, err, leavers, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 										return next(itr, cb)
 									}
 
@@ -698,8 +765,8 @@ var TwitterHarvester = (function() {
 					return next(itr, cb);
 
 				twitter.get('/followers/list.json', {user_id: data.network_id, skip_status: true, include_user_entities: false}, function(err, response) {
-					if (err || (response && response.errors)) {
-						Error.handler('twitter', err || response.errors, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+					if (err || !response || response.errors) {
+						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}
 
@@ -772,8 +839,8 @@ var TwitterHarvester = (function() {
 						twitterUsersCsv += '783214'
 
 						twitter.get('/users/lookup.json', {user_id: twitterUsersCsv, include_entities: false}, function(err, response) {
-							if (err || (response && response.errors)) {
-								Error.handler('twitter', err || response.errors , err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							if (err || !response || response.errors) {
+								Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 								return next(itr, cb)
 							}
 
@@ -852,8 +919,8 @@ var TwitterHarvester = (function() {
 						twitterUsersCsv += 'twitter'
 
 						twitter.get('/users/lookup.json', {screen_name: twitterUserHandlesCsv, include_entities: false}, function(err, response) {
-							if (err || (response && response.errors)) {
-								Error.handler('twitter', err || response.errors, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							if (err || !response || response.errors) {
+								Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 								return next(itr, cb)
 							}
 
@@ -975,8 +1042,8 @@ var TwitterHarvester = (function() {
 					twitterUsersCsv += '783214'
 
 					twitter.get('/users/lookup.json', {user_id: twitterUsersCsv, include_entities: false}, function(err, response) {
-						if (err || (response && response.errors)) {
-							Error.handler('twitter', err || response.errors , err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						if (err || !response || response.errors) {
+							Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 							return next(itr, cb)
 						}
 
@@ -1026,23 +1093,42 @@ var TwitterHarvester = (function() {
 			Harvest.type = 'metrics';
 
 			Model.Analytics.findById(data.analytics_id, function(err, analytics) {
+				
 				Analytics = analytics;
+				analytics = null;
+
 				Harvest.metrics[data.methods[0]](0, function() {
+					if(connections.length)
+						Model.Connections.collection.insert(connections, {safe: true, continueOnError: true}, function(err, save) {
+							if(err && err.indexOf('E11000 duplicate key error') !== -1)
+								return Log.error('Error saving to Connection table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						})
 					
 					if(update) {
-						if(connections.length)
-							Model.Connections.collection.insert(connections, {safe: true, continueOnError: true}, function(err, save) {
-								if(err && err.indexOf('E11000 duplicate key error') !== -1)
-									return Log.error('Error saving to Connection table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-							})
+						Analytics.save(function(err, save) {
+							if(err && err.name !== 'VersionError')
+								return Log.error('Error saving Twitter analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
-						Analytics.save(function(err,r){
-							if(err)
-								Log.error('Error saving to Analytics table', {error: err, connection_id: users[x]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+							// if we have a versioning overwrite error than load up the analytics document again
+							if(err && err.name === 'VersionError')
+								Model.Analytics.findById(data.analytics_id, function(err, analytics) {
+									if(err)
+										return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+
+									analytics.twitter = Analytics.twitter;
+									analytics.markModified('twitter')
+
+									analytics.save(function(err, save) {
+										if(err)
+											return Log.error('Error saving Twitter analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+										callback(null);
+									})
+								})
+
 							callback(null);
 						})
 					} else {
-						callback(null);//callback({err: 'error occured'});
+						callback(null);
 					}
 				});
 			})

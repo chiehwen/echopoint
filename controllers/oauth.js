@@ -254,18 +254,20 @@ var OauthController = {
 					return res.redirect(err ? '/logout' : '/login')
 				}
 
+				var network = req.session.googleChildNetwork || 'plus';
+
 				// check if code return state param matches the user state in session variable 
 				if(!req.session.googleState || req.session.googleState != req.query.state) {
 					Log.error(!req.session.googleState ? 'Missing google oauth state in session' : 'Google oauth state discrepancy', {error: 'Google oauth state discrepancy or missing state in session', user_id: user._id, business_id: user.Business[req.session.Business.index]._id, state: {session: req.session.googleState, returned: req.query.state}, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 					req.session.messages.push('Error connecting Vocada application to Google.')
-					return res.redirect('/social/google?error=true')
+					return res.redirect('/social/google/'+network+'?error=true')
 				}
 
 				// check if google returned an error (perhaps user disallowed app?) or is missing the needed authorize code
 				if(req.query.error || !req.query.code) {
 					Error.handler('google', req.query.error ? 'Google oauth query error' : 'No query code returned', req.query.error_description, req.query, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: req.query.error ? 'error' : 'warn'})
 					req.session.messages.push('Error connecting Vocada application to Google. You must allow Vocada to connect to your personal Google account')
-					return res.redirect('/social/google?error=true')
+					return res.redirect('/social/google/'+network+'?error=true')
 				}
 
 				google = Auth.load('google_discovery');
@@ -275,14 +277,15 @@ var OauthController = {
 					if(err || result.error || !result.access_token) {
 						Error.handler('google', err || result.error || 'No access token!', err, result, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 						req.session.messages.push('Error authorizing user for Google')
-						return res.redirect('/social/google?error=true')
+						return res.redirect('/social/google/'+network+'?error=true')
 					}
 
 					var tokens = {access_token: result.access_token},
 							credentials = {
 								oauthAccessToken: result.access_token,
 								expires: result.expires_in,
-								created: Helper.timestamp()
+								created: Helper.timestamp(),
+								network: network
 							}
 							
 
@@ -306,7 +309,7 @@ var OauthController = {
 							if(err || !data) {
 								Error.handler('google', 'Failure on google plus execute after oauth process', err, data, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 								req.session.messages.push(err);
-								return res.redirect('/social/google?error=true');
+								return res.redirect('/social/google/'+network+'?error=true');
 							}
 
 							// Put access token credentials into the database
@@ -319,12 +322,12 @@ var OauthController = {
 								if(err) {
 									Log.error('Error saving Google credentials', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 									req.session.messages.push('Error saving Google credentials to application')
-									return res.redirect('/social/google?error=true');
+									return res.redirect('/social/google/'+network+'?error=true');
 								}
 							});
 
 							// redirect back to google page
-							res.redirect('/social/google');				
+							res.redirect('/social/google/' + network);				
 						})
 					})
 				})

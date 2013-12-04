@@ -6,7 +6,8 @@
 var passport = require('passport'),
 		Log = require('../server/logger').getInstance().getLogger(),
 		Helper = require('../server/helpers'),
-		Model = Model || Object;
+		Model = Model || Object,
+		googleTimestampHash = require('../server/harvesters/config/google').getInstance();
 
 var UserController = {
 	login: {
@@ -56,8 +57,8 @@ var UserController = {
 			res.render(
 				'user/create', 
 				{
-			  	title: 'Vocada | Create User'
-			 	}
+					title: 'Vocada | Create User'
+				}
 			)
 		},
 		post: function(req, res, next) {
@@ -129,7 +130,27 @@ var UserController = {
 		// may need to move to business controller
 		path: '/wizard',
 		get: function(req, res) {
+			
+		}
+	},
 
+	/* TEMP */ // needs to be done using Angular
+	google_hash: {
+		path: '/admin/google-hash',
+		get: function(req, res) {
+			if(!req.session.passport.user)
+				res.redirect('/login')
+
+			if(req.query.ghash)
+				googleTimestampHash.setTimestampHash(req.query.ghash)
+
+			res.render(
+				'user/google_hash', 
+				{
+					title: 'Vocada | Google Hash',
+					current_hash: googleTimestampHash.getTimestampHash() || Helper.googleTimestampHash
+				}
+			)
 		}
 	},
 

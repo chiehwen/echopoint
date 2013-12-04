@@ -1,5 +1,9 @@
 /*
  * Cron-based Analytics Processing
+ *
+ * Rate limit: 10,000/day | 416.66/min | 6.944/min [no user specific calls. all application based]
+ * http://www.yelp.com/developers/getting_started
+ *
  */
 var Auth = require('../auth').getInstance(),
 		Log = require('../logger').getInstance().getLogger(),
@@ -26,8 +30,12 @@ var YelpCron = (function() {
 						return
 
 					Helper.getBusinessIndex(match._id, match.Business[0]._id, function(err, user, index) {
-						if (err) // a failure here is really bad because the attempt time isn't updated so this User/Business will be called repeatedly
-							return Log.error('index lookup failure', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						if (err) { // a failure here is really bad because the attempt time isn't updated so this User/Business will be called repeatedly
+							Log.error('index lookup failure', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+							Alert.file('Business index lookup failure', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), timestamp: Helper.timestamp()})
+							Alert.broadcast('Business index lookup failure', {file: __filename, line: Helper.stack()[0].getLineNumber()})
+							return
+						}
 			
 						// mark the lookup time so this isn't called again for 24 hours
 						user.Business[index].Social.yelp.update.timestamp = Helper.timestamp();
@@ -43,10 +51,31 @@ var YelpCron = (function() {
 								index: index,
 								network_id: y.id
 							}, function(err, update) {
-								user.save(function(err) {
+								/*user.save(function(err) {
 									if(err)
 										return Log.error('Error saving to Users table', {error: err, user_id: user._id, business_id: user.Business[0]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 									console.log('Yelp callbacks complete')
+								})*/
+
+								console.log('Yelp callback complete')
+								user.save(function(err, save) {
+									if(err && err.name !== 'VersionError')
+										return Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+
+									// if we have a versioning overwrite error than load up the analytics document again
+									if(err && err.name === 'VersionError')
+										Model.User.findById(user._id, function(err, saveUser) {
+											if(err)
+												return Log.error('Error querying User table', {error: err, user_id: user._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+
+											saveUser.Business[index].Social.yelp = user.Business[index].Social.yelp;
+											saveUser.markModified('.Business['+index+'].Social.yelp')
+
+											saveUser.save(function(err, save) {
+												if(err)
+													return Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+											})
+										})
 								})
 							})
 						}
