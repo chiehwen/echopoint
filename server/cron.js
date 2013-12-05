@@ -9,7 +9,7 @@ var Auth = require('./auth').getInstance(),
 		CronJob = require('cron').CronJob,
 		Crons = {
 			facebook: require('./crons/facebook').getInstance(),
-			twitter: require('./crons/twitter').getInstance(),
+			twitter: require('./crons/twitter'),
 			foursquare: require('./crons/foursquare').getInstance(),
 			google: require('./crons/google').getInstance(),
 			yelp: require('./crons/yelp').getInstance(),
@@ -50,7 +50,7 @@ var CronJobs = {
 		timeline: new CronJob({
 			cronTime: '0 */15 * * * *', // every 15 minutes (TODO: if logged in and watching twitter feed check every 5 minutes, plus inital update on page load)
 			onTick: function() {
-				Crons.twitter.getJob('metrics', ['credentials', 'timeline', 'dm', 'mentions', 'retweets', 'favorited'])
+				new Crons.twitter.getJob('metrics', ['credentials', 'timeline', 'dm', 'mentions', 'retweets', 'favorited'])
 			},
 			start: false
 		}),
@@ -58,7 +58,7 @@ var CronJobs = {
 		interactions: new CronJob({
 			cronTime: '0 */30 * * * *', // every 15 minutes (every 30 for testing)
 			onTick: function() {
-				Crons.twitter.getJob('metrics', ['retweeters', 'friends', 'followers'])
+				new Crons.twitter.getJob('metrics', ['retweeters', 'friends', 'followers'])
 			},
 			start: false
 		}),
@@ -66,7 +66,7 @@ var CronJobs = {
 		search: new CronJob({
 			cronTime: '0 */15 * * * *', // every 15 minutes 
 			onTick: function() {
-				Crons.twitter.getJob('metrics', ['search'])
+				new Crons.twitter.getJob('metrics', ['search'])
 			},
 			start: false
 		}),
@@ -139,7 +139,7 @@ var CronJobs = {
 	google: {
 		// run every 10 seconds
 		activity: new CronJob({
-			cronTime: '0 */5 * * * *', // every 5 minutes
+			cronTime: '0 */5 * * * *', // every 15 minutes [5 for testing]
 			onTick: function() {
 				Crons.google.getJob('activity', ['activity'])
 			},
@@ -160,7 +160,7 @@ var CronJobs = {
 			start: false
 		}),
 		
-		// run every 5 minutes
+		// run every 5 minutes (only a business that hasn't been checked or review updated in 48 hours gets pushed to an actual web scrape)
 		reviews: new CronJob({
 			cronTime: '0 */5 * * * *', // every 5 minutes
 			onTick: function() {

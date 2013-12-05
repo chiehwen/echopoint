@@ -160,30 +160,40 @@ console.log('here1');
 				reviewsCount = (!reviewsCount || Number.isNaN(reviewsCount)) ? 0 : reviewsCount;
 				filteredReviewsCount = (!filteredReviewsCount || Number.isNaN(filteredReviewsCount)) ? 0 : filteredReviewsCount;
 
-				if(!Analytics.yelp.business.id && $('#edit_cat_link').length && $('#edit_cat_link').attr('href')) {		
+				if(!Analytics.yelp.business.id && $('#edit_cat_link').length && $('#edit_cat_link').attr('href')) {
+console.log('show me what we got: ', Analytics.yelp.business.id, $('#edit_cat_link').attr('href').trim().replace('/biz_attribute?biz_id=', ''));		
 					update = localUpdate = true;
 					Analytics.yelp.business.id = $('#edit_cat_link').attr('href').trim().replace('/biz_attribute?biz_id=', '')
 				}
 
-				if(Analytics.yelp.reviews.filtered.count != filteredReviewsCount) {	
+				if(Analytics.yelp.reviews.filtered.count !== filteredReviewsCount) {
+console.log('show me what we got, partII ', Analytics.yelp.reviews.filtered.count, filteredReviewsCount);
 					update = localUpdate = true;
 					Analytics.yelp.reviews.filtered.count = filteredReviewsCount;
+console.log(Analytics.yelp.reviews.filtered.count);	
 				}
 
 				reviewsLoop:
 				for(var i=0, l=$('#reviews-other ul li.review').length; i<l;i++) {
 					var value = $('#reviews-other ul li.review')[i];
 
+					// verify that we have a review ID in the scraped HTML!
+					if(!$(value).attr('id') || $(value).attr('id') === '') {
+						console.log('ERROR ALERT OMG');
+						ScrapingLog.error('Missing Yelp review ID!', {review: $(value).html().toString(), iteration: i, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						return next(itr, cb);
+						break;
+					}
+console.log('we in here eva?');
 					for(var x=0, len=Analytics.yelp.reviews.active.length; x<len;x++)
 						if(Analytics.yelp.reviews.active[x].id == $(value).attr('id')) {
 							complete = true;
 							break reviewsLoop;
 						}
-console.log('not here');
+
 					// these should stop review processing and send an alert!
 					if(
-							!$(value).attr('id') || $(value).attr('id') === ''
-							|| !$(value).find('.media-block .media-story .review-meta > meta').length // date
+							!$(value).find('.media-block .media-story .review-meta > meta').length // date
 							|| !$(value).find('.media-block .media-avatar .user-passport .user-name a').length // name, user_id, and url
 							|| !$(value).find('.media-block .media-avatar .user-passport .user-name a').attr('href') // user id and url attribute
 							|| !$(value).find('.media-block .media-avatar .user-passport .photo-box a img').length // user photo
@@ -192,7 +202,8 @@ console.log('not here');
 							|| !$(value).find('.media-block .media-story .review-meta .rating meta').attr('content') // rating attribute
 							|| !$(value).find('.media-block .media-story .review_comment').length // review text
 					) {
-						console.log('ERROR ALERT OMG');
+						Alert.file('Missing one or more critical Yelp review DOM elements!', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), timestamp: Helper.timestamp()})
+						Alert.broadcast('Missing one or more critical Yelp review DOM elements!', {file: __filename, line: Helper.stack()[0].getLineNumber()})
 						ScrapingLog.error('Missing one or more critical Yelp review DOM elements!', {review: $(value).html().toString(), iteration: i, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 						return next(itr, cb);
 					}
@@ -202,11 +213,11 @@ console.log('not here');
 							!$(value).find('.media-block .media-avatar p.reviewer_info').length // location
 							|| !$(value).find('.media-block .media-avatar .user-passport .user-stats .friend-count > span').length // friend count
 							|| !$(value).find('.media-block .media-avatar .user-passport .user-stats .review-count > span').length // review count
-							|| !$(value).find('.media-block .media-story .extra-actions .externalReviewActions li a.add-owner-comment').length // owner comment url
-							|| !$(value).find('.media-block .media-story .extra-actions .externalReviewActions li a.add-owner-comment').attr('href') // owner comment url attribute
+							//|| !$(value).find('.media-block .media-story .extra-actions .externalReviewActions li a.add-owner-comment').length // owner comment url
+							//|| !$(value).find('.media-block .media-story .extra-actions .externalReviewActions li a.add-owner-comment').attr('href') // owner comment url attribute
 					) {
 						console.log('not as error alerting ');
-						Error.handler('yelp', 'Missing a non-critical review DOM element!', null, null, {iteration: i, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						Error.handler('yelp', 'Missing a non-critical review DOM element!', null, null, {iteration: i, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'warn'})
 						ScrapingLog.error('Missing one or more non-critical Yelp review DOM element!', {review: $(value).html().toString(), iteration: i, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 					}
 
@@ -286,7 +297,7 @@ console.log('not here');
 
 				if(!complete && ((pagination*Analytics.yelp.harvest.pagination.multiplier)+Analytics.yelp.harvest.pagination.multiplier) < reviewsCount )
 					return Harvest.reviews(itr, cb, pagination+1)
-
+console.log('length me: ', Analytics.yelp.reviews.active.length);
 				if(localUpdate) {
 					console.log('updated Yelp active reviews')
 					Analytics.markModified('yelp.reviews.active')
@@ -395,7 +406,8 @@ console.log('not here');
 
 				for(var i=0, l=elementsArray.length; i<l;i++) {
 					if(!elementsArray[i])
-						// ALERT! change in the html elements structure!
+						Alert.file('change in the Yelp html elements structure!', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), timestamp: Helper.timestamp()})
+						Alert.broadcast('change in the Yelp html elements structure!', {file: __filename, line: Helper.stack()[0].getLineNumber()})
 						ScrapingLog.error('necessary Yelp html page element not found!', {elementsArray: elementsArray, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 				}
 			})

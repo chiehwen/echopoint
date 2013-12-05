@@ -3,6 +3,7 @@
  */
 var Auth = require('../auth').getInstance(),
 		Log = require('../logger').getInstance().getLogger(),
+		Alert = require('../logger').getInstance().getLogger('alert'),
 		Error = require('../error').getInstance(),
 		Helper = require('../helpers'),
 		Model = Model || Object,
@@ -28,8 +29,8 @@ var GoogleCron = (function() {
 
 		// private functions
 		var jobs = {
-			activity: function(methods) {
-				Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: { $and: [{'Social.google.plus.id': {$exists: true}}, {$or : [{'Social.google.update.plus.timestamp': {$exists: false}}, {'Social.google.update.plus.timestamp': {$lt: Helper.timestamp() - 86400 /* 86400 seconds = 24 hours */}}]} ] }}}, {lean: true}, function(err, match) {
+			activity: function(methods) { // CHANGE THE FALSE BACK TO TRUE
+				Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: { $and: [{'Social.google.plus.id': {$exists: false}}, {$or : [{'Social.google.update.plus.timestamp': {$exists: false}}, {'Social.google.update.plus.timestamp': {$lt: Helper.timestamp() - 86400 /* 86400 seconds = 24 hours */}}]} ] }}}, {lean: true}, function(err, match) {
 					if (err)
 						return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
@@ -44,19 +45,22 @@ var GoogleCron = (function() {
 							return
 						}
 
+// I don't think this is needed now that we are using auth credentials, we can call every 15 min or so
 						// update and save api call attempt timestamp
-						user.Business[index].Social.google.update.plus.timestamp = Helper.timestamp();
+//						user.Business[index].Social.google.plus.update.timestamp = Helper.timestamp();
 						user.save(function(err) {
 							if(err)
 								Log.error('Error saving to Users table', {error: err, user_id: user._id, business_id: user.Business[0]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 						})
 
-						var g = user.Business[index].Social.google;
-						if (g.plus.id && g.auth.oauthAccessToken && g.auth.oauthRefreshToken) {
+						var g = user.Business[index].Social.google;					
+						if (/*g.plus.id && */g.auth.oauthAccessToken && g.auth.oauthRefreshToken) {
 							Harvester.google.getMetrics(user, {
 								methods: methods || ['activity'],
 								index: index,
-								network_id: g.plus.id
+//								network_id: g.plus.id
+								accessToken: g.auth.oauthAccessToken,
+								refreshToken: g.auth.oauthRefreshToken
 							}, function(err, update) {
 								/*user.save(function(err) {
 									if(err)
@@ -65,6 +69,7 @@ var GoogleCron = (function() {
 								})*/
 
 								console.log('Google activity callback complete')
+return							
 								user.save(function(err, save) {
 									if(err && err.name !== 'VersionError')
 										return Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
@@ -92,7 +97,7 @@ var GoogleCron = (function() {
 			},
 
 			business: function(methods) {
-				Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: { $and: [{'Social.google.places.id': {$exists: true}}, {'Social.google.places.data.reference': {$exists: true}}, {$or : [{'Social.google.update.places.timestamp': {$exists: false}}, {'Social.google.update.places.timestamp': {$lt: Helper.timestamp() - 86400 /* 86400 seconds = 24 hours */}}]} ] }}}, {lean: true}, function(err, match) {
+				Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: { $and: [{'Social.google.places.id': {$exists: true}}, {'Social.google.places.data.reference': {$exists: true}}, {$or : [{'Social.google.update.places.timestamp': {$exists: false}}, {'Social.google.places.update.timestamp': {$lt: Helper.timestamp() - 86400 /* 86400 seconds = 24 hours */}}]} ] }}}, {lean: true}, function(err, match) {
 					if (err)
 						return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
@@ -108,7 +113,7 @@ var GoogleCron = (function() {
 						}
 
 						// update and save api call attempt timestamp
-						user.Business[index].Social.google.update.places.timestamp = Helper.timestamp();
+						user.Business[index].Social.google.places.update.timestamp = Helper.timestamp();
 						user.save(function(err) {
 							if(err)
 								Log.error('Error saving to Users table', {error: err, user_id: user._id, business_id: user.Business[0]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})

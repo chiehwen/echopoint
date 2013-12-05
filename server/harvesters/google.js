@@ -560,30 +560,77 @@ console.log('at the google plus activity method');
 
 			// mark the attempt time 
 			var timestamp = Helper.timestamp();
-			User.Business[index].Social.google.activity.timestamp = timestamp;
+			User.Business[index].Social.google.plus.update.timestamp = timestamp;
 
-			if(!Analytics.google.plus.id)
-					return next(itr, cb);
+//			if(!Analytics.google.plus.id)
+//					return next(itr, cb);
 
 			var google = Auth.load('google_discovery');
-		
+
+			var tokens = {
+						access_token: data.accessToken,
+						refresh_token: data.refreshToken
+					},
+					limit = Analytics.google.activities.length ? 10 : 100;
+
+			google.oauth.setAccessTokens(tokens);
+
 			google
 				.discover('plus', 'v1')
-				.execute(function(err, client) {
+				.execute(function(err, client) {				
 					client
-					//.plus.people.search({ query: 'Speak Social' })
-					//.plus.people.get({ userId: 'me' })
-					//.plus.people.get({ userId: '100941364374251988809' }) // andy
-					.plus.activities.list({ userId: '100941364374251988809', collection: 'public' })
-					.withApiKey(google.apiKey)
-					.execute(function(err, data) {
-						if(err || !data) {
-							Error.handler('google', 'Failure on google plus execute after oauth process', err, data, {user_id: User._id, business_id: user.Business[index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						.plus.activities.list({userId: '100524621236878636693', collection: 'public', maxResults: limit}) // do not put these into a single variable, somehow the variable gets manipulated after first execute
+						.withAuthClient(google.oauth)
+						.execute(function(err, response) {
+							if(err || !response || !response.items) { // attempt again with application API key								
+									client
+										.plus.activities.list({userId: '100524621236878636693', collection: 'public', maxResults: limit}) // do not put these into a single variable, somehow the variable gets manipulated after first execute
+										.withApiKey(google.apiKey)
+										.execute(function(err, response) {									
+											if(err || !response || !response.items) {
+												Error.handler('google', 'Failure on google plus execute after oauth process', err, response, {user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+												return next(itr, cb)
+											}
 
-						}
+											Log.warn('Google application API key used in place of user credentials for Google Plus Business activity feed query', {file: __filename, line: Helper.stack()[0].getLineNumber(), timestamp: Helper.timestamp()})
+											saveGoogleActivities(response.items)
 
-					})
+										})
+								} 
+
+							saveGoogleActivities(response.items)
+						})
 				})
+
+				function saveGoogleActivities(list) {
+
+					var timestamp = Helper.timestamp(),
+							localeUpdate = false;
+
+					activitiesListLoop:
+					for(var x=0,l=list.length;x<l;x++) {
+						for(var y=0,len=Analytics.google.activities.length;y<len;y++)
+							if(list[x].id === Analytics.google.activities[y].id)
+								break activitiesListLoop
+
+						update = localeUpdate = true;
+						Analytics.google.activities.push({
+							id: list[x].id,
+							timestamp: timestamp,
+							created_timestamp: Helper.timestamp(list[x].published),
+							data: list[x]
+						})
+					}
+
+					if(localeUpdate) {
+						var orderedActivites = Analytics.google.activities.sort(Helper.sortBy('created_timestamp', false, parseInt))
+						Analytics.google.activities = orderedActivites;
+						Analytics.markModified('google.activities')
+						console.log('saving new Google Plus business activites...');
+					}
+
+					next(itr, cb)
+				}
 		}
 
 

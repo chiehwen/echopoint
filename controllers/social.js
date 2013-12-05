@@ -456,7 +456,7 @@ console.log('child_network', network);
 
 					// TODO: fix this cluster f**k below
 					// TODO: check if first load and then call harvester for initial data (refer to facebook above for example)
-					if(g.business.id && g.business.data.reference) {
+					if(g.places.id && g.places.data.reference) {
 
 						google = Auth.load('google_discovery');
 

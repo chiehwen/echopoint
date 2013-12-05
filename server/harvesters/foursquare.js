@@ -519,7 +519,7 @@ console.log('match found! ', match);
 				Harvest[data.methods[0]](0, function() {
 					if(connections.length) 
 						Model.Connections.collection.insert(connections, {safe: true, continueOnError: true}, function(err, save) {
-							if(err)
+							if(err && err.indexOf('E11000 duplicate key error') < 0)
 								return Log.error('Error saving to Connection table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 						})
 

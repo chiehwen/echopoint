@@ -18,7 +18,16 @@ Boot.start(function(app) {
 
 
 
-var Model = Model || Object;
+var Model = Model || Object,
+		Log = require('./server/logger').getInstance().getLogger(),
+		Alert = require('./server/logger').getInstance().getLogger('alert'),
+		Helper = require('./server/helpers');
+
+/////// REMOVE ALL USER DATA ////////
+//Model.Connections.remove(function(err){if(err) throw err})
+//Model.Analytics.remove(function(err){if(err) throw err})
+//Model.User.remove(function(err){if(err) throw err})
+
 /*
 //////// START OF CRON TESTING ////////
 var Cron = require('./server/cron');
@@ -39,6 +48,7 @@ Cron.foursquare.stats.start();
 Cron.foursquare.tips.start();
 //Cron.foursquare.users.start();
 
+Cron.google.activity.start();
 Cron.google.business.start();
 Cron.google.reviews.start();
 
@@ -51,13 +61,48 @@ Cron.yelp.start();
 //////// END OF CRON TESTING ////////
 */
 
-/////// REMOVE ALL USER DATA ////////
-//Model.Connections.remove(function(err){if(err) throw err})
-//Model.Analytics.remove(function(err){if(err) throw err})
-//Model.User.remove(function(err){if(err) throw err})
 
 
+var Harvester = {
+			facebook: require('./server/harvesters/facebook'),
+			twitter: require('./server/harvesters/twitter'),
+			foursquare: require('./server/harvesters/foursquare'),
+			google: require('./server/harvesters/google'),
+			yelp: require('./server/harvesters/yelp'),
+			klout: require('./server/harvesters/klout')
+		};
 
+var Crons = {
+			facebook: require('./server/crons/facebook').getInstance(),
+			twitter: require('./server/crons/twitter'),//.getInstance(),
+			foursquare: require('./server/crons/foursquare').getInstance(),
+			google: require('./server/crons/google').getInstance(),
+			yelp: require('./server/crons/yelp').getInstance(),
+			instagram: require('./server/crons/instagram').getInstance(),
+			klout: require('./server/crons/klout').getInstance()
+		};
+
+///////// TEST HARVEST CALLS ///////////
+//Crons.facebook.getJob('metrics', ['page', 'posts'])
+//Crons.facebook.getJob('metrics', ['page_insights', 'posts_insights'])
+//Crons.facebook.getJob('connections', ['connections'])
+
+//Crons.twitter.getJob('metrics', ['credentials', 'timeline', 'dm', 'mentions', 'retweets', 'favorited'])
+//Crons.twitter.getJob('metrics', ['retweeters', 'friends', 'followers'])
+//Crons.twitter.getJob('connections', ['populateById', 'populateByScreenName'])
+//Crons.twitter.getJob('connections', ['duplicates'])
+//Crons.twitter.getJob('connections', ['update'])
+
+//Crons.foursquare.getJob('metrics', ['venue'])
+//Crons.foursquare.getJob('metrics', ['stats'])
+//Crons.foursquare.getJob('tips', ['tips'])
+
+//Crons.google.getJob('activity', ['activity'])
+//Crons.google.getJob('business', ['business', 'reviews'])
+//Crons.google.getJob('reviews', ['reviews'])
+//Harvester.google.directToMethod(['pageChangesAlert'], function() {})
+
+//Crons.yelp.getJob('metrics', ['business', 'reviews'])
 
 
 
@@ -224,51 +269,12 @@ Model.Connections.find(function(err, con) {
 
 //})
 
-var Harvester = {
-			facebook: require('./server/harvesters/facebook'),
-			twitter: require('./server/harvesters/twitter'),
-			foursquare: require('./server/harvesters/foursquare'),
-			google: require('./server/harvesters/google'),
-			yelp: require('./server/harvesters/yelp'),
-			klout: require('./server/harvesters/klout')
-		};
 
-var Crons = {
-			facebook: require('./server/crons/facebook').getInstance(),
-			twitter: require('./server/crons/twitter').getInstance(),
-			foursquare: require('./server/crons/foursquare').getInstance(),
-			google: require('./server/crons/google').getInstance(),
-			yelp: require('./server/crons/yelp').getInstance(),
-			instagram: require('./server/crons/instagram').getInstance(),
-			klout: require('./server/crons/klout').getInstance()
-		};
-
-Log = require('./server/logger').getInstance().getLogger()
-Alert = require('./server/logger').getInstance().getLogger('alert'),
-Helper = require('./server/helpers')
 
 //Alert.file('Error TEST loggin', {meta: 'none of this please'})
 //Alert.broadcast('Broadcast message ALERT', {file: __filename, line: Helper.stack()[0].getLineNumber()})
 
-		//Crons.facebook.getJob('metrics', ['page', 'posts'])
-		//Crons.facebook.getJob('metrics', ['page_insights', 'posts_insights'])
-		//Crons.facebook.getJob('connections', ['connections'])
 
-		//Crons.twitter.getJob('metrics', ['credentials', 'timeline', 'dm', 'mentions', 'retweets', 'favorited'])
-		//Crons.twitter.getJob('metrics', ['retweeters', 'friends', 'followers'])
-		//Crons.twitter.getJob('connections', ['populateById', 'populateByScreenName'])
-		//Crons.twitter.getJob('connections', ['duplicates'])
-		//Crons.twitter.getJob('connections', ['update'])
-
-		//Crons.foursquare.getJob('metrics', ['venue'])
-		//Crons.foursquare.getJob('metrics', ['stats'])
-		//Crons.foursquare.getJob('tips', ['tips'])
-
-		//Crons.google.getJob('metrics', ['business', 'reviews'])
-		//Crons.google.getJob('reviews', ['reviews'])
-		//Harvester.google.directToMethod(['pageChangesAlert'], function() {})
-
-		//Crons.yelp.getJob('metrics', ['business', 'reviews'])
 
 
 

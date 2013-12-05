@@ -116,17 +116,9 @@ var UserModel = {
                 timestamp: {type: Number, default: 0} // this is the last plus api call time
               }
             },
-            /*update: {
-              plus: {
-                timestamp: {type: Number, default: 0} // this is the last plus api call time
-              },
-              places: {
-                timestamp: {type: Number, default: 0} // this is the last places/map api call time
-              }
-            },*/
             reviews: {
               //scraped: {type: Boolean, default: false},
-              timestamp: {type: Number, default: 0}, // this is the last web scrape
+              timestamp: {type: Number, default: 0}, // this is the last reviews web scrape
               //override: {type: Boolean, default: false} // this marks if the the rating changed and we need to call reviews before the 24 hour check
             }
           },

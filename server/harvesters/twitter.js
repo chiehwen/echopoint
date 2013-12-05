@@ -40,7 +40,7 @@ var TwitterHarvester = (function() {
 
 				twitter.get('/search/tweets.json', {q: '"Roll On Sushi Diner" "Roll On Sushi"', since_id: Analytics.twitter.search.since_id, result_type: 'recent', count: 20, include_entities: true}, function(err, response) {
 					if (err || !response || response.errors) {
-						Error.handler('twitter', err || credentials, err, credentials, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}
 
@@ -1100,7 +1100,7 @@ console.log('at twitter list of followers method');
 				Harvest.metrics[data.methods[0]](0, function() {
 					if(connections.length)
 						Model.Connections.collection.insert(connections, {safe: true, continueOnError: true}, function(err, save) {
-							if(err && err.indexOf('E11000 duplicate key error') !== -1)
+							if(err && err.indexOf('E11000 duplicate key error') < 0)
 								return Log.error('Error saving to Connection table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 						})
 					
