@@ -12,7 +12,7 @@ var Auth = require('../auth').getInstance(),
 		Helper = require('../helpers'),
 		Model = Model || Object;
 
-var KloutHarvester = (function() {
+var KloutHarvester = function() {
 
 	var klout,
 			data,
@@ -323,10 +323,10 @@ var KloutHarvester = (function() {
 			data = params;
 
 			Harvest[data.methods[0]](0, function() {
-				callback(null);//callback({err: 'error occured'});
+				callback()
 			});
 		}
 	}
-})();
+};
 
 module.exports = KloutHarvester;

@@ -14,7 +14,7 @@ var Auth = require('../auth').getInstance(),
 		Model = Model || Object,
 		winston = require('winston');
 
-var FoursquareHarvester = (function() {
+var FoursquareHarvester = function() {
 
 	var Analytics,
 			foursquare,
@@ -148,7 +148,7 @@ console.log('at foursquare venue method');
 				}
 
 				if(localUpdate)
-					console.log('saved Foursquare venue data...');
+					console.log('saving Foursquare venue data...');
 
 				next(itr, cb);
 			})
@@ -293,7 +293,7 @@ console.log('at foursquare stats method');
 					Analytics.foursquare.tracking.recentVisitors.timestamp = timestamp;
 				}
 
-				console.log('saved foursquare stats...');
+				console.log('saving foursquare stats...');
 
 				next(itr, cb);
 			})
@@ -353,7 +353,7 @@ console.log('at foursquare tips method');
 
 						business.foursquare.tracking.tips.update = false
 						business.foursquare.tips.previous = []
-						console.log('saved new Foursquare tips...');
+						console.log('saving new Foursquare tips...');
 						next(itr, cb)
 					}
 				})
@@ -496,7 +496,6 @@ console.log('match found! ', match);
 				})
 			})
 		}
-
 	} // End Harvest
 
 	var previousVenueUpdateData,
@@ -519,8 +518,8 @@ console.log('match found! ', match);
 				Harvest[data.methods[0]](0, function() {
 					if(connections.length) 
 						Model.Connections.collection.insert(connections, {safe: true, continueOnError: true}, function(err, save) {
-							if(err && err.indexOf('E11000 duplicate key error') < 0)
-								return Log.error('Error saving to Connection table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+							if(err && err.code !== 11000)
+								Log.error('Error saving to Connection table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 						})
 
 					if(update) 
@@ -543,8 +542,8 @@ console.log('match found! ', match);
 										callback(null);
 									})
 								})
-
-							callback(null);
+							else
+								callback(null);
 						})
 					else 
 						callback(null);
@@ -568,7 +567,6 @@ console.log('match found! ', match);
 			})
 		}
 	}
-
-})();
+}
 
 module.exports = FoursquareHarvester;

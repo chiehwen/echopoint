@@ -147,31 +147,34 @@ var SocialController = {
 
 						// if this is the first time loading Facebook initilize the data Facebook harvester
 						// note: this can take a good bit of time, warn user and show loading 
-						if(!user.Business[indx].Social.facebook.account.data)
-								Harvester.facebook.getMetrics({
-									methods: ['page', 'posts', 'page_insights', 'posts_insights'],
-									user: user._id,
-									analytics_id: user.Business[indx].Analytics.id,
-									index: indx,
-									network_id: f.account.id,
-									auth_token: f.account.oauthAccessToken
-								}, function(err) {
-									if (err) {
-										// if things didn't load properly log error and force user to relogin to facebook
-										Log.error(err, {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-										return res.redirect('/social/facebook/connect?login=true')
-									}			
+						if(!user.Business[indx].Social.facebook.account.data) {
+							var harvest = new Harvester.facebook;
 
-									// all is good
-									res.json({
-										success: true,
-										connected: true,
-										account: true,
-										data: {businesses: null},
-										url: null
-									});
+							harvest.getMetrics({
+								methods: ['page', 'posts', 'page_insights', 'posts_insights'],
+								user: user._id,
+								analytics_id: user.Business[indx].Analytics.id,
+								index: indx,
+								network_id: f.account.id,
+								auth_token: f.account.oauthAccessToken
+							}, function(err) {
+								if (err) {
+									// if things didn't load properly log error and force user to relogin to facebook
+									Log.error(err, {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+									return res.redirect('/social/facebook/connect?login=true')
+								}			
+
+								// all is good
+								console.log('loaded inital Facebook data')
+								res.json({
+									success: true,
+									connected: true,
+									account: true,
+									data: {businesses: null},
+									url: null
 								});
-						else
+							});
+						} else {
 							// we have everything we need so lets load the facebook page
 							res.json({
 								success: true,
@@ -180,7 +183,7 @@ var SocialController = {
 								data: {businesses: null}, //response,
 								url: null
 							});
-
+						}
 					// if all else failed force the user to relogin to facebook	
 					else
 						res.redirect('/social/facebook/connect?login=true')

@@ -13,39 +13,27 @@ var Auth = require('../auth').getInstance(),
 		Harvester = {instagram: require('../harvesters/instagram')};
 
 
-var InstagramCron = (function() {
+var InstagramCron = function() {
 
-	// Private attribute that holds the single instance
-	var instagram;
+	// private functions
+	var jobs = {
+		metrics: function(methods) {
+			var harvest = new Harvester.instagram
 
-	function constructor() {
-
-		// private functions
-		var jobs = {
-			metrics: function(methods) {
-				Harvester.instagram.getMetrics({
-					methods: methods
-				}, function(err) {
-					console.log('Instagram callbacks complete')
-				})
-			}
-		}
-
-		// public members
-		return {
-			getJob: function(type) {
-				return jobs[type](arguments[1])
-			}
-		} // end return object
-	} // end constructor
-
-	return {
-		getInstance: function() {
-			if(!instagram)
-				instagram = constructor();
-			return instagram;
+			harvest.getMetrics({
+				methods: methods
+			}, function(err) {
+				console.log('Instagram callbacks complete [' + methods.toString() + ']')
+			})
 		}
 	}
-})();
+
+	// public members
+	return {
+		getJob: function(type) {
+			return jobs[type](arguments[1])
+		}
+	} // end return object
+}
 
 module.exports = InstagramCron;

@@ -9,38 +9,26 @@ var Auth = require('../auth').getInstance(),
 		Harvester = {klout: require('../harvesters/klout')};
 
 
-var kloutCron = (function() {
+var kloutCron = function() {
 
-	// Private attribute that holds the single instance
-	var klout;
+	// private functions
+	var jobs = {
+		metrics: function(methods) {
+			var harvest = new Harvester.klout
 
-	function constructor() {
-
-		// private functions
-		var jobs = {
-			metrics: function(methods) {
-				Harvester.klout.getMetrics({
-					methods: methods
-				}, function(err) {
-					console.log('Klout callbacks complete')
-				})
-			}
-		}
-		// public members
-		return {
-			getJob: function(type) {
-				return jobs[type](arguments[1])
-			}
-		} // end return object
-	} // end constructor
-
-	return {
-		getInstance: function() {
-			if(!klout)
-				klout = constructor();
-			return klout;
+			harvest.getMetrics({
+				methods: methods
+			}, function(err) {
+				console.log('Klout callbacks complete [' + methods.toString() + ']')
+			})
 		}
 	}
-})();
+	// public members
+	return {
+		getJob: function(type) {
+			return jobs[type](arguments[1])
+		}
+	} // end return object
+}
 
 module.exports = kloutCron;

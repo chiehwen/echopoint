@@ -8,13 +8,13 @@ var Auth = require('./auth').getInstance(),
 		Model = Model || Object,
 		CronJob = require('cron').CronJob,
 		Crons = {
-			facebook: require('./crons/facebook').getInstance(),
+			facebook: require('./crons/facebook'),
 			twitter: require('./crons/twitter'),
-			foursquare: require('./crons/foursquare').getInstance(),
-			google: require('./crons/google').getInstance(),
-			yelp: require('./crons/yelp').getInstance(),
-			instagram: require('./crons/instagram').getInstance(),
-			klout: require('./crons/klout').getInstance()
+			foursquare: require('./crons/foursquare'),
+			google: require('./crons/google'),
+			yelp: require('./crons/yelp'),
+			instagram: require('./crons/instagram'),
+			klout: require('./crons/klout')
 		};
 
 var CronJobs = {
@@ -22,7 +22,8 @@ var CronJobs = {
 		feed: new CronJob({
 			cronTime: '0 */15 * * * *', // every 15 minutes (TODO: if logged in and watching twitter feed check every 10 minutes, plus inital update on page load)
 			onTick: function() {
-				Crons.facebook.getJob('metrics', ['page', 'posts'])
+				var feed = new Crons.facebook;
+				feed.getJob('metrics', ['page', 'posts'])
 			},
 			start: false
 		}),
@@ -30,7 +31,8 @@ var CronJobs = {
 		insights: new CronJob({
 			cronTime: '0 30 3 * * *', // every 24 hours (3:30am) 
 			onTick: function() {
-				Crons.facebook.getJob('metrics', ['page_insights', 'posts_insights'])
+				var insights = new Crons.facebook;
+				insights.getJob('metrics', ['page_insights', 'posts_insights'])
 			},
 			start: false
 		}),
@@ -39,7 +41,8 @@ var CronJobs = {
 			// NOTE: currently on five minutes for testing, but will cahnge to every 2 minutes
 			cronTime: '0 */5 * * * *', // every 2 minutes *processes 100 users every run with batch calling and once populated it won't call that user again so many calls won't even hit the FB api
 			onTick: function() {
-				Crons.facebook.getJob('connections', ['connections'])
+				var connections = new Crons.facebook;
+				connections.getJob('connections', ['connections'])
 			},
 			start: false
 		}) 
@@ -50,7 +53,8 @@ var CronJobs = {
 		timeline: new CronJob({
 			cronTime: '0 */15 * * * *', // every 15 minutes (TODO: if logged in and watching twitter feed check every 5 minutes, plus inital update on page load)
 			onTick: function() {
-				new Crons.twitter.getJob('metrics', ['credentials', 'timeline', 'dm', 'mentions', 'retweets', 'favorited'])
+				var timeline = new Crons.twitter
+				timeline.getJob('metrics', ['credentials', 'timeline', 'dm', 'mentions', 'retweets', 'favorited'])
 			},
 			start: false
 		}),
@@ -58,7 +62,8 @@ var CronJobs = {
 		interactions: new CronJob({
 			cronTime: '0 */30 * * * *', // every 15 minutes (every 30 for testing)
 			onTick: function() {
-				new Crons.twitter.getJob('metrics', ['retweeters', 'friends', 'followers'])
+				var interactions = new Crons.twitter
+				interactions.getJob('metrics', ['retweeters', 'friends', 'followers'])
 			},
 			start: false
 		}),
@@ -66,7 +71,8 @@ var CronJobs = {
 		search: new CronJob({
 			cronTime: '0 */15 * * * *', // every 15 minutes 
 			onTick: function() {
-				new Crons.twitter.getJob('metrics', ['search'])
+				var search = new Crons.twitter
+				search.getJob('metrics', ['search'])
 			},
 			start: false
 		}),
@@ -74,7 +80,9 @@ var CronJobs = {
 		connections: new CronJob({
 			cronTime: '*/5 * * * * *',
 			onTick: function() { // every 5 seconds *again these wont call the api if no users need to be populated in the Connections table
-				Crons.twitter.getJob('connections', ['populateById', 'populateByScreenName'])
+				
+				var connections = new Crons.twitter
+				connections.getJob('connections', ['populateById', 'populateByScreenName'])
 			},
 
 			start: false
@@ -83,7 +91,8 @@ var CronJobs = {
 		duplicates: new CronJob({
 			cronTime: '*/15 * * * * *', // every 15 seconds
 			onTick: function() {
-				Crons.twitter.getJob('connections', ['duplicates'])
+				var duplicates = new Crons.twitter
+				duplicates.getJob('connections', ['duplicates'])
 			},
 			start: false
 		}),
@@ -91,7 +100,8 @@ var CronJobs = {
 		update: new CronJob({
 			cronTime: '0 */15* * * *', // every 15 minutes
 			onTick: function() {
-				Crons.twitter.getJob('connections', ['update'])
+				var update = new Crons.twitter
+				update.getJob('connections', ['update'])
 			},
 			start: false
 		})
@@ -102,7 +112,8 @@ var CronJobs = {
 		venue: new CronJob({
 			cronTime: '0 */15 * * * *', // every ten minutes for venue metrics (TODO: if logged in and watching foursquare use here_now to show updated every 30 seconds)
 			onTick: function() {
-				Crons.foursquare.getJob('metrics', ['venue'])
+				var venue = new Crons.foursquare
+				venue.getJob('metrics', ['venue'])
 			},
 			start: false
 		}),
@@ -110,7 +121,8 @@ var CronJobs = {
 		stats: new CronJob({
 			cronTime: '0 30 3 * * *', // stats every 24 hours (3:30am)
 			onTick: function() {
-				Crons.foursquare.getJob('metrics', ['stats'])
+				var stats = new Crons.foursquare
+				stats.getJob('metrics', ['stats'])
 			},
 			start: false
 		}),
@@ -118,7 +130,8 @@ var CronJobs = {
 		tips: new CronJob({
 			cronTime: '0 * * * * *', // every minute. *This is oinly called if the business tips updated flag is check which means often the API won't be called
 			onTick: function() {
-				Crons.foursquare.getJob('tips', ['tips'])
+				var tips = new Crons.foursquare
+				tips.getJob('tips', ['tips'])
 			},
 			start: false
 		}),
@@ -126,7 +139,8 @@ var CronJobs = {
 		users: new CronJob({
 			cronTime: '*/15 * * * * *', // every 15 seconds. *this is only called if we have user data in the Connections table
 			onTick: function() {
-				Crons.foursquare.getJob('users')
+				var users = new Crons.foursquare
+				users.getJob('users', ['user'])
 			},
 
 			start: false
@@ -141,7 +155,8 @@ var CronJobs = {
 		activity: new CronJob({
 			cronTime: '0 */5 * * * *', // every 15 minutes [5 for testing]
 			onTick: function() {
-				Crons.google.getJob('activity', ['activity'])
+				var activity = new Crons.google
+				activity.getJob('activity', ['activity'])
 			},
 			start: false
 		}),
@@ -150,7 +165,8 @@ var CronJobs = {
 		business: new CronJob({
 			cronTime: '0 */5 * * * *', // every 5 minutes
 			onTick: function() {
-				Crons.google.getJob('business', ['business', 'reviews'])
+				var business = new Crons.google
+				business.getJob('business', ['business', 'reviews'])
 			},
 
 	// THIS IS A SCRAPER, REMOVE MASS USER CALL AND call only one user at a time
@@ -164,7 +180,8 @@ var CronJobs = {
 		reviews: new CronJob({
 			cronTime: '0 */5 * * * *', // every 5 minutes
 			onTick: function() {
-				Crons.google.getJob('reviews', ['reviews'])
+				var reviews = new Crons.google
+				reviews.getJob('reviews', ['reviews'])
 			},
 			start: false
 		})
@@ -177,7 +194,8 @@ var CronJobs = {
 	yelp: new CronJob({
 		cronTime: '0 */5 * * * *', // every 5 minutes
 		onTick: function() {
-			Crons.yelp.getJob('metrics', ['business', 'reviews'])
+			var yelp = new Crons.yelp
+			yelp.getJob('metrics', ['business', 'reviews'])
 		},
 		
 // THIS IS A SCRAPER, REMOVE MASS USER CALL AND call only one user at a time
@@ -191,7 +209,8 @@ var CronJobs = {
 		users: new CronJob({
 			cronTime: '40 * * * * *', // run every 10 seconds (can technically be run every second )
 			onTick: function() {
-				Crons.instagram.getJob('metrics', ['user'])
+				var instagram = new Crons.instagram
+				instagram.getJob('metrics', ['user'])
 			},
 			start: false
 		})
@@ -201,7 +220,8 @@ var CronJobs = {
 	klout: new CronJob({
 		cronTime: '*/5 * * * * *', // run every 5 seconds, each method is only run if the other isn't nee so only 1 in the array will be run every 5 seconds 
 		onTick: function() {
-			Crons.klout.getJob('metrics', ['id', 'score', 'update', 'discovery'])
+			var klout = new Crons.klout
+			klout.getJob('metrics', ['id', 'score', 'update', 'discovery'])
 		},
 		start: false
 	})

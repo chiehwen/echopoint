@@ -73,13 +73,13 @@ var Harvester = {
 		};
 
 var Crons = {
-			facebook: require('./server/crons/facebook').getInstance(),
-			twitter: require('./server/crons/twitter'),//.getInstance(),
-			foursquare: require('./server/crons/foursquare').getInstance(),
-			google: require('./server/crons/google').getInstance(),
-			yelp: require('./server/crons/yelp').getInstance(),
-			instagram: require('./server/crons/instagram').getInstance(),
-			klout: require('./server/crons/klout').getInstance()
+			facebook: require('./server/crons/facebook'),
+			twitter: require('./server/crons/twitter'),
+			foursquare: require('./server/crons/foursquare'),
+			google: require('./server/crons/google'),
+			yelp: require('./server/crons/yelp'),
+			instagram: require('./server/crons/instagram'),
+			klout: require('./server/crons/klout')
 		};
 
 ///////// TEST HARVEST CALLS ///////////

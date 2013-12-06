@@ -12,7 +12,7 @@ var Auth = require('../auth').getInstance(),
 		Helper = require('../helpers'),
 		Model = Model || Object;
 
-var TwitterHarvester = (function() {
+var TwitterHarvester = function() {
 
 	var Analytics,
 			twitter,
@@ -69,7 +69,7 @@ var TwitterHarvester = (function() {
 					}
 
 					if(localUpdate)
-						console.log('saved twitter user search...');
+						console.log('saving twitter user search...');
 
 					next(itr, cb);
 				})
@@ -175,7 +175,7 @@ console.log('at twitter timeline update method');
 					Analytics.twitter.timeline.since_id = response[0].id_str;
 					Analytics.twitter.timeline.timestamp = Helper.timestamp();
 
-					console.log('saved twitter user timeline...');
+					console.log('saving twitter user timeline...');
 
 					next(itr, cb);
 				})
@@ -206,7 +206,7 @@ console.log('at twitter new direct messages method');
 					Analytics.twitter.messages.since_id = response[0].id_str;
 					Analytics.twitter.messages.timestamp = timestamp;
 
-					console.log('saved new direct messages...');
+					console.log('saving new direct messages...');
 
 					next(itr, cb);
 				})
@@ -242,7 +242,7 @@ console.log('at twitter new mentions method');
 						// TODO: put any errors in logs
 					//})
 					
-					console.log('saved user @ mentions...');
+					console.log('saving user @ mentions...');
 
 					next(itr, cb);
 				})
@@ -299,7 +299,7 @@ console.log('at twitter retweets method');
 					}
 
 					if(localUpdate)
-						console.log('saved retweets count update...');
+						console.log('saving retweets count update...');
 					
 					next(itr, cb);
 				})
@@ -352,7 +352,7 @@ console.log('at twitter new favorited tweets method');
 					}
 
 					if(localUpdate)
-						console.log('saved tweet favorited count update...');
+						console.log('saving tweet favorited count update...');
 
 					next(itr, cb);
 				})
@@ -394,7 +394,6 @@ console.log('at twitter list of retweeters method');
 							Analytics.twitter.timeline.tweets[i].retweets.update = false;
 							//Analytics.twitter.timeline.tweets[i].retweets.retweeters = [];
 							//Analytics.markModified('twitter.timeline.tweets')
-							update = true;
 							break;
 						}
 
@@ -414,13 +413,16 @@ console.log('at twitter list of retweeters method');
 
 						Analytics.twitter.timeline.tweets[tweet.index].retweets.update = false;
 
+						if(!Analytics.twitter.timeline.tweets[tweet.index].retweets.retweeters)
+							Analytics.twitter.timeline.tweets[tweet.index].retweets.retweeters = [];
+
 						retweetersLoop:
 						for(var x=0, l=response.ids.length; x<l; x++) {
 							for(var y=0, len=previousRetweeters.length; y<len; y++)
 								if(response.ids[x] === previousRetweeters[y])
 									break retweetersLoop;
 
-							localUpdate = true;
+							update = localUpdate = true;
 							Analytics.twitter.timeline.tweets[tweet.index].retweets.retweeters.push(response.ids[x])
 							connections.push({twitter_id: response.ids[x], meta: {twitter: {analytics_id: Analytics._id}}})
 						}
@@ -432,7 +434,7 @@ console.log('at twitter list of retweeters method');
 						}
 						
 						if(localUpdate) {
-							console.log('saved/updated retweeters id list to tweet...');	
+							console.log('saving/updating retweeters id list to tweet...');	
 							Analytics.markModified('twitter.timeline.tweets');
 						}
 
@@ -471,8 +473,7 @@ console.log('at twitter list of friends method');
 						if(!response.ids || !response.ids.length)
 							return next(itr, cb);
 
-						var //usersArray = [],
-								timestamp = Helper.timestamp(),
+						var timestamp = Helper.timestamp(),
 								localUpdate = false;
 
 						if(!iteration) {
@@ -485,19 +486,11 @@ console.log('at twitter list of friends method');
 							connections.push({twitter_id: response.ids[i], meta: {twitter: {analytics_id: Analytics._id}}})
 						}
 
-						// insert user ids into Twitter user model for cron lookup 
-						/*Model.Connections.collection.insert(usersArray, {continueOnError: true}, function(err, save) {
-							// TODO: put any errors in logs
-							console.log('error!: ', err);
-							console.log('save: ', save);
-						})*/
-
 						if(response.next_cursor > 0 && iteration < 5) {
 							iteration++;
 							params.cursor = parseInt(response.next_cursor_str, 10);
 							return Harvest.friends(itr, cb, params, iteration);
 						}
-
 
 						var initialMatch = false,
 								droppedArray = [];
@@ -526,7 +519,7 @@ console.log('at twitter list of friends method');
 						Analytics.twitter.tracking.friends.update = false;
 
 						if(localUpdate)
-							console.log('saved/updated users friends id list...');
+							console.log('saving/updating users friends id list...');
 
 						Analytics.markModified('twitter.friends.active', 'twitter.friends.previous', 'twitter.friends.new', 'twitter.friends.dropped')
 						next(itr, cb);
@@ -563,9 +556,7 @@ console.log('at twitter list of followers method');
 						if(!response.ids || !response.ids.length)
 							return next(itr, cb);
 
-						var //usersArray = [],
-								//timestamp = Helper.timestamp(),
-								localUpdate = false;
+						var localUpdate = false;
 
 						if(!iteration) {
 							Analytics.twitter.followers.previous = Analytics.twitter.followers.active;
@@ -577,19 +568,11 @@ console.log('at twitter list of followers method');
 							connections.push({twitter_id: response.ids[i], meta: {twitter: {analytics_id: Analytics._id}}})
 						}
 
-						// insert user ids into Twitter user model for cron lookup 
-						/*Model.Connections.collection.update(usersArray, {continueOnError: true}, function(err, save) {
-							// TODO: put any errors in logs
-							console.log('error!: ', err);
-							console.log('save: ', save);
-						})*/
-
 						if(response.next_cursor > 0 && iteration < 5) {
 							iteration++;
 							params.cursor = parseInt(response.next_cursor_str, 10);
 							return Harvest.followers(itr, cb, params, iteration);
 						}
-
 
 						var initialMatch = false,
 								droppedArray = [];
@@ -618,7 +601,7 @@ console.log('at twitter list of followers method');
 						Analytics.twitter.tracking.followers.update = false;
 
 						if(localUpdate)
-							console.log('saved/updated users followers id list...');
+							console.log('saving/updating users followers id list...');
 
 						Analytics.markModified('twitter.followers.active','twitter.followers.previous', 'twitter.followers.new', 'twitter.followers.dropped')
 						//Analytics.markModified('twitter.followers.previous')
@@ -660,7 +643,7 @@ console.log('at twitter list of followers method');
 							Followers.save(function(err, success) {
 								if(err)
 									return Log.error('Error saving to Connection table', {error: err, connection_id: users[x]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-								console.log('saved first round of followers to Followers Model');
+								console.log('saving first round of followers to Followers Model');
 								return next(itr, cb);
 							})
 						} else {
@@ -1100,8 +1083,8 @@ console.log('at twitter list of followers method');
 				Harvest.metrics[data.methods[0]](0, function() {
 					if(connections.length)
 						Model.Connections.collection.insert(connections, {safe: true, continueOnError: true}, function(err, save) {
-							if(err && err.indexOf('E11000 duplicate key error') < 0)
-								return Log.error('Error saving to Connection table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+							if(err && err.code !== 11000)
+								Log.error('Error saving to Connection table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 						})
 					
 					if(update) {
@@ -1124,8 +1107,8 @@ console.log('at twitter list of followers method');
 										callback(null);
 									})
 								})
-
-							callback(null);
+							else
+								callback(null);
 						})
 					} else {
 						callback(null);
@@ -1140,7 +1123,6 @@ console.log('at twitter list of followers method');
 			})
 		}
 	}
-
-})();
+}
 
 module.exports = TwitterHarvester;

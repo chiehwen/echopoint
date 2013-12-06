@@ -13,7 +13,7 @@ var fs = require('fs'),
 
 //var googlePageData = require('./tmpPageData/googlePage'); // TEMP
 
-var GoogleHarvester = (function() {
+var GoogleHarvester = function() {
 
 	var User,
 			Analytics,
@@ -22,10 +22,8 @@ var GoogleHarvester = (function() {
 				//debug: 1,
 				//proxies: [{ip: '107.17.100.254', port: 8080}]
 			//}),
-			//google,
 			data,
 			update = false,
-			//url = false,
 			next = function(i, cb, stop) {
 				var i = i+1
 				if(!stop && data.methods[i])
@@ -104,7 +102,7 @@ console.log('at the google business update method');
 				}	
 
 				if(localUpdate)
-					console.log('saving updated Google business and rating data from API.');
+					console.log('saving updated Google business and rating data from API...');
 
 				if(!Business.Social.google.reviews.timestamp || (changeTimestamp && Business.Social.google.reviews.timestamp < changeTimestamp))
 					next(itr, cb)
@@ -114,7 +112,7 @@ console.log('at the google business update method');
 		},
 
 		// called only if a change has occured from above
-		reviews: function(itr, cb, pagination) {
+		reviews: function(itr, cb, pagination, retry) {
 console.log('at the google reviews method');
 
 			// mark the attempt time 
@@ -179,9 +177,19 @@ console.log('at the google reviews method');
 						}
 					}, 
 					function(err, res) {
+						if(err && err.code && err.code.toLowerCase() === 'ETIMEDOUT') {
+							if(retry && retry > 4) {
+								Alert.file('Google reviews JSON harvest failed to connect in 4 attempts!', {file: __filename, line: Helper.stack()[0].getLineNumber(), timestamp: Helper.timestamp()})
+								Alert.broadcast('Google reviews JSON harvest failed to connect in 4 attempts!', {file: __filename, line: Helper.stack()[0].getLineNumber()})
+								ScrapingLog.error('Google reviews JSON harvest failed to connect in 4 attempts!', {user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+								return next(itr, cb)
+							}
+
+							return Harvest.reviews(itr, cb, pagination, retry ? ++retry : 1)
+						}
+
 						if(err || !res || res.statusCode !== 200 || !res.body || res.body == '') {
-							ScrapingLog.error('Google reviews return did not contain )]}\' at begining', {error: err, response: res || err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-							//Error.handler('google', err || 'No html response body returned!', err, res, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							ScrapingLog.error('Google reviews JSON harvest error or no response', {error: err, response: res || err, user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 							return next(itr, cb)
 						}
 
@@ -190,7 +198,7 @@ console.log('at the google reviews method');
 							//Error.handler('google', "Google reviews return did not contain )]}' at begining", null, res.body.toString(), {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 							Alert.file("Google reviews return did not contain )]}' at begining", {file: __filename, line: Helper.stack()[0].getLineNumber(), timestamp: Helper.timestamp()})
 							Alert.broadcast("Google reviews did not contain )]}", {file: __filename, line: Helper.stack()[0].getLineNumber()})
-							ScrapingLog.error('Google reviews return did not contain )]}\' at begining', {response: res.body.toString(), file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+							ScrapingLog.error('Google reviews return did not contain )]}\' at begining', {response: res.body.toString(), user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 							return next(itr, cb)
 						}
 
@@ -200,7 +208,7 @@ console.log('at the google reviews method');
 						if(!parsedReviewData[0] || !parsedReviewData[0][1] || !parsedReviewData[0][1][11] || !parsedReviewData[0][1][11][0]){
 							Alert.file('Google reviews array undefined in response JSON! should be at [0][1][11][0]', {file: __filename, line: Helper.stack()[0].getLineNumber(), timestamp: Helper.timestamp()})
 							Alert.broadcast('Google reviews array undefined in response JSON', {file: __filename, line: Helper.stack()[0].getLineNumber()})
-							ScrapingLog.error('Google reviews array undefined in response JSON! should be at [0][1][11][0]', {response: parsedReviewData, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+							ScrapingLog.error('Google reviews array undefined in response JSON! should be at [0][1][11][0]', {response: parsedReviewData, user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 							return next(itr, cb)
 						}
 
@@ -330,7 +338,7 @@ console.log('at the google reviews method');
 							Analytics.google.reviews.active.splice(removalIndexes[i], 1)
 
 						if(localUpdate)
-							console.log('saving new/updated Google reviews from Harvester');
+							console.log('saving new/updated Google reviews from Harvester...');
 
 						if (reviews.length >= count)
 							Harvest.reviews(itr, cb, (count+pagination))
@@ -664,7 +672,6 @@ console.log('at the google plus activity method');
 			User = user,
 			index = params.index,
 			Business = User.Business[index],
-			//google = Auth.load('google'),
 			data = params,
 			update = false;
 
@@ -690,11 +697,11 @@ console.log('at the google plus activity method');
 									analytics.save(function(err, save) {
 										if(err)
 											return Log.error('Error saving Google analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-										callback(null);
+										callback();
 									})
 								})
-
-							callback(null);
+							else
+								callback();
 						})
 					else
 						callback(null, update);
@@ -702,8 +709,6 @@ console.log('at the google plus activity method');
 			})
 		},
 		directToMethod: function(methods, callback) {
-			//yelp = Auth.load('yelp'),
-			//data = params,
 			update = false;
 
 			Harvest[methods[0]](0, function() {
@@ -712,6 +717,6 @@ console.log('at the google plus activity method');
 		}
 	}
 
-})();
+};
 
 module.exports = GoogleHarvester;

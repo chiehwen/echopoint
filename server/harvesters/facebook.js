@@ -4,7 +4,7 @@ var Auth = require('../auth').getInstance(),
 		Helper = require('../helpers'),
 		Model = Model || Object;
 
-var FacebookHarvester = (function() {
+var FacebookHarvester = function() {
 
 	var Analytics,
 			facebook,
@@ -91,7 +91,7 @@ console.log('at facebook business page update method...');
 				}
 
 				if(localUpdate) 
-					console.log('saved updated business info and initial tracking info');
+					console.log('saving updated Facebook business info and initial tracking info...');
 				
 				next(itr, cb);
 			})
@@ -166,7 +166,7 @@ console.log('at posts [new] method...');
 				}
 
 				if(localUpdate) 
-					console.log('saved new feed item(s) and related tracking...');
+					console.log('saving new Facebook feed item(s) and related tracking...');
 
 				Harvest.posts_update(itr, cb);
 			})
@@ -238,7 +238,7 @@ console.log('at the posts [update] method...');
 				}
 
 				if(localUpdate) 
-					console.log('saved updated post data...');
+					console.log('saving updated Facebook post data...');
 
 				next(itr, cb);
 			})
@@ -287,7 +287,7 @@ console.log('at page_insights method...');
 				}
 
 				if(localUpdate) 
-					console.log('saved new page insights');
+					console.log('saving new page insights...');
 
 				next(itr, cb);
 			})
@@ -348,7 +348,7 @@ console.log('at posts_insights method');
 				}
 
 				if(localUpdate) 
-					console.log('saved new post insights');
+					console.log('saving new post insights...');
 
 				next(itr, cb);
 			})
@@ -434,14 +434,14 @@ console.log('at posts_insights method');
 									analytics.save(function(err, save) {
 										if(err)
 											return Log.error('Error saving Facebook analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-										callback(null);
+										callback();
 									})
 								})
-
-							callback(null);
+							else
+								callback();
 						})
 					else 
-						callback(null);
+						callback();
 				})
 			})
 		},
@@ -453,7 +453,6 @@ console.log('at posts_insights method');
 			})
 		}
 	}
-
-})();
+}
 
 module.exports = FacebookHarvester;

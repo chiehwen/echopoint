@@ -21,7 +21,7 @@ var fs = require('fs'),
 
 var yelpPageData = require('./tmpPageData/yelpPage'); // TEMP
 
-var YelpHarvester = (function() {
+var YelpHarvester = function() {
 
 	var User,
 			Analytics,
@@ -47,6 +47,7 @@ var YelpHarvester = (function() {
 
 		// call every 5 minutes (using time tracking to call only one business every 5 minutes)
 		business: function(itr, cb) {
+console.log('at yelp business info update method...');			
 			yelp.business(data.network_id, function(err, response) {
 				if(err || (response && response.error)) {
 					Error.handler('yelp', err || response.error, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
@@ -107,7 +108,7 @@ console.log('here1');
 				}	
 
 				if(localUpdate)
-					console.log('saved updated Yelp business and review/rating data from API...');
+					console.log('saving updated Yelp business and review/rating data from API...');
 
 				//next(itr, cb, reviewsUpdated ? false : true);
 				next(itr, cb)
@@ -116,7 +117,7 @@ console.log('here1');
 
 		// called only if a change has occured from above
 		reviews: function(itr, cb, pagination) {
-
+console.log('at yelp reviews harvesting method...');		
 			// mark the attempt time 
 			var timestamp = Helper.timestamp();
 			User.Business[index].Social.yelp.update.timestamp = timestamp;
@@ -152,25 +153,27 @@ console.log('here1');
 
 				var $ = cheerio.load(res.body),
 						reviewsCount = $('#reviews-other .reviews-header').length ? parseInt($('#reviews-other .reviews-header').text().trim(), 10) : 0, // TODO: add || #rpp-count
-						filteredReviewsCount = $('.filtered-reviews #filtered-reviews-link').length ? parseInt($('.filtered-reviews #filtered-reviews-link').text().trim()) : ( $('#paginationControls #filtered-reviews-link').length ? parseInt($('#paginationControls #filtered-reviews-link').text().trim(), 10) : 0),
+						filteredReviewsCount = $('.filtered-reviews #filtered-reviews-link').length ? parseInt($('.filtered-reviews #filtered-reviews-link').text().trim(), 10) : $('.not-recommended a').length ? parseInt($('.not-recommended a').text().trim(), 10) : $('#paginationControls #filtered-reviews-link').length ? parseInt($('#paginationControls #filtered-reviews-link').text().trim(), 10) : false,
 						reviewObject = {},
 						complete = false;
 
+if(filteredReviewsCount === false) {
+	Harvest.savePage(null, null, res.body)
+	Log.warn('could find filteredReviewsCount on Yelp page. Check newest saveFile() output')
+}
+
 				// if NaN then set to 0
 				reviewsCount = (!reviewsCount || Number.isNaN(reviewsCount)) ? 0 : reviewsCount;
-				filteredReviewsCount = (!filteredReviewsCount || Number.isNaN(filteredReviewsCount)) ? 0 : filteredReviewsCount;
+				filteredReviewsCount = (filteredReviewsCount === false || Number.isNaN(filteredReviewsCount)) ? false : filteredReviewsCount;
 
 				if(!Analytics.yelp.business.id && $('#edit_cat_link').length && $('#edit_cat_link').attr('href')) {
-console.log('show me what we got: ', Analytics.yelp.business.id, $('#edit_cat_link').attr('href').trim().replace('/biz_attribute?biz_id=', ''));		
 					update = localUpdate = true;
 					Analytics.yelp.business.id = $('#edit_cat_link').attr('href').trim().replace('/biz_attribute?biz_id=', '')
 				}
 
-				if(Analytics.yelp.reviews.filtered.count !== filteredReviewsCount) {
-console.log('show me what we got, partII ', Analytics.yelp.reviews.filtered.count, filteredReviewsCount);
+				if(filteredReviewsCount !== false && Analytics.yelp.reviews.filtered.count !== filteredReviewsCount) {
 					update = localUpdate = true;
 					Analytics.yelp.reviews.filtered.count = filteredReviewsCount;
-console.log(Analytics.yelp.reviews.filtered.count);	
 				}
 
 				reviewsLoop:
@@ -184,10 +187,11 @@ console.log(Analytics.yelp.reviews.filtered.count);
 						return next(itr, cb);
 						break;
 					}
-console.log('we in here eva?');
+
+					// exit once we reach an already stored review id
 					for(var x=0, len=Analytics.yelp.reviews.active.length; x<len;x++)
 						if(Analytics.yelp.reviews.active[x].id == $(value).attr('id')) {
-							complete = true;
+							complete = true;					
 							break reviewsLoop;
 						}
 
@@ -297,9 +301,9 @@ console.log('we in here eva?');
 
 				if(!complete && ((pagination*Analytics.yelp.harvest.pagination.multiplier)+Analytics.yelp.harvest.pagination.multiplier) < reviewsCount )
 					return Harvest.reviews(itr, cb, pagination+1)
-console.log('length me: ', Analytics.yelp.reviews.active.length);
+
 				if(localUpdate) {
-					console.log('updated Yelp active reviews')
+					console.log('saving updated Yelp active reviews...')
 					Analytics.markModified('yelp.reviews.active')
 				}
 
@@ -347,10 +351,13 @@ console.log('length me: ', Analytics.yelp.reviews.active.length);
 		},
 
 		// quickly save a scraped page for debugging
-		savePage: function(itr, cb) {
-			requester.get('http://www.yelp.com/biz/midas-green-tech-austin?sort_by=date_desc', function(body) {
-				fs.writeFileSync('server/harvesters/output/yelp.' + Helper.timestamp() + '.html', body)
-			})
+		savePage: function(itr, cb, html) {
+			if(!html)
+				requester.get('http://www.yelp.com/biz/midas-green-tech-austin?sort_by=date_desc', function(body) {
+					fs.writeFileSync('server/harvesters/output/yelp.' + Helper.timestamp() + '.html', body)
+				})
+			else
+				fs.writeFileSync('server/harvesters/output/yelp.' + Helper.timestamp() + '.html', html)
 		},
 
 		// every 5 minutes with proxies, every 4 hours without
@@ -574,11 +581,11 @@ for(var i=0, l=test.length; i<l;i++) {
 									analytics.save(function(err, save) {
 										if(err)
 											return Log.error('Error saving Yelp analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-										callback(null);
+										callback();
 									})
 								})
 
-							callback(null);
+							callback();
 						})
 					else
 						callback(null, update);
@@ -596,6 +603,6 @@ for(var i=0, l=test.length; i<l;i++) {
 		}
 	}
 
-})();
+};
 
 module.exports = YelpHarvester;
