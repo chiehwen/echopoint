@@ -24,7 +24,7 @@ var fs = require('fs'),
 		nTwitter = require('ntwitter'),
 		//GoogleOAuth = require('googleapis').OAuth2Client,
 		googleapis = require('googleapis'),
-		YelpApi = require('yelp'),
+		//YelpApi = require('yelp'),
 		FlickrApi = require('flickr').Flickr;
 
 var Auth = (function() {

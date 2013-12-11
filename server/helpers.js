@@ -15,7 +15,7 @@ exports.googleTimestampHash = 'AObGSAgwfLO1c2bPcfh2d3GSRapAdFwefw:1385595435931'
 exports.bootstrapRoute = 'bootstrap';
 
 // http request error codes for retry attempts
-exports.retryErrorCodes = ['ENETUNREACH', 'ETIMEDOUT', 'ESOCKETTIMEDOUT', 'ECONNRESET'];
+exports.retryErrorCodes = ['ENETUNREACH', 'ETIMEDOUT', 'ENOTFOUND', 'ESOCKETTIMEDOUT', 'ECONNRESET'];
 
 exports.getUser = function(id, callback) {
 	Model.User.findById(id, function(err, user) {

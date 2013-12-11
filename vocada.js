@@ -106,24 +106,9 @@ var Crons = {
 
 
 
-
-var request = require('request');
-
-// load yelp api
-					yelp = Auth.load('yelp');
-					request.get({
-						url: yelp.base + 'search',
-						qs: {term: 'Roll On Sushi Diner', location: 'Austin'},
-						oauth: yelp.client,
-						json: true
-					},
-					function(err, res){
-	console.log(err, res.statusCode);
-	if(res.body)
-		console.log(res.body.businesses[0]);
+Model.Connections.findOne({instagram_id: {$exists: true}, Instagram: {$exists: false}}, function(err, connection) {
+	console.log('coco',connection);
 })
-
-
 
 
 Model.Analytics.find(function(err, analytic) {

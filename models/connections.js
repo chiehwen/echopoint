@@ -73,10 +73,17 @@ var ConnectionsModel = {
       },
       meta: {
         klout: {
-          success: {type: Boolean, default: false},
-          attempt_timestamp: {type: Number, default: 0},
+          id: {
+            success: {type: Boolean, default: false},
+            timestamp: {type: Number, default: 0}
+          },
+          score: {
+            success: {type: Boolean, default: false},
+            timestamp: {type: Number, default: 0},
+            attempts: {type: Number, default: 1}
+          },
           discovery: {
-            attempt_timestamp: {type: Number, default: 0},
+            timestamp: {type: Number, default: 0},
             twitter: {
               success: {type: Boolean, default: false},
               //attempt_timestamp: {type: Number, default: 0}
@@ -116,7 +123,14 @@ var ConnectionsModel = {
           discovery_attempt: {
             timestamp: {type: Number, default: 0}
           }
-        }
+        },
+
+        instagram: {
+          discovery: {
+            timestamp: {type: Number, default: 0}
+            //isPrivate: {type: Boolean, default: false} // this is just a schema placeholder
+          }
+        },
       }
     },
 

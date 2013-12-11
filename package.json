@@ -24,7 +24,6 @@
     "twit": "*",
     "ntwitter": "*",
     "googleapis": "*",
-    "yelp": "*",
     "flickr": "*",
     "cron": "*",
     "winston": "*",
