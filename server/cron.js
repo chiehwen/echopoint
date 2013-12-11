@@ -207,7 +207,7 @@ var CronJobs = {
 
 	instagram: {
 		users: new CronJob({
-			cronTime: '40 * * * * *', // run every 10 seconds (can technically be run every second )
+			cronTime: '*/10 * * * * *', // run every 10 seconds (can technically be run every second )
 			onTick: function() {
 				var instagram = new Crons.instagram
 				instagram.getJob('metrics', ['user'])
@@ -218,7 +218,7 @@ var CronJobs = {
 
 
 	klout: new CronJob({
-		cronTime: '*/5 * * * * *', // run every 5 seconds, each method is only run if the other isn't nee so only 1 in the array will be run every 5 seconds 
+		cronTime: '*/5 * * * * *', // run every 5 seconds, each method is only run if the other isn't needed so only 1 in the array will be run every 5 seconds 
 		onTick: function() {
 			var klout = new Crons.klout
 			klout.getJob('metrics', ['id', 'score', 'update', 'discovery'])

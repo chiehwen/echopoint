@@ -24,6 +24,7 @@ var GoogleHarvester = function() {
 			//}),
 			data,
 			update = false,
+			retries = Helper.retryErrorCodes,
 			next = function(i, cb, stop) {
 				var i = i+1
 				if(!stop && data.methods[i])
@@ -41,6 +42,17 @@ console.log('at the google business update method');
 			var google = Auth.load('google')
 
 			google.get('https://maps.googleapis.com/maps/api/place/details/json', {key: google.client.key, reference: data.network_ref, sensor: false, review_summary: true}, function(err, response) {
+				// if a connection error occurs retry request (up to 3 attempts) 
+				if(err && retries.indexOf(err.code) > -1) {
+					if(retry && retry > 2) {
+						Error.handler('google', 'Google business method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						return next(itr, cb);
+					}
+
+					return Harvest.metrics.search(itr, cb, retry ? ++retry : 1)
+				}
+
+				// error handling
 				if(err || response.error)
 					return console.log('error', err, response)
 
@@ -136,6 +148,17 @@ console.log('at the google reviews method');
 							'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36'
 						}
 					}, function(err, res) {
+					// if a connection error occurs retry request (up to 3 attempts) 
+					if(err && (response.statusCode === 503 || response.statusCode === 504 || retries.indexOf(err.code) > -1)) {
+						if(retry && retry > 2) {
+							ScrapingLog.error('Google reviews method failed to connect in 3 attempts!', {error: err, response: res || err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+							return next(itr, cb);
+						}
+
+						return Harvest.reviews(itr, cb, 0, retry ? ++retry : 1)
+					}
+
+					// error handling
 					if (err || !res || res.statusCode !== 200 || !res.body || res.body == '') {
 						ScrapingLog.error('Google reviews return did not contain )]}\' at begining', {error: err, response: res || err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 						//Error.handler('google', res.statusCode, null, body, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
@@ -177,17 +200,19 @@ console.log('at the google reviews method');
 						}
 					}, 
 					function(err, res) {
-						if(err && err.code && err.code.toLowerCase() === 'ETIMEDOUT') {
-							if(retry && retry > 4) {
-								Alert.file('Google reviews JSON harvest failed to connect in 4 attempts!', {file: __filename, line: Helper.stack()[0].getLineNumber(), timestamp: Helper.timestamp()})
-								Alert.broadcast('Google reviews JSON harvest failed to connect in 4 attempts!', {file: __filename, line: Helper.stack()[0].getLineNumber()})
-								ScrapingLog.error('Google reviews JSON harvest failed to connect in 4 attempts!', {user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						// if a connection error occurs retry request (up to 3 attempts) 
+						if(err && retries.indexOf(err.code) > -1) {
+							if(retry && retry > 2) {
+								Alert.file('Google reviews JSON harvest failed to connect in 3 attempts!', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), timestamp: Helper.timestamp()})
+								Alert.broadcast('Google reviews JSON harvest failed to connect in 3 attempts!', {file: __filename, line: Helper.stack()[0].getLineNumber()})
+								ScrapingLog.error('Google reviews JSON harvest failed to connect in 3 attempts!', {error: err, user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 								return next(itr, cb)
 							}
 
 							return Harvest.reviews(itr, cb, pagination, retry ? ++retry : 1)
 						}
 
+						// error handling
 						if(err || !res || res.statusCode !== 200 || !res.body || res.body == '') {
 							ScrapingLog.error('Google reviews JSON harvest error or no response', {error: err, response: res || err, user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 							return next(itr, cb)
@@ -563,15 +588,16 @@ console.log('at the google reviews method');
 		},
 
 				// called only if a change has occured from above
-		activity: function(itr, cb, pagination) {
+		activity: function(itr, cb, retry) {
 console.log('at the google plus activity method');
 
 			// mark the attempt time 
 			var timestamp = Helper.timestamp();
 			User.Business[index].Social.google.plus.update.timestamp = timestamp;
 
-//			if(!Analytics.google.plus.id)
-//					return next(itr, cb);
+			if(Helper.productionModeActive)
+				if(!Analytics.google.plus.id)
+					return next(itr, cb);
 
 			var google = Auth.load('google_discovery');
 
@@ -585,7 +611,13 @@ console.log('at the google plus activity method');
 
 			google
 				.discover('plus', 'v1')
-				.execute(function(err, client) {				
+				.execute(function(err, client) {
+					// error handling						
+					if(err || !client) {
+						Error.handler('google', 'Failure on Google discover API module .execute()', err, client, {error: err, user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						return next(itr, cb)
+					}		
+
 					client
 						.plus.activities.list({userId: '100524621236878636693', collection: 'public', maxResults: limit}) // do not put these into a single variable, somehow the variable gets manipulated after first execute
 						.withAuthClient(google.oauth)
@@ -594,7 +626,18 @@ console.log('at the google plus activity method');
 									client
 										.plus.activities.list({userId: '100524621236878636693', collection: 'public', maxResults: limit}) // do not put these into a single variable, somehow the variable gets manipulated after first execute
 										.withApiKey(google.apiKey)
-										.execute(function(err, response) {									
+										.execute(function(err, response) {
+											// if a connection error occurs retry request (up to 3 attempts) 
+											if(err && retries.indexOf(err.code) > -1) {
+												if(retry && retry > 2) {
+													Error.handler('google', 'Google activity method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+													return next(itr, cb);
+												}
+
+												return Harvest.activity(itr, cb, retry ? ++retry : 1)
+											}
+
+											// error handling						
 											if(err || !response || !response.items) {
 												Error.handler('google', 'Failure on google plus execute after oauth process', err, response, {user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 												return next(itr, cb)
@@ -604,12 +647,13 @@ console.log('at the google plus activity method');
 											saveGoogleActivities(response.items)
 
 										})
-								} 
-
-							saveGoogleActivities(response.items)
+								} else {
+								saveGoogleActivities(response.items)
+							}
 						})
 				})
-
+				
+				// DRY seperated save function for Google activities method
 				function saveGoogleActivities(list) {
 
 					var timestamp = Helper.timestamp(),

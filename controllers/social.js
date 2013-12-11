@@ -5,6 +5,7 @@
 var crypto = require('crypto'),
 		oauth = require('oauth'),
 		url = require('url'),
+		request = require('request'),
 		Auth = require('../server/auth').getInstance(),
 		Log = require('../server/logger').getInstance().getLogger(),
 		Error = require('../server/error').getInstance(),
@@ -920,26 +921,39 @@ console.log(g.business.data);
 
 					// load yelp api
 					yelp = Auth.load('yelp');
-					yelp.business(y.id, function(err, response) {
-						if(err || (response && response.error)) {
-							Error.handler('yelp', err || response.error, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+					request.get({
+						url: yelp.base + 'business/' + y.id,
+						oauth: yelp.client,
+						json: true
+					},
+					function(err, response) {
+						// error handling
+						if(err || (response && response.statusCode !== 200)) {
+							Error.handler('yelp', err || response.statusCode, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 							return res.redirect('/social/yelp/connect?setup=true')
 						}
 
 						res.json({
 							success: true,
 							connected: true,
-							data: response
-						});
-					});
+							data: response.body
+						})
+					})
 
 				} else {
 
 					// load yelp api
 					yelp = Auth.load('yelp');
-					yelp.search({term: 'Roll On Sushi Diner', location: 'Austin'}, function(err, response){
-						if(err || (response && response.error)) {
-							Error.handler('yelp', err || response.error, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+					request.get({
+						url: yelp.base + 'search',
+						qs: {term: 'Roll On Sushi Diner', location: 'Austin'}, // real search terms here
+						oauth: yelp.client,
+						json: true
+					},
+					function(err, response) {
+						// error handling
+						if(err || (response && response.statusCode !== 200)) {
+							Error.handler('yelp', err || response.statusCode, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 							return res.redirect('/social/yelp/connect?setup=true')
 						}
 

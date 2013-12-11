@@ -34,6 +34,7 @@ var YelpHarvester = function() {
 			response,
 			data,
 			update = false,
+			retries = Helper.retryErrorCodes,
 			//url = false,
 			next = function(i, cb, stop) {
 				var i = i+1
@@ -47,14 +48,32 @@ var YelpHarvester = function() {
 
 		// call every 5 minutes (using time tracking to call only one business every 5 minutes)
 		business: function(itr, cb) {
-console.log('at yelp business info update method...');			
-			yelp.business(data.network_id, function(err, response) {
-				if(err || (response && response.error)) {
-					Error.handler('yelp', err || response.error, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+console.log('at yelp business info update method...');
+			request.get({
+					url: yelp.base + 'business/' + data.network_id,
+					oauth: yelp.client,
+					json: true
+				},
+				function(err, response) {
+
+				// if a connection error occurs retry request (up to 3 attempts) 
+				if(err && (response.statusCode === 503 || response.statusCode === 504 || retries.indexOf(err.code) > -1)) {
+					if(retry && retry > 2) {
+						Error.handler('yelp', 'Yelp business method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						return next(itr, cb);
+					}
+
+					return Harvest.business(itr, cb, retry ? ++retry : 1)
+				}
+
+				// error handling
+				if(err || (response && response.statusCode !== 200)) {	
+					Error.handler('yelp', err || response.statusCode, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 					return next(itr, cb)
 				}
 
-				var cached = Analytics.yelp.business.data,
+				var response = response.body,
+						cached = Analytics.yelp.business.data,
 						timestamp = Helper.timestamp(),
 						reviewsUpdated = false,
 						localUpdate = false;
@@ -146,6 +165,17 @@ console.log('at yelp reviews harvesting method...');
 						'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36'
 					}
 				}, function(err, res) {
+				// if a connection error occurs retry request (up to 3 attempts) 
+				if(err && (response.statusCode === 503 || response.statusCode === 504 || retries.indexOf(err.code) > -1)) {
+					if(retry && retry > 2) {
+						Error.handler('yelp', 'Yelp reviews method failed to connect in 3 attempts!', err, res, {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						return next(itr, cb);
+					}
+
+					return Harvest.reviews(itr, cb, pagination, retry ? ++retry : 1)
+				}
+
+				// error handling
 				if (err || !res || res.statusCode !== 200 || !res.body || res.body == '') {
 					Error.handler('yelp', err || res.statusCode, err, res, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 					return next(itr, cb);

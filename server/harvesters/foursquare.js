@@ -22,6 +22,7 @@ var FoursquareHarvester = function() {
 			data,
 			update = false,
 			connections = [],
+			retries = Helper.retryErrorCodes,
 			next = function(i, cb, err) {
 				var i = i+1;
 				if(data.methods[i])
@@ -33,9 +34,20 @@ var FoursquareHarvester = function() {
 	var Harvest = {
 
 		// up-to-date venue data [call every 1 hour?]
-		venue: function(itr, cb) {
+		venue: function(itr, cb, retry) {
 console.log('at foursquare venue method');
 			foursquare.get('venues/' + data.network_id, {v: foursquare.client.verified}, function(err, response) {
+				// if a connection error occurs retry request (up to 3 attempts) 
+				if(err && retries.indexOf(err.code) > -1) {
+					if(retry && retry > 2) {
+						Error.handler('foursquare', 'Foursquare venue method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						return next(itr, cb);
+					}
+
+					return Harvest.venue(itr, cb, retry ? ++retry : 1)
+				}
+
+				// error handling
 				if(err || !response || !response.meta || response.meta.code !== 200 || response.meta.errorType) {
 					Error.handler('foursquare', err || response, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
 					return next(itr, cb);
@@ -156,9 +168,20 @@ console.log('at foursquare venue method');
 
 		// daily stats data
 		// updated every 24 hours
-		stats: function(itr, cb) {
+		stats: function(itr, cb, retry) {
 console.log('at foursquare stats method');
 			foursquare.get('venues/' + data.network_id + '/stats', {v: foursquare.client.verified}, function(err, response) {
+				// if a connection error occurs retry request (up to 3 attempts) 
+				if(err && retries.indexOf(err.code) > -1) {
+					if(retry && retry > 2) {
+						Error.handler('foursquare', 'Foursquare stats method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						return next(itr, cb);
+					}
+
+					return Harvest.stats(itr, cb, retry ? ++retry : 1)
+				}
+
+				// error handling
 				if(err || !response || !response.meta || response.meta.code !== 200 || response.meta.errorType) {
 					Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
 					return next(itr, cb);
@@ -305,7 +328,7 @@ console.log('at foursquare stats method');
 		},*/
 
 		// call every 10 seconds
-		tips: function(itr, cb, offset) {
+		tips: function(itr, cb, offset, retry) {
 console.log('at foursquare tips method');
 				// note that the business here is actually the Analytics table
 				if(!data.business) {
@@ -319,6 +342,17 @@ console.log('at foursquare tips method');
 						timestamp = Helper.timestamp();
 
 				foursquare.get('venues/' + business.foursquare.business.id + '/tips', {v: foursquare.client.verified, limit: count, offset: offset, client_id: foursquare.client.id, client_secret: foursquare.client.secret}, function(err, response) {
+					// if a connection error occurs retry request (up to 3 attempts) 
+				if(err && retries.indexOf(err.code) > -1) {
+					if(retry && retry > 2) {
+						Error.handler('foursquare', 'Foursquare tips method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						return next(itr, cb);
+					}
+
+					return Harvest.tips(itr, cb, offset, retry ? ++retry : 1)
+				}
+
+				// error handling
 					if(err || !response || !response.meta || response.meta.code !== 200 || response.meta.errorType) {
 						Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
 						return next(itr, cb);

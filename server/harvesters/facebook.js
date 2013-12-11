@@ -6,10 +6,12 @@ var Auth = require('../auth').getInstance(),
 
 var FacebookHarvester = function() {
 
+	// private vars and methods
 	var Analytics,
 			facebook,
 			data,
 			update = false,
+			retries = Helper.retryErrorCodes.push(2),
 			since = 0,
 			next = function(i, cb, stop) {
 				var i = i+1;
@@ -20,11 +22,22 @@ var FacebookHarvester = function() {
 			};
 
 	var Harvest = {
-		page: function(itr, cb) {
+		page: function(itr, cb, retry) {
 console.log('at facebook business page update method...');
 
 			// call facebook api
 			facebook.get(data.network_id, {fields: 'name,category,category_list,company_overview,description,likes,about,location,website,username,were_here_count,talking_about_count,checkins'}, function(err, response) {
+				// if a connection error occurs retry request (up to 3 attempts) 
+				if(err && retries.indexOf(err.code) > -1) {
+					if(retry && retry > 2) {
+						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						return next(itr, cb);
+					}
+
+					return Harvest.page(itr, cb, retry ? ++retry : 1)
+				}
+
+				// error handling
 				if(err || !response || response.error) {
 					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 					return next(itr, cb);
@@ -97,8 +110,8 @@ console.log('at facebook business page update method...');
 			})
 		},
 
-		posts: function(itr, cb) {
-console.log('at posts [new] method...');
+		posts: function(itr, cb, retry) {
+console.log('at facebook posts [new] method...');
 
 			var posts = Analytics.facebook.tracking.posts.sort(Helper.sortBy('timestamp', false, parseInt)),
 					localUpdate = false;
@@ -106,6 +119,17 @@ console.log('at posts [new] method...');
 			since = posts.length ? posts[0].timestamp : 0;
 
 			facebook.get(data.network_id, {fields: 'feed.since(' + since + ').limit(100).fields(id,message,message_tags,actions,caption,created_time,description,expanded_height,expanded_width,feed_targeting,full_picture,icon,link,is_published,is_hidden,name,object_id,parent_id,picture,privacy,properties,shares,source,status_type,story,story_tags,subscribed,targeting,timeline_visibility,to,type,updated_time,via,with_tags,comments,likes)'}, function(err, response) {
+				// if a connection error occurs retry request (up to 3 attempts) 
+				if(err && retries.indexOf(err.code) > -1) {
+					if(retry && retry > 2) {
+						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						return next(itr, cb);
+					}
+
+					return Harvest.posts(itr, cb, retry ? ++retry : 1)
+				}
+
+				// error handling
 				if(err || !response || response.error) {
 					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 					return Harvest.posts_update(itr, cb);
@@ -172,14 +196,25 @@ console.log('at posts [new] method...');
 			})
 		},
 
-		posts_update: function(itr, cb) {
-console.log('at the posts [update] method...');
+		posts_update: function(itr, cb, retry) {
+console.log('at the facebook posts [update] method...');
 
 			if(!since)
 				return next(itr, cb);
 
 			// NOTE: brought limit down from 200 to 50
 			facebook.get(data.network_id, {fields: 'feed.until(' + since + ').limit(50).fields(likes,comments,shares,updated_time,created_time,status_type,type)'}, function(err, response) {
+				// if a connection error occurs retry request (up to 3 attempts) 
+				if(err && retries.indexOf(err.code) > -1) {
+					if(retry && retry > 2) {
+						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						return next(itr, cb);
+					}
+
+					return Harvest.posts_update(itr, cb, retry ? ++retry : 1)
+				}
+
+				// error handling
 				if(err || !response || response.error) {
 					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 					return next(itr, cb);
@@ -245,10 +280,21 @@ console.log('at the posts [update] method...');
 		},
 
 		// call both insights methods together every 24 hours
-		page_insights: function(itr, cb) {
-console.log('at page_insights method...');
+		page_insights: function(itr, cb, retry) {
+console.log('at facebook page_insights method...');
 
 			facebook.get(data.network_id, {fields: 'insights', date_format: 'U'}, function(err, response) {
+				// if a connection error occurs retry request (up to 3 attempts) 
+				if(err && retries.indexOf(err.code) > -1) {
+					if(retry && retry > 2) {
+						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						return next(itr, cb);
+					}
+
+					return Harvest.page_insights(itr, cb, retry ? ++retry : 1)
+				}
+
+				// error handling
 				if(err || !response || response.error) {
 					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 					return next(itr, cb);
@@ -294,15 +340,27 @@ console.log('at page_insights method...');
 		},
 
 		// call both insights methods together every 24 hours
-		posts_insights: function(itr, cb) {
-console.log('at posts_insights method');
+		posts_insights: function(itr, cb, retry) {
+console.log('at facebook posts_insights method');
 
 			var timeframe = new Date(),
 					localUpdate = false;
-					
+			
+			// set timeframe limit to collect posts only within the last 2 months		
 			timeframe = Math.round(timeframe.setMonth(timeframe.getMonth()-2)/1000);
 
 			facebook.get(data.network_id, {fields: 'posts.fields(insights).since('+timeframe+').limit(200)', date_format: 'U'}, function(err, response) {
+				// if a connection error occurs retry request (up to 3 attempts) 
+				if(err && retries.indexOf(err.code) > -1) {
+					if(retry && retry > 2) {
+						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						return next(itr, cb);
+					}
+
+					return Harvest.posts_insights(itr, cb, retry ? ++retry : 1)
+				}
+
+				// error handling
 				if(err || !response || response.error) {
 					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 					return next(itr, cb);
@@ -354,7 +412,7 @@ console.log('at posts_insights method');
 			})
 		},
 
-		connections: function(itr, cb) {
+		connections: function(itr, cb, retry) {
 			var timestamp = Helper.timestamp(),
 					batchArray = [];
 
@@ -369,8 +427,21 @@ console.log('at posts_insights method');
 					batchArray.push({method: "GET", relative_url: users[i].facebook_id});
 	
 				facebook.get('/', {batch: batchArray, access_token: facebook.client.id+'|'+facebook.client.secret}, function(err, response) {
-					if(err || !response || response.error)
-						return Error.handler('facebook', err || response.error, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+					// if a connection error occurs retry request (up to 3 attempts) 
+					if(err && ((err.exception && err.exception.code === 'ENETUNREACH') || err.code === 2)) {
+						if(retry && retry > 2) {
+							Error.handler('facebook', 'Facebook connections method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							return next(itr, cb);
+						}
+
+						return Harvest.page(itr, cb, retry ? ++retry : 1)
+					}
+
+					// error handling
+					if(err || !response || response.error) {
+						Error.handler('facebook', err || response.error, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						return next(itr, cb)
+					}
 
 					for(var x=0, l=response.length; x<l; x++) {
 

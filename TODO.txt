@@ -46,128 +46,13 @@ IF HERE LOOK BACK AND REFER TO 5.5!
 11.3) attach a dev user account to Twitter for connections.updates harvest to increase API rate limit (using app only for duplicates detection fixing in harvester)
 11.4) MAYBE DONE - TEST: work on Twitter retweeters method to be more ffiecient (todo listed in method)
 
-11.5) Setup twitter search harvesting for users (use dummy search for now)
+11.5) DONE - NEEDS TESTING! Setup twitter search harvesting for users (use dummy search for now)
+11.6) Setup Google+ user Connections from reviewers!
+11.7) Setup Facebook to load in users to Conenctions page
+11.8) Cleanup: Change Helper(s) for Util, rename connections table to, setup production Util variable for quickly switching between dev and production modes
 
 12.) Sentiment
 13.) Notifications setup
 14.) Graphing (graphing.js to be called from socket.io to produce graph data)
+
 00.) setup request abstraction layer to handle poxies and compressed file returns! [http://nickfishman.com/post/49533681471/nodejs-http-requests-with-gzip-deflate-compression]
-
-15.) Setup Google+ user Connections from reviewers!
-
-
-{ twitter: 'bradbogus', facebook: '1634735498' }
-{ twitter: 'howeth', facebook: '7904104' }
-{ twitter: 'andyviral', facebook: '1432417383' }
-{ twitter: 'theashleycarter' }
-{}
-{ twitter: 'stephaniebogus', facebook: '1230696413' }
-{ facebook: '8356336' }
-{ twitter: 'brianbogus', facebook: '100001724930213' }
-{ twitter: 'speaksocial', facebook: '1466796077' }
-{ twitter: 'merineclare', facebook: '1525050038' }
-
-
-
-{ twitter: 'andyviral', facebook: '1432417383' }
-{ facebook: '100000105443407' }
-{ facebook: '100000105443407' }
-{ facebook: '100000105443407' }
-{ facebook: '100000105443407' }
-{ twitter: 'bradbogus', facebook: '1634735498' }
-{ twitter: 'bradbogus', facebook: '1634735498' }
-{ twitter: 'andyviral', facebook: '1432417383' }
-{ twitter: 'bradbogus', facebook: '1634735498' }
-{ twitter: 'andyviral', facebook: '1432417383' }
-
-
-
-{foursquare_id: 28706346, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 2904015, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 12588455, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 8617217, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 16911328, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 3115127, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 12987298, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 12742228, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 11858283, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 4477130, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}},{foursquare_id: 12452125, meta:{ foursquare: { analytics_id: 527ad3606422b11f40000022}}}
-
-Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: {'Social.yelp.update.timestamp': { $lt : Helper.timestamp() - 86400 /* 86400 seconds = 1 day  */}}}}, function(err, user) {
-					if (err)
-
-
-
-
-
-
-pageChangesAlert: function() {
-			request.get('http://www.yelp.com/biz/speak-social-austin?sort_by=date_desc',
-				{
-					headers: {
-						'accept-charset' : 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
-  					'accept-language' : 'en-US,en;q=0.8',
-  					'accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-						'accept-encoding': 'gzip,deflate,sdch',
-						'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36'
-					}
-				},
-				function(res) {
-				//if (this.statusCode !== 200)
-					//return Error.handler('yelp', this.statusCode, null, body, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
-
-/*var chunks = [];
-var output;
-if(this.headers['content-encoding'] === 'gzip' ) {
-	console.log('here');
-	var gzip = zlib.createGunzip();
-//console.log(gzip);
-	this.pipe(gzip);
-	output = gzip;
-	//console.log(output);
-} else {
-	output = this;
-}*/
-
-res.on('end', function() {
-	console.log('WHY');
-})
-
-
-
-if(false) {
-				var $ = cheerio.load(body),
-						reviewsCount = $('#reviews-other .reviews-header').length,
-						filteredReviewsCount = $('.filtered-reviews #filtered-reviews-link').length || $('#paginationControls #filtered-reviews-link').length,
-						yelpBusinessId = $('#edit_cat_link').length,
-						reviews = $('#reviews-other ul li.review').length;
-
-				if(!reviewsCount || !filteredReviewsCount || !yelpBusinessId || !reviews) {
-					// ALERT! change in the html elements structure!
-					ScrapingLog.error('necessary Yelp html page element not found!', {reviewsCount: reviewsCount, filteredReviewsCount: filteredReviewsCount, yelpBusinessId: yelpBusinessId, reviews: reviews, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-
-					if(!reviews)
-						return;
-				}
-
-				// go through reviews and detect missing elements
-				var review = $('#reviews-other ul li.review')[0],
-						elementsArray = [
-							$(review).attr('id'), // 0 - review_id
-							$(review).find('.media-block .media-avatar .user-passport .user-name a').length, // 1 - user name and id
-							$(review).find('.media-block .media-avatar p.reviewer_info').length,
-							$(review).find('.media-block .media-avatar .user-passport .photo-box a img').length,
-							$(review).find('.media-block .media-avatar .user-passport .user-name a').length,
-							$(review).find('.media-block .media-avatar .user-passport .user-stats .friend-count > span').length,
-							$(review).find('.media-block .media-avatar .user-passport .user-stats .review-count > span').length,
-							$(review).find('.media-block .media-story .review-meta .rating meta').length,
-							$(review).find('.media-block .media-story .review_comment').length,
-							$(review).find('.media-block .media-story .review-meta > meta').length,
-							//$(review).find('.media-block .media-avatar .user-passport .user-stats li.is-elite').length,
-							$(review).find('.media-block .media-story .extra-actions .rateReview ul li.useful a span.count').length,
-							$(review).find('.media-block .media-story .extra-actions .rateReview ul li.funny a span.count').length,
-							$(review).find('.media-block .media-story .extra-actions .rateReview ul li.cool a span.count').length,
-							$(review).find('.media-block .media-story .extra-actions .externalReviewActions li a.add-owner-comment').length,
-							$(review).find('.media-block .media-story .extra-actions .externalReviewActions li a.i-orange-link-common-wrap').length,
-							//$(review).find('.review-photos .more-review-photos a').length
-						]
-
-				for(var i=0, l=elementsArray.length; i<l;i++) {
-					if(!elementsArray[i])
-						// ALERT! change in the html elements structure!
-						ScrapingLog.error('necessary Yelp html page element not found!', {elementsArray: elementsArray, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-				}
-}
-			})
-		},

@@ -190,7 +190,8 @@ var ErrorHandler = (function() {
 				
 				var meta = meta || {},
 						date = new Date().toUTCString(),
-						timestamp = Helper.timestamp();
+						timestamp = Helper.timestamp(),
+						level = meta.level || 'warn';
 
 				if(response && response.meta && (response.meta.code !== 200 || response.meta.error_type)) {
 					loggers.instagram.error(message || response.meta.error_message, {error: response.meta, file: meta.file, line: meta.line, time: date, timestamp: timestamp, meta: meta})
@@ -216,7 +217,8 @@ var ErrorHandler = (function() {
 				
 				var meta = meta || {},
 						date = new Date().toUTCString(),
-						timestamp = Helper.timestamp();
+						timestamp = Helper.timestamp(),
+						level = meta.level || 'warn';
 
 				if(response && response.error) {
 					loggers.klout.error(message || response.description, {error: response, file: meta.file, line: meta.line, time: date, timestamp: timestamp, meta: meta})
@@ -234,7 +236,8 @@ var ErrorHandler = (function() {
 				
 				var meta = meta || {},
 						date = new Date().toUTCString(),
-						timestamp = Helper.timestamp();
+						timestamp = Helper.timestamp(),
+						level = meta.level || 'warn';
 
 				if(response && response.status_code !== 200) {
 					loggers.bitly.error(message || response.status_txt, {error: response, file: meta.file, line: meta.line, time: date, timestamp: timestamp, meta: meta})

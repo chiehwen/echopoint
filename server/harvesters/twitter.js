@@ -19,6 +19,7 @@ var TwitterHarvester = function() {
 			data,
 			update = false,
 			connections = [],
+			retries = Helper.retryErrorCodes,
 			next = function(i, cb, stop) {
 				var i = i+1;
 				if(!stop && data.methods[i])
@@ -32,13 +33,24 @@ var TwitterHarvester = function() {
 		metrics: {
 
 			// call every minute NOTE: let user know that search tweets will be removed after 30 days 
-			search: function(itr, cb) {
+			search: function(itr, cb, retry) {
 	console.log('at twitter search method');
 
 				var tweets = Analytics.twitter.search.tweets.sort(Helper.sortBy('created_timestamp', false, parseInt)),
 					localUpdate = false;
 
 				twitter.get('/search/tweets.json', {q: '"Roll On Sushi Diner" "Roll On Sushi"', since_id: Analytics.twitter.search.since_id, result_type: 'recent', count: 20, include_entities: true}, function(err, response) {
+					// if a connection error occurs retry request (up to 3 attempts) 
+					if(err && retries.indexOf(err.code) > -1) {
+						if(retry && retry > 2) {
+							Error.handler('twitter', 'Twitter search failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+							return next(itr, cb);
+						}
+
+						return Harvest.metrics.search(itr, cb, retry ? ++retry : 1)
+					}
+
+					// error handling
 					if (err || !response || response.errors) {
 						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
@@ -75,11 +87,21 @@ var TwitterHarvester = function() {
 				})
 			},
 
-			// this is used to gather new follower count, 
-			// profile updates, favorites data, friends data, # of statuses(tweets) ever posted, etc 
-			credentials: function(itr, cb) {
+			// this is used to gather new follower count, profile updates, favorites data, friends data, # of statuses(tweets) ever posted, etc 
+			credentials: function(itr, cb, retry) {
 console.log('at twitter credentials update method');
 				twitter.get('/account/verify_credentials.json', {include_entities: false, skip_status: true}, function(err, credentials) {
+					// if a connection error occurs retry request (up to 3 attempts) 
+					if(err && retries.indexOf(err.code) > -1) {
+						if(retry && retry > 2) {
+							Error.handler('twitter', 'Twitter credentials method failed to connect in 3 attempts!', err, credentials, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+							return next(itr, cb);
+						}
+
+						return Harvest.metrics.credentials(itr, cb, retry ? ++retry : 1)
+					}
+
+					// error handling
 					if (err || !credentials || credentials.errors) {
 						Error.handler('twitter', err || credentials, err, credentials, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
@@ -153,9 +175,20 @@ console.log('at twitter credentials update method');
 			},
 
 			// new tweets 
-			timeline: function(itr, cb) {
+			timeline: function(itr, cb, retry) {
 console.log('at twitter timeline update method');
 				twitter.get('/statuses/user_timeline.json', {user_id: data.network_id, since_id: Analytics.twitter.timeline.since_id, count: 100, contributor_details: true, include_rts: true}, function(err, response) {
+					// if a connection error occurs retry request (up to 3 attempts) 
+					if(err && retries.indexOf(err.code) > -1) {
+						if(retry && retry > 2) {
+							Error.handler('twitter', 'Twitter timeline method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+							return next(itr, cb);
+						}
+
+						return Harvest.metrics.timeline(itr, cb, retry ? ++retry : 1)
+					}
+
+					// error handling
 					if (err || !response || response.errors) {
 						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
@@ -182,9 +215,20 @@ console.log('at twitter timeline update method');
 			},
 
 			// direct message tracking
-			dm: function(itr, cb) {
+			dm: function(itr, cb, retry) {
 console.log('at twitter new direct messages method');
 				twitter.get('/direct_messages.json', {since_id: Analytics.twitter.messages.since_id, count: 200}, function(err, response) {
+					// if a connection error occurs retry request (up to 3 attempts) 
+					if(err && retries.indexOf(err.code) > -1) {
+						if(retry && retry > 2) {
+							Error.handler('twitter', 'Twitter dm method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+							return next(itr, cb);
+						}
+
+						return Harvest.metrics.dm(itr, cb, retry ? ++retry : 1)
+					}
+
+					// error handling
 					if (err || !response || response.errors) {
 						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
@@ -213,9 +257,20 @@ console.log('at twitter new direct messages method');
 			},
 
 			// @ mentions tracking
-			mentions: function(itr, cb) {
+			mentions: function(itr, cb, retry) {
 console.log('at twitter new mentions method');
 				twitter.get('/statuses/mentions_timeline.json', {since_id: Analytics.twitter.mentions.since_id, count: 200, contributor_details: true, include_rts: true}, function(err, response) {
+					// if a connection error occurs retry request (up to 3 attempts) 
+					if(err && retries.indexOf(err.code) > -1) {
+						if(retry && retry > 2) {
+							Error.handler('twitter', 'Twitter mentions method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+							return next(itr, cb);
+						}
+
+						return Harvest.metrics.mentions(itr, cb, retry ? ++retry : 1)
+					}
+
+					// error handling
 					if (err || !response || response.errors) {
 						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
@@ -249,9 +304,20 @@ console.log('at twitter new mentions method');
 			},
 
 			// retweets tracking
-			retweets: function(itr, cb) {
+			retweets: function(itr, cb, retry) {
 console.log('at twitter retweets method');
 				twitter.get('/statuses/retweets_of_me.json', {count: 100, trim_user: true, include_entities: false, include_user_entities: false}, function(err, response) {
+					// if a connection error occurs retry request (up to 3 attempts) 
+					if(err && retries.indexOf(err.code) > -1) {
+						if(retry && retry > 2) {
+							Error.handler('twitter', 'Twitter retweets method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+							return next(itr, cb);
+						}
+
+						return Harvest.metrics.retweets(itr, cb, retry ? ++retry : 1)
+					}
+
+					// error handling
 					if (err || !response || response.errors) {
 						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
@@ -306,9 +372,20 @@ console.log('at twitter retweets method');
 			},
 
 			// find new favorited tweets
-			favorited: function(itr, cb) {
+			favorited: function(itr, cb, retry) {
 console.log('at twitter new favorited tweets method');			
 				twitter.get('/statuses/user_timeline.json', {user_id: data.network_id, since_id: Analytics.twitter.timeline.since_id, count: 200, contributor_details: false, trim_user: true, exclude_replies: false, include_rts: true}, function(err, response) {
+					// if a connection error occurs retry request (up to 3 attempts) 
+					if(err && retries.indexOf(err.code) > -1) {
+						if(retry && retry > 2) {
+							Error.handler('twitter', 'Twitter favorited method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+							return next(itr, cb);
+						}
+
+						return Harvest.metrics.favorited(itr, cb, retry ? ++retry : 1)
+					}
+
+					// error handling
 					if (err || !response || response.errors) {
 						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)

@@ -88,10 +88,10 @@ var Logger = (function() {
 								password: 'h34dtr1p',
 								ssl: true
 							}),
-							new (winston.transports.Papertrail)({
+							/*new (winston.transports.Papertrail)({
 								host: 'logs.papertrailapp.com',
 								port: 28648
-			        })
+			        })*/
 						],
 						exitOnError: false
 					})

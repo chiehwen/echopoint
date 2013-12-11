@@ -1,7 +1,7 @@
 /*
  * Klout Harvester
  *
- * Rate limit: 20,000 day [10 a second maximum]
+ * Rate limit: 20,000 day [10 per second maximum]
  * Rate limit cited within Klout API signup email
  *
  */
@@ -29,7 +29,7 @@ var KloutHarvester = function() {
 
 		// run this and score together every 10 seconds
 		id: function(itr, cb) {
-
+console.log('at klout id method...');
 			Model.Connections.findOne({
 				klout_id: {$exists: false}, 
 				$or: [
@@ -45,23 +45,23 @@ var KloutHarvester = function() {
 						]
 					}
 				] 
-			}, function(err, user) {
+			}, function(err, connection) {
 				if(err)
 					return Log.error('Error querying Connections table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
 
-				if(!user)
+				if(!connection)
 					return next(itr, cb);
 
-				user.meta.klout.attempt_timestamp = Helper.timestamp();
-				user.save(function(err) {
+				connection.meta.klout.attempt_timestamp = Helper.timestamp();
+				connection.save(function(err) {
 					if(err)
 						Log.error('Error saving to Connection table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 				})
 
-				if(user.twitter_id)
-					var endpoint = 'identity.json/tw/' + user.twitter_id;
-				else if(user.google_id)
-					var endpoint = 'identity.json/gp/' + user.google_id;
+				if(connection.twitter_id)
+					var endpoint = 'identity.json/tw/' + connection.twitter_id;
+				else if(connection.google_id)
+					var endpoint = 'identity.json/gp/' + connection.google_id;
 
 				klout.get(endpoint, {key: klout.client.key}, function(err, response) {
 					if (err || (response && response.error)) {
@@ -74,12 +74,12 @@ var KloutHarvester = function() {
 						return next(itr, cb)
 					}
 
-					console.log(response);
-					user.klout_id = response.id;
-					user.save(function(err, save) {
+					//console.log(response);
+					connection.klout_id = response.id;
+					connection.save(function(err, save) {
 						if(err)
 							return Log.error('Error saving to Connection table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-
+						console.log('saving connection Klout ID');
 						next(itr, cb, true)
 					})
 				})
@@ -87,18 +87,18 @@ var KloutHarvester = function() {
 		},
 
 		score: function(itr, cb) {
-
+console.log('at klout score method...');
 			Model.Connections.findOne({
 				klout_id: {$exists: true}, 
 				Klout: {$exists: false}
-			}, function(err, user) {
+			}, function(err, connection) {
 				if(err)
-					return Log.error('Error querying Connections table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					return Log.error('Error querying Connections table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
-				if(!user)
+				if(!connection)
 					return next(itr, cb);
 
-				klout.get('user.json/' + user.klout_id, {key: klout.client.key}, function(err, response) {
+				klout.get('user.json/' + connection.klout_id, {key: klout.client.key}, function(err, response) {
 					if (err || (response && response.error)) {
 						Error.handler('klout', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
@@ -111,8 +111,8 @@ var KloutHarvester = function() {
 
 					var timestamp = Helper.timestamp();
 
-					user.Klout = {
-						id: user.klout_id,
+					connection.Klout = {
+						id: connection.klout_id,
 						handle: response.nick,
 						handle_lower: response.nick ? response.nick.toLowerCase() : '',
 						score: {
@@ -131,10 +131,10 @@ var KloutHarvester = function() {
 						}
 					}
 
-					user.save(function(err, save) {
+					connection.save(function(err, save) {
 						if(err)
-							return Log.error('Error saving to Connection table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
-
+							return Log.error('Error saving to Connection table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						console.log('saving connection Klout score');
 						next(itr, cb, true)
 					})
 				})
@@ -151,7 +151,7 @@ var KloutHarvester = function() {
 		 */
 		// run this function every 5 seconds
 		update: function(itr, cb) {
-			
+console.log('at klout score update method...');		
 			var timestamp = Helper.timestamp();
 
 			Model.Connections.findOne({
@@ -159,14 +159,14 @@ var KloutHarvester = function() {
 				Klout: {$exists: true},
 				'Klout.score.timestamp': {$exists: true},
 				'Klout.score.timestamp': {$lt: timestamp - 864000 /* 864000 = 10 days */}
-			}, function(err, user) {
+			}, function(err, connection) {
 				if(err)
-					return Log.error('Error querying Connections table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					return Log.error('Error querying Connections table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
-				if(!user)
+				if(!connection)
 					return next(itr, cb);
 
-				klout.get('user.json/' + user.klout_id, {key: klout.client.key}, function(err, response) {
+				klout.get('user.json/' + connection.klout_id, {key: klout.client.key}, function(err, response) {
 					if (err || (response && response.error)) {
 						Error.handler('klout', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
@@ -177,9 +177,9 @@ var KloutHarvester = function() {
 						return next(itr, cb)
 					}
 
-					user.Klout.handle = response.nick;
-					user.Klout.handle_lower = response.nick ? response.nick.toLowerCase() : '',
-					user.Klout.score.history.push({
+					connection.Klout.handle = response.nick;
+					connection.Klout.handle_lower = response.nick ? response.nick.toLowerCase() : '',
+					connection.Klout.score.history.push({
 						score: response.score.score,
 						bucket: response.score.bucket,
 						deltas: {
@@ -189,13 +189,13 @@ var KloutHarvester = function() {
 						},
 						timestamp: timestamp
 					});
-					user.Klout.score.score = response.score.score;
-					user.Klout.score.timestamp = timestamp;
+					connection.Klout.score.score = response.score.score;
+					connection.Klout.score.timestamp = timestamp;
 
-					user.save(function(err, save) {
+					connection.save(function(err, save) {
 						if(err)
-							return Log.error('Error saving to Connection table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
-
+							return Log.error('Error saving to Connection table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						console.log('saving Klout connection update');
 						next(itr, cb, true)
 					})
 				})
@@ -210,9 +210,9 @@ var KloutHarvester = function() {
 		 * In time this, and all seperate connections table api calls,
 		 * should be moved to a different server in the future
 		 */
-		// run this funtion every 10 seconds 
+		// run this funtion every 10 seconds. This method uses a klout ID to attempt to gather a social ID of eitehr twitter, G+, or instagram
 		discovery: function(itr, cb) {
-
+console.log('at klout discovery method...');
 			var timestamp = Helper.timestamp();
 
 			Model.Connections.findOne({
@@ -231,72 +231,75 @@ var KloutHarvester = function() {
 					{'meta.klout.discovery.attempt_timestamp': {$exists: false}}, 
 					{'meta.klout.discovery.attempt_timestamp': {$lt: timestamp - 2592000 /* 2592000 = 30 days */}}
 				]
-			}, function(err, user) {
+			}, function(err, connection) {
 				if(err)
-					return Log.error('Error querying Connections table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					return Log.error('Error querying Connections table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
 
-				if(!user)
+				if(!connection)
 					return next(itr, cb);
 
-				user.meta.klout.discovery.attempt_timestamp = timestamp;
+				connection.meta.klout.discovery.attempt_timestamp = timestamp;
 
 				// only two of these next three "if" conditionals will ever be called
 				// since we must have at least one id type to get here
-				if(!user.twitter_id && !user.meta.klout.discovery.twitter.success)
-					klout.get('identity.json/klout/' + user.klout_id +'/tw', {key: klout.client.key}, function(err, response) {
+				if(!connection.twitter_id && !connection.meta.klout.discovery.twitter.success)
+					klout.get('identity.json/klout/' + connection.klout_id +'/tw', {key: klout.client.key}, function(err, response) {
 						if (err || (response && response.error)) {
 							Error.handler('klout', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 							return next(itr, cb)
 						}
 
 						if(response && response.id) {							
-							user.twitter_id = response.id;
-							user.meta.klout.discovery.twitter.success = true;
-							console.log('twitter_id from kloutId: ', response);
-							user.save(function(err, save) {
+							connection.twitter_id = response.id;
+							connection.meta.klout.discovery.twitter.success = true;
+							//console.log('twitter_id from kloutId: ', response);
+							connection.save(function(err, save) {
 								if(err)
 									Log.error('Error saving to Connection table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+								console.log('saving Klout twitter discovery id');
 							})
 						}
 					})
 
-				if(!user.google_id && !user.meta.klout.discovery.google.success)
-					klout.get('identity.json/klout/' + user.klout_id +'/gp', {key: klout.client.key}, function(err, response) {
+				if(!connection.google_id && !connection.meta.klout.discovery.google.success)
+					klout.get('identity.json/klout/' + connection.klout_id +'/gp', {key: klout.client.key}, function(err, response) {
 						if (err || (response && response.error)) {
 							Error.handler('klout', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 							return next(itr, cb)
 						}
 
 						if(response && response.id) {									
-							user.google_id = response.id;	
-							user.meta.klout.discovery.google.success = true;
-							console.log('google_id from kloutId: ', response);
-							user.save(function(err, save) {
+							connection.google_id = response.id;	
+							connection.meta.klout.discovery.google.success = true;
+							//console.log('google_id from kloutId: ', response);
+							connection.save(function(err, save) {
 								if(err)
 									Log.error('Error saving to Connection table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+								console.log('saving Klout G+ discovery id');
 							})
 						}
 					})
 
-				if(!user.instagram_id && !user.meta.klout.discovery.instagram.success)
-					klout.get('identity.json/klout/' + user.klout_id +'/ig', {key: klout.client.key}, function(err, response) {
+				if(!connection.instagram_id && !connection.meta.klout.discovery.instagram.success)
+					klout.get('identity.json/klout/' + connection.klout_id +'/ig', {key: klout.client.key}, function(err, response) {
 						if (err || (response && response.error)) {
 							Error.handler('klout', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
 							return next(itr, cb)
 						}
 
 						if(response && response.id) {
-							user.instagram_id = response.id;
-							user.meta.klout.discovery.instagram.success = true;
-							console.log('instagram_id from kloutId: ', response);
-							user.save(function(err, save) {
+							connection.instagram_id = response.id;
+							connection.meta.klout.discovery.instagram.success = true;
+							//console.log('instagram_id from kloutId: ', response);
+							connection.save(function(err, save) {
 								if(err)
 									Log.error('Error saving to Connection table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+								console.log('saving Klout instagram discovery id');
 							})
 						}
 					})
 
-				user.save(function(err, save) {
+				connection.save(function(err, save) {
 					if(err)
 						return Log.error('Error saving to Connection table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
 

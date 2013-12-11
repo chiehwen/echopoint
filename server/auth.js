@@ -148,12 +148,15 @@ var Auth = (function() {
 
 			yelp: function() {
 				if(!Yelp)
-					Yelp = YelpApi.createClient({
-						consumer_key: Config.yelp.consumerKey,
-						consumer_secret: Config.yelp.consumerSecret,
-						token: Config.yelp.token,
-						token_secret: Config.yelp.tokenSecret
-					})
+					Yelp = {
+						base: 'http://api.yelp.com/v2/',
+						client: {
+							consumer_key: Config.yelp.consumerKey,
+							consumer_secret: Config.yelp.consumerSecret,
+							token: Config.yelp.token,
+							token_secret: Config.yelp.tokenSecret
+						}
+					}
 
 				return Yelp;
 			},
