@@ -2,8 +2,7 @@
  * Partials Controller
  */
 
-var Helper = require('../server/helpers'),
-		Model = Model || Object;
+var Model = Model || Object;
 
 var PartialsController = {
 	// primary partials

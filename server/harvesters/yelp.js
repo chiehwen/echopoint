@@ -14,7 +14,7 @@ var fs = require('fs'),
 		Alert = require('../logger').getInstance().getLogger('alert'),
 		ScrapingLog = require('../logger').getInstance().getLogger('scraping'),
 		Error = require('../error').getInstance(),
-		Helper = require('../helpers'),
+		Utils = require('../utilities'),
 		Model = Model || Object,
 		Requester = require('requester'),
 		cheerio = require('cheerio');
@@ -34,7 +34,7 @@ var YelpHarvester = function() {
 			response,
 			data,
 			update = false,
-			retries = Helper.retryErrorCodes,
+			retries = Utils.retryErrorCodes,
 			//url = false,
 			next = function(i, cb, stop) {
 				var i = i+1
@@ -59,7 +59,7 @@ console.log('at yelp business info update method...');
 				// if a connection error occurs retry request (up to 3 attempts) 
 				if(err && (response.statusCode === 503 || response.statusCode === 504 || retries.indexOf(err.code) > -1)) {
 					if(retry && retry > 2) {
-						Error.handler('yelp', 'Yelp business method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						Error.handler('yelp', 'Yelp business method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 						return next(itr, cb);
 					}
 
@@ -68,13 +68,13 @@ console.log('at yelp business info update method...');
 
 				// error handling
 				if(err || (response && response.statusCode !== 200)) {	
-					Error.handler('yelp', err || response.statusCode, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+					Error.handler('yelp', err || response.statusCode, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 					return next(itr, cb)
 				}
 
 				var response = response.body,
 						cached = Analytics.yelp.business.data,
-						timestamp = Helper.timestamp(),
+						timestamp = Utils.timestamp(),
 						reviewsUpdated = false,
 						localUpdate = false;
 
@@ -138,7 +138,7 @@ console.log('here1');
 		reviews: function(itr, cb, pagination) {
 console.log('at yelp reviews harvesting method...');		
 			// mark the attempt time 
-			var timestamp = Helper.timestamp();
+			var timestamp = Utils.timestamp();
 			User.Business[index].Social.yelp.update.timestamp = timestamp;
 
 			// only scrape if something has changed from the API data
@@ -152,7 +152,7 @@ console.log('at yelp reviews harvesting method...');
 			
 			var cached = Analytics.yelp.business.data,
 					pagination = (pagination || 0),
-					timestamp = Helper.timestamp(),
+					timestamp = Utils.timestamp(),
 					localUpdate = false;
 
 			request.get(Analytics.yelp.business.data.url + '?sort_by=date_desc' + (pagination ? '&start=' + (pagination * Analytics.yelp.harvest.pagination.multiplier) : ''), 
@@ -168,7 +168,7 @@ console.log('at yelp reviews harvesting method...');
 				// if a connection error occurs retry request (up to 3 attempts) 
 				if(err && (response.statusCode === 503 || response.statusCode === 504 || retries.indexOf(err.code) > -1)) {
 					if(retry && retry > 2) {
-						Error.handler('yelp', 'Yelp reviews method failed to connect in 3 attempts!', err, res, {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						Error.handler('yelp', 'Yelp reviews method failed to connect in 3 attempts!', err, res, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 						return next(itr, cb);
 					}
 
@@ -177,7 +177,7 @@ console.log('at yelp reviews harvesting method...');
 
 				// error handling
 				if (err || !res || res.statusCode !== 200 || !res.body || res.body == '') {
-					Error.handler('yelp', err || res.statusCode, err, res, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+					Error.handler('yelp', err || res.statusCode, err, res, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 					return next(itr, cb);
 				}
 
@@ -213,7 +213,7 @@ if(filteredReviewsCount === false) {
 					// verify that we have a review ID in the scraped HTML!
 					if(!$(value).attr('id') || $(value).attr('id') === '') {
 						console.log('ERROR ALERT OMG');
-						ScrapingLog.error('Missing Yelp review ID!', {review: $(value).html().toString(), iteration: i, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						ScrapingLog.error('Missing Yelp review ID!', {review: $(value).html().toString(), iteration: i, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 						return next(itr, cb);
 						break;
 					}
@@ -236,9 +236,9 @@ if(filteredReviewsCount === false) {
 							|| !$(value).find('.media-block .media-story .review-meta .rating meta').attr('content') // rating attribute
 							|| !$(value).find('.media-block .media-story .review_comment').length // review text
 					) {
-						Alert.file('Missing one or more critical Yelp review DOM elements!', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), timestamp: Helper.timestamp()})
-						Alert.broadcast('Missing one or more critical Yelp review DOM elements!', {file: __filename, line: Helper.stack()[0].getLineNumber()})
-						ScrapingLog.error('Missing one or more critical Yelp review DOM elements!', {review: $(value).html().toString(), iteration: i, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						Alert.file('Missing one or more critical Yelp review DOM elements!', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), timestamp: Utils.timestamp()})
+						Alert.broadcast('Missing one or more critical Yelp review DOM elements!', {file: __filename, line: Utils.stack()[0].getLineNumber()})
+						ScrapingLog.error('Missing one or more critical Yelp review DOM elements!', {review: $(value).html().toString(), iteration: i, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 						return next(itr, cb);
 					}
 
@@ -251,8 +251,8 @@ if(filteredReviewsCount === false) {
 							//|| !$(value).find('.media-block .media-story .extra-actions .externalReviewActions li a.add-owner-comment').attr('href') // owner comment url attribute
 					) {
 						console.log('not as error alerting ');
-						Error.handler('yelp', 'Missing a non-critical review DOM element!', null, null, {iteration: i, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'warn'})
-						ScrapingLog.error('Missing one or more non-critical Yelp review DOM element!', {review: $(value).html().toString(), iteration: i, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						Error.handler('yelp', 'Missing a non-critical review DOM element!', null, null, {iteration: i, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'warn'})
+						ScrapingLog.error('Missing one or more non-critical Yelp review DOM element!', {review: $(value).html().toString(), iteration: i, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					}
 
 					update = localUpdate = true;
@@ -374,8 +374,8 @@ if(filteredReviewsCount === false) {
 					|| !$('.media-block').find('.media-story .extra-actions .externalReviewActions li a.add-owner-comment').length // owner comment url
 					|| !$('.media-block').find('.media-story .extra-actions .externalReviewActions li a.add-owner-comment').attr('href') // owner comment url attribute
 			) {
-				Error.handler('yelp', 'Missing a non-critical review DOM element!', null, null, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
-				ScrapingLog.error('Missing a non-critical review DOM element!', {review: $('.media-block').html().toString(), file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+				Error.handler('yelp', 'Missing a non-critical review DOM element!', null, null, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+				ScrapingLog.error('Missing a non-critical review DOM element!', {review: $('.media-block').html().toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 				callback(null)
 			}
 		},
@@ -384,10 +384,10 @@ if(filteredReviewsCount === false) {
 		savePage: function(itr, cb, html) {
 			if(!html)
 				requester.get('http://www.yelp.com/biz/midas-green-tech-austin?sort_by=date_desc', function(body) {
-					fs.writeFileSync('server/harvesters/output/yelp.' + Helper.timestamp() + '.html', body)
+					fs.writeFileSync('server/harvesters/output/yelp.' + Utils.timestamp() + '.html', body)
 				})
 			else
-				fs.writeFileSync('server/harvesters/output/yelp.' + Helper.timestamp() + '.html', html)
+				fs.writeFileSync('server/harvesters/output/yelp.' + Utils.timestamp() + '.html', html)
 		},
 
 		// every 5 minutes with proxies, every 4 hours without
@@ -403,7 +403,7 @@ if(filteredReviewsCount === false) {
 					}
 				}, function(err, res) {
 					if (err || !res || res.statusCode !== 200 || !res.body || res.body == '')
-						return Error.handler('yelp', err || res.statusCode, err, res, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						return Error.handler('yelp', err || res.statusCode, err, res, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 
 				var $ = cheerio.load(res.body),
 						reviewsCount = $('#reviews-other .reviews-header').length,
@@ -413,7 +413,7 @@ if(filteredReviewsCount === false) {
 
 				if(!reviewsCount || !filteredReviewsCount || !yelpBusinessId || !reviews) {
 					// ALERT! change in the html elements structure!
-					ScrapingLog.error('necessary Yelp html page element not found!', {reviewsCount: reviewsCount, filteredReviewsCount: filteredReviewsCount, yelpBusinessId: yelpBusinessId, reviews: reviews, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					ScrapingLog.error('necessary Yelp html page element not found!', {reviewsCount: reviewsCount, filteredReviewsCount: filteredReviewsCount, yelpBusinessId: yelpBusinessId, reviews: reviews, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 					if(!reviews)
 						return;
@@ -443,9 +443,9 @@ if(filteredReviewsCount === false) {
 
 				for(var i=0, l=elementsArray.length; i<l;i++) {
 					if(!elementsArray[i])
-						Alert.file('change in the Yelp html elements structure!', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), timestamp: Helper.timestamp()})
-						Alert.broadcast('change in the Yelp html elements structure!', {file: __filename, line: Helper.stack()[0].getLineNumber()})
-						ScrapingLog.error('necessary Yelp html page element not found!', {elementsArray: elementsArray, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						Alert.file('change in the Yelp html elements structure!', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), timestamp: Utils.timestamp()})
+						Alert.broadcast('change in the Yelp html elements structure!', {file: __filename, line: Utils.stack()[0].getLineNumber()})
+						ScrapingLog.error('necessary Yelp html page element not found!', {elementsArray: elementsArray, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 				}
 			})
 		},
@@ -459,7 +459,7 @@ if(filteredReviewsCount === false) {
 					reviewObject = {},
 					cached = Analytics.yelp.business.data,
 					pagination = (pagination || 0),
-					timestamp = Helper.timestamp(),
+					timestamp = Utils.timestamp(),
 					localUpdate = false;
 
 			if(!Analytics.yelp.business.id) {
@@ -541,7 +541,7 @@ if(filteredReviewsCount === false) {
 
 			/*if(newReviews) {
 				update = localUpdate = true;
-				Analytics.yelp.reviews.active.sort(Helper.sortBy())
+				Analytics.yelp.reviews.active.sort(Utils.sortBy())
 			}*/
 
 //console.log($('#reviews-other ul li.review'));
@@ -581,7 +581,7 @@ for(var i=0, l=test.length; i<l;i++) {
 	return {
 		getMetrics: function(user, params, callback) { 
 			if(!user || !params || typeof params.index === 'undefined') // index may be zero so check typeof
-				return Log.error('No user or params provided', {meta: params, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+				return Log.error('No user or params provided', {meta: params, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 			User = user,
 			index = params.index,
@@ -597,20 +597,20 @@ for(var i=0, l=test.length; i<l;i++) {
 					if(update)
 						Analytics.save(function(err, save) {
 							if(err && err.name !== 'VersionError')
-								return Log.error('Error saving Yelp analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+								return Log.error('Error saving Yelp analytics to database', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 							// if we have a versioning overwrite error than load up the analytics document again
 							if(err && err.name === 'VersionError')
 								Model.Analytics.findById(User.Business[index].Analytics.id, function(err, analytics) {
 									if(err)
-										return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+										return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 									analytics.yelp = Analytics.yelp;
 									analytics.markModified('yelp')
 
 									analytics.save(function(err, save) {
 										if(err)
-											return Log.error('Error saving Yelp analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+											return Log.error('Error saving Yelp analytics to database', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 										callback();
 									})
 								})

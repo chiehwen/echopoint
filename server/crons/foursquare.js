@@ -9,7 +9,7 @@
 var Auth = require('../auth').getInstance(),
 		Log = require('../logger').getInstance().getLogger(),
 		Error = require('../error').getInstance(),
-		Helper = require('../helpers'),
+		Utils = require('../utilities'),
 		Cron = require('cron').CronJob,
 		Model = Model || Object,
 		Harvester = {foursquare: require('../harvesters/foursquare')};
@@ -22,7 +22,7 @@ var FoursquareCron = function() {
 		metrics: function(methods) {
 			Model.User.find(function(err, users) {
 				if (err || !users)
-					return Log.error(err ? err : 'No users returned', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					return Log.error(err ? err : 'No users returned', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 				users.forEach(function(user) {
 					user.Business.forEach(function(business, index) {
@@ -51,7 +51,7 @@ var FoursquareCron = function() {
 		tips: function(methods) {
 			Model.Analytics.findOne({'foursquare.business.id': {$exists: true}, 'foursquare.tracking.tips.update': true}, function(err, business) {
 				if (err)
-					return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					return Log.error(err, {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 //console.log(business);
 				if(!business)
 					return
@@ -66,20 +66,20 @@ var FoursquareCron = function() {
 					console.log('Foursquare tips callback complete [' + methods.toString() + ']');							
 					business.save(function(err, save) {
 						if(err && err.name !== 'VersionError')
-							return Log.error('Error saving Foursquare analytics to database', {error: err, analytics_id: business._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+							return Log.error('Error saving Foursquare analytics to database', {error: err, analytics_id: business._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 						// if we have a versioning overwrite error than load up the analytics document again
 						if(err && err.name === 'VersionError')
 							Model.Analytics.findById(business._id, function(err, analytics) {
 								if(err)
-									return Log.error('Error querying Analytic table', {error: err, analytics_id: business._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+									return Log.error('Error querying Analytic table', {error: err, analytics_id: business._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 								analytics.foursquare = business.foursquare;
 								analytics.markModified('foursquare')
 
 								analytics.save(function(err, save) {
 									if(err)
-										return Log.error('Error saving Foursquare analytics to database', {error: err, analytics_id: business._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+										return Log.error('Error saving Foursquare analytics to database', {error: err, analytics_id: business._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 								})
 							})
@@ -88,7 +88,7 @@ var FoursquareCron = function() {
 			})
 		},
 
-		connections: function(methods) {
+		engagers: function(methods) {
 			methods = methods || ['user'];
 			var harvest = new Harvester.foursquare;
 

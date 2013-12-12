@@ -21,10 +21,10 @@ Boot.start(function(app) {
 var Model = Model || Object,
 		Log = require('./server/logger').getInstance().getLogger(),
 		Alert = require('./server/logger').getInstance().getLogger('alert'),
-		Helper = require('./server/helpers');
+		Utils = require('./server/utilities');
 
 /////// REMOVE ALL USER DATA ////////
-//Model.Connections.remove(function(err){if(err) throw err})
+//Model.Engagers.remove(function(err){if(err) throw err})
 //Model.Analytics.remove(function(err){if(err) throw err})
 //Model.User.remove(function(err){if(err) throw err})
 
@@ -34,19 +34,19 @@ var Cron = require('./server/cron');
 
 Cron.facebook.feed.start();
 Cron.facebook.insights.start();
-//Cron.facebook.users.start();
+//Cron.facebook.engagers.start();
 
 Cron.twitter.timeline.start();
 Cron.twitter.interactions.start();
 Cron.twitter.search.start();
-//Cron.twitter.connections.start();
+//Cron.twitter.engagers.start();
 //Cron.twitter.duplicates.start();
 //Cron.twitter.update.start();
 
 Cron.foursquare.venue.start();
 Cron.foursquare.stats.start();
 Cron.foursquare.tips.start();
-//Cron.foursquare.users.start();
+//Cron.foursquare.engagers.start();
 
 Cron.google.activity.start();
 Cron.google.business.start();
@@ -85,13 +85,13 @@ var Crons = {
 ///////// TEST HARVEST CALLS ///////////
 //Crons.facebook.getJob('metrics', ['page', 'posts'])
 //Crons.facebook.getJob('metrics', ['page_insights', 'posts_insights'])
-//Crons.facebook.getJob('connections', ['connections'])
+//Crons.facebook.getJob('engagers', ['engagers'])
 
 //Crons.twitter.getJob('metrics', ['credentials', 'timeline', 'dm', 'mentions', 'retweets', 'favorited'])
 //Crons.twitter.getJob('metrics', ['retweeters', 'friends', 'followers'])
-//Crons.twitter.getJob('connections', ['populateById', 'populateByScreenName'])
-//Crons.twitter.getJob('connections', ['duplicates'])
-//Crons.twitter.getJob('connections', ['update'])
+//Crons.twitter.getJob('engagers', ['populateById', 'populateByScreenName'])
+//Crons.twitter.getJob('engagers', ['duplicates'])
+//Crons.twitter.getJob('engagers', ['update'])
 
 //Crons.foursquare.getJob('metrics', ['venue'])
 //Crons.foursquare.getJob('metrics', ['stats'])
@@ -106,9 +106,8 @@ var Crons = {
 
 
 
-Model.Connections.findOne({instagram_id: {$exists: true}, Instagram: {$exists: false}}, function(err, connection) {
-	console.log('coco',connection);
-})
+
+
 
 
 Model.Analytics.find(function(err, analytic) {
@@ -194,9 +193,9 @@ oauth2.getOAuthAccessToken('', {
 
 
 
-//var connections = new Model.Connections({});
-//connections.save(function(err,com) {});
-Model.Connections.find(function(err, con) {
+//var engagers = new Model.Engagers({});
+//engagers.save(function(err,com) {});
+Model.Engagers.find(function(err, con) {
 	console.log('Twitter document length: ', con.length)
 	//con.forEach(function(use) {
 		//use.push({id: 1922})
@@ -207,7 +206,7 @@ Model.Connections.find(function(err, con) {
 });
 
 //var Helper = require('./server/helpers');
-/*Model.Connections.findOne(
+/*Model.Engagers.findOne(
 {
 	klout_id: {$exists: false}, 
 	$or: [
@@ -219,7 +218,7 @@ Model.Connections.find(function(err, con) {
 		{
 			$and: [
 				{'meta.klout.success': {$exists: false}}, 
-				{'meta.klout.attempt_timestamp': {$lt: Helper.timestamp() - 1296000 /* 1296000 = 15 days *} }
+				{'meta.klout.attempt_timestamp': {$lt: Utils.timestamp() - 1296000 /* 1296000 = 15 days *} }
 			]
 		}
 	] 
@@ -245,15 +244,15 @@ Model.Connections.find(function(err, con) {
 //Model.Klout.collection.insert([{id: i}, {id: i+100}], function(er, s) {console.log(er, s);})
 
 
-//Model.Connections.remove(function(err){if(err) throw err});
+//Model.Engagers.remove(function(err){if(err) throw err});
 
-//Model.Connections.collection.insert(usersArray, {continueOnError: true}, function(er, s) {console.log(er, s);})
+//Model.Engagers.collection.insert(usersArray, {continueOnError: true}, function(er, s) {console.log(er, s);})
 //30399302251492452
-//Model.Connections.findOne({klout_id: 30399302251492452}, function(err, dat) {
+//Model.Engagers.findOne({klout_id: 30399302251492452}, function(err, dat) {
  //console.log(dat)
 //})
 
-//Model.Connections.find({twitter_id: {$exists: true}, Twitter: {$exists: false}}, null, {/*limit: 10*/}, function(err, users) {
+//Model.Engagers.find({twitter_id: {$exists: true}, Twitter: {$exists: false}}, null, {/*limit: 10*/}, function(err, users) {
 //console.log('len: ', users.length, users[0])
 //con.klout_id = 123;
 //con.Klout = {id: 123};
@@ -271,7 +270,7 @@ Model.Connections.find(function(err, con) {
 
 
 //Alert.file('Error TEST loggin', {meta: 'none of this please'})
-//Alert.broadcast('Broadcast message ALERT', {file: __filename, line: Helper.stack()[0].getLineNumber()})
+//Alert.broadcast('Broadcast message ALERT', {file: __filename, line: Utils.stack()[0].getLineNumber()})
 
 
 
@@ -283,14 +282,14 @@ Model.Connections.find(function(err, con) {
 					//analytics_id: f.id,
 					//network_id: f.business.data.id
 				}, function(err) {
-					console.log('Foursquare connections callbacks complete');							
+					console.log('Foursquare engagers callbacks complete');							
 					//res.json({success: true,connected: true,account: true,data: {businesses: null},url: null});
 					//business.save(function(err, save) {
 						//console.log(err);
 					//})
 				})*/
 
-Model.Connections.find({'Twitter.screen_name_lower' : 'andyviral'}, function(err, dataa) {
+Model.Engagers.find({'Twitter.screen_name_lower' : 'andyviral'}, function(err, dataa) {
 	//console.log('here',err, dataa[0]);
 	//dataa= dataa[0];
 	//dataa.Twitter = {screen_name: 'andyviral', screen_name_lower: 'andyviral'}
@@ -313,7 +312,7 @@ Model.Connections.find({'Twitter.screen_name_lower' : 'andyviral'}, function(err
 //console.log(str);
 })
 
-Model.Connections.aggregate(
+Model.Engagers.aggregate(
 	{ $group : {_id : "$Twitter.screen_name_lower", total : { $sum : 1 } } },
 	{ $match : { total : { $gte : 2 } } },
 	//{ $sort : {total : -1} },
@@ -323,7 +322,7 @@ Model.Connections.aggregate(
 	}
 )
 
-/*Model.Connections.collection.insert([
+/*Model.Engagers.collection.insert([
 	{foursquare_id: 28706346, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},
 	{foursquare_id: 2904015, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},
 	{foursquare_id: 12588455, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},
@@ -331,7 +330,7 @@ Model.Connections.aggregate(
 	{foursquare_id: 3115127, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},{foursquare_id: 12987298, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},{foursquare_id: 12742228, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},{foursquare_id: 11858283, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},{foursquare_id: 4477130, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}},{foursquare_id: 12452125, meta:{ foursquare: { analytics_id: "527ad3606422b11f40000022"}}}], {safe: true, continueOnError: true}, 
 	function(err, save) {
 	if(err)
-		//return Log.error('Error saving to Connection table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+		//return Log.error('Error saving to Connection table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 		console.log(err);
 })*/
 
@@ -359,7 +358,7 @@ Model.Analytics.findOne({}, function(err, Analytics) {
 	//})
 })
 
-Model.Connections.findById('527ad3e186569f404000008b', function(err, huh) {
+Model.Engagers.findById('527ad3e186569f404000008b', function(err, huh) {
 //console.log(huh);
 })
 
@@ -447,7 +446,7 @@ console.log(googleTimestampHash.getTimestampHash());
 				lang_code: reviews[i][30],
 				relative_time:reviews[i][5],
 				reference: reviews[i][33],
-				//timestamp: Helper.timestamp()
+				//timestamp: Utils.timestamp()
 			});
 		}
 */

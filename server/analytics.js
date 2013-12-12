@@ -2,7 +2,7 @@
  * Analytics Processing
  */
 var Auth = require('./auth').getInstance(),
-		Helper = require('./helpers'),
+		Utils = require('./utilities'),
 		Model = Model || Object;
 
 var Analytics = (function() {

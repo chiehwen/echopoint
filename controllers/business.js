@@ -3,7 +3,7 @@
  */
 
 var Log = require('../server/logger').getInstance().getLogger(),
-		Helper = require('../server/helpers'),
+		Utils = require('../server/utilities'),
 		Model = Model || Object;
 
 var BusinessController = {
@@ -22,18 +22,18 @@ var BusinessController = {
 			if(!req.session.passport.user)
 				res.redirect('/login')
 
-			Helper.getUser(req.session.passport.user, function(err, user) {
+			Utils.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) {
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 					req.session.messages.push('Error finding user for business')
 					return res.redirect(err ? '/logout' : '/login')
 				}
 
-				//var generated = Helper.timestamp(true) + Helper.randomInt(10000, 99999);
+				//var generated = Utils.timestamp(true) + Utils.randomInt(10000, 99999);
 
-				Helper.getBusinessByName(user._id, req.body.name, true, function(err, named) {
+				Utils.getBusinessByName(user._id, req.body.name, true, function(err, named) {
 					if (err) {
-						Log.error('Error querying business by name', {error: err, user_id: user._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						Log.error('Error querying business by name', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 						req.session.messages.push('Error finding business')
 						return res.redirect('/logout')
 					}
@@ -57,14 +57,14 @@ var BusinessController = {
 
 					user.save(function(err, response) {
 						if(err) {
-							Log.error('Error saving new Business to User model with Mongoose', {error: err, user_id: user._id, business_id: named[0]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							Log.error('Error saving new Business to User model with Mongoose', {error: err, user_id: user._id, business_id: named[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 							req.session.messages.push('Error creating new Business!')
 							return res.redirect('/business/create')
 						}
 
 						analytics.save(function(err) {
 							if (err) {
-								Log.error('Error saving new Analytic model with Mongoose', {error: err, user_id: user._id, business_id: named[0]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+								Log.error('Error saving new Analytic model with Mongoose', {error: err, user_id: user._id, business_id: named[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 								req.session.messages.push('Error creating new Business!')
 								return res.redirect('/business/create')				
 							}
@@ -82,9 +82,9 @@ var BusinessController = {
 			if(!req.session.passport.user)
 				res.redirect('/login')
 
-			Helper.getUser(req.session.passport.user, function(err, user) {
+			Utils.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) {
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 					req.session.messages.push('Error finding user for business')
 					return res.redirect(err ? '/logout' : '/login')		
 				}
@@ -100,9 +100,9 @@ var BusinessController = {
 					} 
 					user.save(function(err,res){
 						if(err) 
-							Log.error('Error saving current business meta data', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							Log.error('Error saving current business meta data', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 					});
-					res.redirect(Helper.redirectToPrevious(req.session));
+					res.redirect(Utils.redirectToPrevious(req.session));
 				}
 
 				if(typeof req.query.business !== 'undefined') {
@@ -118,15 +118,15 @@ var BusinessController = {
 							}
 							user.save(function(err,res){
 								if(err) 
-									Log.error('Error saving current business meta data', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+									Log.error('Error saving current business meta data', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 							});
-							res.redirect(Helper.redirectToPrevious(req.session));
+							res.redirect(Utils.redirectToPrevious(req.session));
 						}
 					}
 				}
 
 				res.render(
-					Helper.bootstrapRoute, //'business/select', 
+					Utils.bootstrapRoute, //'business/select', 
 					{
 						title: 'Vocada | Business List',
 						businesses: user.Business
@@ -162,11 +162,11 @@ var BusinessController = {
 	list: {
 		get: function(req, res) {
 			if(req.session.passport.user) {
-				Helper.getUser(req.session.passport.user, function(err, user) {
+				Utils.getUser(req.session.passport.user, function(err, user) {
 					if (err) return next(err);		
 					
 					res.render(
-						Helper.bootstrapRoute, //'business/list', 
+						Utils.bootstrapRoute, //'business/list', 
 						{
 					  	title: 'Vocada | Business List',
 					  	businesses: user.Business
@@ -187,39 +187,39 @@ var BusinessController = {
 			if(!req.session.passport.user)
 				res.redirect('/login')
 
-			Helper.getUser(req.session.passport.user, function(err, user) {
+			Utils.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) {
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 					req.session.messages.push('Error finding user for business')
 					return res.redirect(err ? '/logout' : '/login')
 				}
 
-				Helper.getBusiness(user._id, req.body.id, function(err, business) {
+				Utils.getBusiness(user._id, req.body.id, function(err, business) {
 					if (err || !business) {
-						Log.error(err ? err : 'No business returned', {error: err, user_id: user._id, business_id: req.body.id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						Log.error(err ? err : 'No business returned', {error: err, user_id: user._id, business_id: req.body.id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 						req.session.messages.push('Error finding user for business')
 						return res.redirect(err ? '/logout' : '/login')
 					}
 
 					Model.Analytics.findById(business.Analytics.id, function(err, analytics) {
 						if (err) {
-							Log.error(err, {error: err, user_id: user._id, business_id: req.body.id, analytics_id: business.Analytics.id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							Log.error(err, {error: err, user_id: user._id, business_id: req.body.id, analytics_id: business.Analytics.id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 							req.session.messages.push('Error finding analytics for business')
 							return res.redirect('/logout')
 						}
 
 						if(!analytics)
-							Log.warn('No matching analytics found', {error: 'No matching analytics found during business remove', user_id: user._id, business_id: req.body.id, analytics_id: business.Analytics.id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							Log.warn('No matching analytics found', {error: 'No matching analytics found during business remove', user_id: user._id, business_id: req.body.id, analytics_id: business.Analytics.id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 					
 						if(analytics)
 							analytics.remove(function(err, removed) {
 								if(err)
-									Log.error('Error deleting Analytic collection from database', {error: err, user_id: user._id, business_id: req.body.id, analytics_id: business.Analytics.id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+									Log.error('Error deleting Analytic collection from database', {error: err, user_id: user._id, business_id: req.body.id, analytics_id: business.Analytics.id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 							})
 
 						business.remove(function(err, removed) {
 							if(err)
-								Log.error('Error deleting Business collection from database', {error: err, user_id: user._id, business_id: req.body.id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+								Log.error('Error deleting Business collection from database', {error: err, user_id: user._id, business_id: req.body.id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 						})
 
 						req.session.destroy(function(){

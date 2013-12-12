@@ -5,7 +5,7 @@
 var crypto = require('crypto'),
 	Auth = require('../server/auth').getInstance(),
 	Log = require('../server/logger').getInstance().getLogger(),
-	Helper = require('../server/helpers'),
+	Utils = require('../server/utilities'),
 	Model = Model || Object;
 
 var ToolsController = {
@@ -16,10 +16,10 @@ var ToolsController = {
 			if(!req.session.passport.user)
 				res.redirect('/login')
 
-			Helper.getUser(req.session.passport.user, function(err, user) {
+			Utils.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) {
 					// basic database error handling
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 					req.session.messages.push('Error connecting to Bitly')
 					return res.redirect(err ? '/logout' : '/login')
 				}
@@ -31,7 +31,7 @@ var ToolsController = {
 				if(req.session.bitly && req.session.bitly.oauthAccessToken && !req.query.login) {
 
 					/*res.render(
-						Helper.bootstrapRoute, //'tools/bitly', 
+						Utils.bootstrapRoute, //'tools/bitly', 
 						{
 							title: 'Vocada | Business Bitly Page',
 							bitly: {
@@ -85,7 +85,7 @@ var ToolsController = {
 					
 					/*
 					res.render(
-						Helper.bootstrapRoute, //'tools/bitly', 
+						Utils.bootstrapRoute, //'tools/bitly', 
 						{
 							title: 'Vocada | Business Bitly Page',
 							bitly: {

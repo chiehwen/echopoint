@@ -1,6 +1,6 @@
 var Auth = require('../server/auth').getInstance(),
 		Log = require('./logger').getInstance().getLogger(),
-		Helper = require('./helpers'),
+		Utils = require('./utilities'),
 		Model = Model || Object;
 
 var Middleware = {
@@ -19,9 +19,9 @@ var Middleware = {
 
 	sessionVariables: function(req, res, next) {
 		if(req.session.passport.user)
- 			Helper.getUser(req.session.passport.user, function(err, user) {
+ 			Utils.getUser(req.session.passport.user, function(err, user) {
  				if (err || !user) {
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 					req.session.messages.push('Error finding user')
 					res.redirect('/logout')
 					return next(err);
@@ -41,10 +41,10 @@ var Middleware = {
 	},
 
 	loadBusiness: function(req, res, next) {
-		if(req.session.passport.user && !req.session.Business && !Helper.isPath(req.url, ['/login', '/logout', '/business/select', '/business/create', '/user/create'], []))
- 			Helper.getUser(req.session.passport.user, function(err, user) {
+		if(req.session.passport.user && !req.session.Business && !Utils.isPath(req.url, ['/login', '/logout', '/business/select', '/business/create', '/user/create'], []))
+ 			Utils.getUser(req.session.passport.user, function(err, user) {
  				if (err || !user) {
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 					req.session.messages.push('Error finding user')
 					res.redirect('/logout')
 					return next(err);

@@ -3,7 +3,7 @@ var fs = require('fs'),
 		//mongo = require('mongodb'),
 		mongoose = require('mongoose'),
     Log = require('./logger').getInstance().getLogger(),
-    Helper = require('./helpers');		
+    Utils = require('./utilities');
 
 var Database = (function() {
 
@@ -21,7 +21,7 @@ var Database = (function() {
   			case 'mongoose':
 					mongoose.connect(mongooseUri, function(err) {
 						if (err) {
-              Log.error('Error connecting to MongoDB database via Mongoose @ mongoose.connect in database.js file', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+              Log.error('Error connecting to MongoDB database via Mongoose @ mongoose.connect in database.js file', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
               throw err
             }
 						console.log('Successfully connected to MongoDB via the node Mongoose module');

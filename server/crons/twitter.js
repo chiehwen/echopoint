@@ -7,7 +7,7 @@
 var Auth = require('../auth').getInstance(),
 		Log = require('../logger').getInstance().getLogger(),
 		Error = require('../error').getInstance(),
-		Helper = require('../helpers'),
+		Utils = require('../utilities'),
 		Model = Model || Object,
 		Harvester = {twitter: require('../harvesters/twitter')};
 
@@ -18,7 +18,7 @@ var TwitterCron = function() {
 		metrics: function(methods) {
 			Model.User.find(function(err, users) {
 				if (err || !users)
-					return Log.error(err ? err : 'No users returned', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					return Log.error(err ? err : 'No users returned', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 				users.forEach(function(user) {
 					user.Business.forEach(function(business, index) {
@@ -48,18 +48,10 @@ var TwitterCron = function() {
 			}) // End of Model users array
 		},
 
-		connections: function(methods) {
+		engagers: function(methods) {
 			var harvest = new Harvester.twitter;
 			
-			harvest.processConnectionUsers({
-				methods: methods,
-				user: user._id,
-				analytics_id: business.Analytics.id,
-				index: index,
-				network_id: t.id,
-				auth_token: t.auth.oauthAccessToken,
-				token_secret: t.auth.oauthAccessTokenSecret
-			}, function(err) {
+			harvest.engagers(methods, function(err) {
 				console.log('Twitter callbacks complete [' + methods.toString() + ']')
 			})
 		}

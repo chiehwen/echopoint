@@ -4,7 +4,7 @@
 var Auth = require('../auth').getInstance(),
 		Log = require('../logger').getInstance().getLogger(),
 		Error = require('../error').getInstance(),
-		Helper = require('../helpers'),
+		Utils = require('../utilities'),
 		Model = Model || Object,
 		Harvester = {klout: require('../harvesters/klout')};
 

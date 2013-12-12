@@ -47,9 +47,9 @@ IF HERE LOOK BACK AND REFER TO 5.5!
 11.4) MAYBE DONE - TEST: work on Twitter retweeters method to be more ffiecient (todo listed in method)
 
 11.5) DONE - NEEDS TESTING! Setup twitter search harvesting for users (use dummy search for now)
-11.6) Setup Google+ user Connections from reviewers!
+11.6) Setup Google+ user Engagers from reviewers!
 11.7) Setup Facebook to load in users to Conenctions page
-11.8) Cleanup: Change Helper(s) for Util, rename connections table to, setup production Util variable for quickly switching between dev and production modes
+11.8) Cleanup: commenting; and setup production Util variable for quickly switching between dev and production modes
 
 12.) Sentiment
 13.) Notifications setup

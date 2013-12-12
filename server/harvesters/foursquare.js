@@ -10,19 +10,19 @@
 var Auth = require('../auth').getInstance(),
 		Log = require('../logger').getInstance().getLogger(),
 		Error = require('../error').getInstance(),
-		Helper = require('../helpers'),
+		Utils = require('../utilities'),
 		Model = Model || Object,
 		winston = require('winston');
 
 var FoursquareHarvester = function() {
 
 	var Analytics,
+			Engagers = [],
 			foursquare,
 			response,
 			data,
 			update = false,
-			connections = [],
-			retries = Helper.retryErrorCodes,
+			retries = Utils.retryErrorCodes,
 			next = function(i, cb, err) {
 				var i = i+1;
 				if(data.methods[i])
@@ -40,7 +40,7 @@ console.log('at foursquare venue method');
 				// if a connection error occurs retry request (up to 3 attempts) 
 				if(err && retries.indexOf(err.code) > -1) {
 					if(retry && retry > 2) {
-						Error.handler('foursquare', 'Foursquare venue method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						Error.handler('foursquare', 'Foursquare venue method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 						return next(itr, cb);
 					}
 
@@ -49,13 +49,13 @@ console.log('at foursquare venue method');
 
 				// error handling
 				if(err || !response || !response.meta || response.meta.code !== 200 || response.meta.errorType) {
-					Error.handler('foursquare', err || response, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+					Error.handler('foursquare', err || response, err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 					return next(itr, cb);
 				}
 
 				var venue = response.response.venue,
 						cached = Analytics.foursquare.business.data || {},
-						timestamp = Helper.timestamp(),
+						timestamp = Utils.timestamp(),
 						localUpdate = false;
 
 				if(!venue)
@@ -74,7 +74,7 @@ console.log('at foursquare venue method');
 						user.Business[data.index].Social.foursquare.venue.data = Analytics.foursquare.business.data;
 						user.save(function(err) {
 							if(err)
-								return Log.error('Error saving to User table', {error: err, user_id: data.user, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+								return Log.error('Error saving to User table', {error: err, user_id: data.user, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 						})
 					});
 				}
@@ -174,7 +174,7 @@ console.log('at foursquare stats method');
 				// if a connection error occurs retry request (up to 3 attempts) 
 				if(err && retries.indexOf(err.code) > -1) {
 					if(retry && retry > 2) {
-						Error.handler('foursquare', 'Foursquare stats method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						Error.handler('foursquare', 'Foursquare stats method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 						return next(itr, cb);
 					}
 
@@ -183,12 +183,12 @@ console.log('at foursquare stats method');
 
 				// error handling
 				if(err || !response || !response.meta || response.meta.code !== 200 || response.meta.errorType) {
-					Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+					Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 					return next(itr, cb);
 				}
 
 				var stats = response.response.stats,
-						timestamp = Helper.timestamp();
+						timestamp = Utils.timestamp();
 	
 				// If it seems odd that we are comparing two different stat fields it's because foursquare doesn't report the checkins in the venue call the same as the checkins count in the stats call.
 				// Further more, the stats section gets updated far less often it seems while the venue call is nearly instant. I have no idea why this is
@@ -275,7 +275,7 @@ console.log('at foursquare stats method');
 							}
 						}
 					
-					connections.push({foursquare_id: stats.topVisitors[x].user.id, meta:{ foursquare: {analytics_id: Analytics._id}}})
+					engagers.push({foursquare_id: stats.topVisitors[x].user.id, meta:{ foursquare: {analytics_id: Analytics._id}}})
 					newTopVisitors.push({id: stats.topVisitors[x].user.id, checkins: stats.topVisitors[x].checkins})			
 				}
 
@@ -301,7 +301,7 @@ console.log('at foursquare stats method');
 					if(Analytics.foursquare.tracking.recentVisitors.history[0])
 						if(stats.recentVisitors[x].id != Analytics.foursquare.tracking.recentVisitors.history[0].list[x].id) {
 							recentVisitorsChange = true;
-							connections.push({foursquare_id: stats.recentVisitors[x].user.id, meta:{ foursquare: {analytics_id: Analytics._id}}})
+							engagers.push({foursquare_id: stats.recentVisitors[x].user.id, meta:{ foursquare: {analytics_id: Analytics._id}}})
 							continue;
 						}
 					else
@@ -332,20 +332,20 @@ console.log('at foursquare stats method');
 console.log('at foursquare tips method');
 				// note that the business here is actually the Analytics table
 				if(!data.business) {
-					Log.error('No business was specified', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					Log.error('No business was specified', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					return next(itr, cb)
 				}
 
 				var business = data.business,
 						offset = offset || 0,
 						count = 500,
-						timestamp = Helper.timestamp();
+						timestamp = Utils.timestamp();
 
 				foursquare.get('venues/' + business.foursquare.business.id + '/tips', {v: foursquare.client.verified, limit: count, offset: offset, client_id: foursquare.client.id, client_secret: foursquare.client.secret}, function(err, response) {
 					// if a connection error occurs retry request (up to 3 attempts) 
 				if(err && retries.indexOf(err.code) > -1) {
 					if(retry && retry > 2) {
-						Error.handler('foursquare', 'Foursquare tips method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						Error.handler('foursquare', 'Foursquare tips method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 						return next(itr, cb);
 					}
 
@@ -354,7 +354,7 @@ console.log('at foursquare tips method');
 
 				// error handling
 					if(err || !response || !response.meta || response.meta.code !== 200 || response.meta.errorType) {
-						Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 						return next(itr, cb);
 					}
 //console.log(response.response.tips);
@@ -368,7 +368,7 @@ console.log('at foursquare tips method');
 
 					for(var i=0,l=response.response.tips.items.length;i<l;i++) {
 						business.foursquare.tips.active.push(response.response.tips.items[i])
-						connections.push({foursquare_id: response.response.tips.items[i].user.id, meta:{ foursquare: {analytics_id: business._id}}})
+						engagers.push({foursquare_id: response.response.tips.items[i].user.id, meta:{ foursquare: {analytics_id: business._id}}})
 					}
 
 					if(response.response.tips.count > offset+count) {
@@ -397,36 +397,40 @@ console.log('at foursquare tips method');
 		// call every 10 seconds
 		user: function(itr, cb) {
 
-			Model.Connections.findOne({
+			Model.Engagers.findOne({
 				foursquare_id: {$exists: true},
 				Foursquare: {$exists: false},
-				'meta.foursquare.analytics_id': {$exists: true}
-			}, function(err, connection) {			
+				'meta.foursquare.analytics_id': {$exists: true},
+				$or: [
+					{'meta.foursquare.discovery.timestamp': {$exists: false}}, 
+					{'meta.foursquare.discovery.timestamp': {$lt: Utils.timestamp() - 864000 /* 864000 = 10 days */} },
+				]
+			}, function(err, engager) {			
 				if(err) {
-					Log.error('Error querying Connections table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					Log.error('Error querying Engagers table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					return next(itr, cb);
 				}
 
-				if(!connection)
+				if(!engager)
 					return next(itr, cb);
 
 				// mark this lookup attempt and save
-				connection.meta.foursquare.discovery_attempt.timestamp = Helper.timestamp();
-				connection.save(function(err) {
+				engager.meta.foursquare.discovery.timestamp = Utils.timestamp();
+				engager.save(function(err) {
 					if(err)
-						Log.error('Error saving to Connection table', {error: err, user_id: user[0]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						Log.error('Error saving to Engager table', {error: err, user_id: user[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 				})
 
-				Model.User.find({Business: {$exists: true}}, {'Business': {$elemMatch: {'Analytics.id': connection.meta.foursquare.analytics_id} }}, function(err, user) {
+				Model.User.findOne({Business: {$exists: true}}, {'Business': {$elemMatch: {'Analytics.id': engager.meta.foursquare.analytics_id} }}, {lean: true}, function(err, user) {
 					if(err) {
-						Log.error('Error querying User table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						Log.error('Error querying User table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 						return next(itr, cb);
 					}
 
-					if(!user[0] || !user[0].Business || !user[0].Business.length)
+					if(!user || !user.Business || !user.Business.length)
 						return next(itr, cb);
 
-					var f = user[0].Business[0].Social.foursquare;
+					var f = user.Business[0].Social.foursquare;
 
 					// check that user has foursquare credentials
 					// TODO: if not then use a dev account
@@ -435,21 +439,21 @@ console.log('at foursquare tips method');
 
 					foursquare.setAccessToken(f.auth.oauthAccessToken)
 
-					foursquare.get('users/' + connection.foursquare_id, {v: foursquare.client.verified}, function(err, response) {
+					foursquare.get('users/' + engager.foursquare_id, {v: foursquare.client.verified}, function(err, response) {
 						if(err || !response || !response.meta || response.meta.code !== 200 || response.meta.errorType) {
-							Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {user_id: user[0]._id, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+							Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {user_id: user[0]._id, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 							return next(itr, cb);
 						}
 console.log(response.response.user.contact);
 						if(response.response.user.contact.facebook || response.response.user.contact.twitter || response.response.user.contact.email) {
 							
 							var contact = {
-								facebook: response.response.user.contact.facebook || 'abc', // we use dummy data so a match wn't be found (null, false, undefined will match in mongoDB if it is undefined)
+								facebook: response.response.user.contact.facebook || 'abc', // we use dummy data so a match won't be found (null, false, undefined will match in mongoDB if it is undefined)
 								twitter: response.response.user.contact.twitter ? response.response.user.contact.twitter.toLowerCase() : '@!',
 								email: response.response.user.contact.email ? response.response.user.contact.email.toLowerCase() : 'null'
 							}
 					
-							Model.Connections.findOne({ $or: 
+							Model.Engagers.findOne({ $or: 
 								[
 									{
 										facebook_id: {$exists: true},
@@ -466,62 +470,64 @@ console.log(response.response.user.contact);
 									}	
 								]}, function(err, match) {
 									if(err)
-										return Log.error('Error querying Connections table', {error: err, user_id: user._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+										return Log.error('Error querying Engagers table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 console.log('match found! ', match);
 
 									if(!match) {
-										if(!connection.facebook_id)
-											connection.facebook_id = response.response.user.contact.facebook;
+										if(!engager.facebook_id)
+											engager.facebook_id = response.response.user.contact.facebook;
 										
-										if(!connection.meta.foursquare.twitter_handle)
-											connection.meta.foursquare.twitter_handle = response.response.user.contact.twitter ? response.response.user.contact.twitter.toLowerCase() : undefined;
+										if(!engager.meta.foursquare.twitter_handle)
+											engager.meta.foursquare.twitter_handle = response.response.user.contact.twitter ? response.response.user.contact.twitter.toLowerCase() : undefined;
 										
-										if(!connection.email)
-											connection.email = response.response.user.contact.email ? response.response.user.contact.email.toLowerCase() : undefined;
+										if(!engager.email)
+											engager.email = response.response.user.contact.email ? response.response.user.contact.email.toLowerCase() : undefined;
 										
-										connection.phone = response.response.user.contact.phone;
+										engager.phone = response.response.user.contact.phone;
 										
-										connection.Foursquare = response.response.user;
+										engager.Foursquare = response.response.user;
 										
-										connection.markModified('Foursquare')
-										connection.save(function(err) {
+										engager.markModified('Foursquare')
+										engager.save(function(err) {
 											if(err)
-												return Log.error('Error saving to Connection table', {error: err, user_id: user[0]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-										})
-										return next(itr, cb)
-									}
-
-									match.foursquare_id = connection.foursquare_id;
-									match.meta.foursquare.analytics_id = connection.meta.foursquare.analytics_id;
-									match.Foursquare = response.response.user;
-
-									connection.remove(function(err) {
-										if(err)
-											return Log.error('Error removing document from Connection table', {error: err, user_id: user._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-									
-										if(response.response.user.contact.facebook && !match.facebook_id)
-											match.facebook_id = response.response.user.contact.facebook
-										if(response.response.user.contact.twitter && !match.Twitter && !match.Twitter.screen_name)
-											match.meta.foursquare.twitter_handle = response.response.user.contact.twitter ? response.response.user.contact.twitter.toLowerCase() : undefined;
-										if(response.response.user.contact.email)
-											match.email = response.response.user.contact.email ? response.response.user.contact.email.toLowerCase() : undefined;
-
-										match.markModified('Foursquare');
-										match.save(function(err) {
-											if(err)
-												return Log.error('Error saving to Connection table', {error: err, user_id: user[0]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-
+												return Log.error('Error saving to Engager table', {error: err, user_id: user[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 											return next(itr, cb)
 										})
-									})
+										
+									} else {
+
+										match.foursquare_id = engager.foursquare_id;
+										match.meta.foursquare.analytics_id = engager.meta.foursquare.analytics_id;
+										match.Foursquare = response.response.user;
+
+										engager.remove(function(err) {
+											if(err)
+												return Log.error('Error removing document from Engager table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+										
+											if(response.response.user.contact.facebook && !match.facebook_id)
+												match.facebook_id = response.response.user.contact.facebook
+											if(response.response.user.contact.twitter && !match.Twitter && !match.Twitter.screen_name)
+												match.meta.foursquare.twitter_handle = response.response.user.contact.twitter ? response.response.user.contact.twitter.toLowerCase() : undefined;
+											if(response.response.user.contact.email)
+												match.email = response.response.user.contact.email ? response.response.user.contact.email.toLowerCase() : undefined;
+
+											match.markModified('Foursquare');
+											match.save(function(err) {
+												if(err)
+													return Log.error('Error saving to Engager table', {error: err, user_id: user[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+
+												return next(itr, cb)
+											})
+										})
+									}
 							})
 
 						} else {			
-							connection.phone = response.response.user.contact ? response.response.user.contact.phone : undefined;
-							connection.Foursquare = response.response.user;
-							connection.save(function(err) {
+							engager.phone = response.response.user.contact ? response.response.user.contact.phone : undefined;
+							engager.Foursquare = response.response.user;
+							engager.save(function(err) {
 								if(err)
-									return Log.error('Error saving to Connection table', {error: err, user_id: user._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+									return Log.error('Error saving to Engager table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 							})
 						}
 
@@ -532,9 +538,6 @@ console.log('match found! ', match);
 		}
 	} // End Harvest
 
-	var previousVenueUpdateData,
-			previousStatsUpdateData;
-
 	return {
 		getMetrics: function(params, callback) {
 			// load foursquare api and set access tokens from database
@@ -544,35 +547,35 @@ console.log('match found! ', match);
 
 			Model.Analytics.findById(data.analytics_id, function(err, analytics) {
 				if(err)
-					return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 				Analytics = analytics;
 				analytics = null;
 
 				Harvest[data.methods[0]](0, function() {
-					if(connections.length) 
-						Model.Connections.collection.insert(connections, {safe: true, continueOnError: true}, function(err, save) {
+					if(Engagers.length) 
+						Model.Engagers.collection.insert(Engagers, {safe: true, continueOnError: true}, function(err, save) {
 							if(err && err.code !== 11000)
-								Log.error('Error saving to Connection table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+								Log.error('Error saving to Engagers table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 						})
 
 					if(update) 
 						Analytics.save(function(err, save) {
 							if(err && err.name !== 'VersionError')
-								return Log.error('Error saving Foursquare analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+								return Log.error('Error saving Foursquare analytics to database', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 							// if we have a versioning overwrite error than load up the analytics document again
 							if(err && err.name === 'VersionError')
 								Model.Analytics.findById(data.analytics_id, function(err, analytics) {
 									if(err)
-										return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+										return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 									analytics.foursquare = Analytics.foursquare;
 									analytics.markModified('foursquare')
 
 									analytics.save(function(err, save) {
 										if(err)
-											return Log.error('Error saving Foursquare analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+											return Log.error('Error saving Foursquare analytics to database', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 										callback(null);
 									})
 								})
@@ -591,10 +594,10 @@ console.log('match found! ', match);
 			update = false;
 
 			Harvest[data.methods[0]](0, function() {
-				if(connections.length) 
-					Model.Connections.collection.insert(connections, {safe: true, continueOnError: true}, function(err, save) {
+				if(Engagers.length) 
+					Model.Engagers.collection.insert(Engagers, {safe: true, continueOnError: true}, function(err, save) {
 						if(err && err.indexOf('E11000 duplicate key error') < 0)
-							return Log.error('Error saving to Connection table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+							return Log.error('Error saving to Engagers table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					})
 
 				callback(null);

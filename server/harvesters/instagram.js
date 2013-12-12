@@ -9,14 +9,14 @@
 var Auth = require('../auth').getInstance(),
 		Log = require('../logger').getInstance().getLogger(),
 		Error = require('../error').getInstance(),
-		Helper = require('../helpers'),
+		Utils = require('../utilities'),
 		Model = Model || Object;
 
 var InstagramHarvester = function() {
 
 	var instagram,
 			data,
-			retries = Helper.retryErrorCodes,
+			retries = Utils.retryErrorCodes,
 			next = function(i, cb, stop) {
 				var i = i+1
 				if(!stop && data.methods[i])
@@ -39,31 +39,31 @@ console.log('at instagram user information method...');
 					//'meta.instagram.discovery.isPrivate': {$exists: false},
 					$or: [
 						{'meta.instagram.discovery.timestamp': {$exists: false}},
-						{'meta.instagram.discovery.timestamp': {$lt: Helper.timestamp() - 1296000 /* 1296000 = 15 days */}}
+						{'meta.instagram.discovery.timestamp': {$lt: Utils.timestamp() - 1296000 /* 1296000 = 15 days */}}
 					]
 				}
 
-			Model.Connections.findOne(query, function(err, connection) {
+			Model.Engagers.findOne(query, function(err, engager) {
 				if(err)
-					return Log.error('Error querying Connections table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					return Log.error('Error querying Engagers table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
-				if(!connection)
+				if(!engager)
 					return next(itr, cb);
 
-				connection.meta.instagram.discovery.timestamp = Helper.timestamp();
-				connection.save(function(err) {
+				engager.meta.instagram.discovery.timestamp = Utils.timestamp();
+				engager.save(function(err) {
 					if(err)
-						return Log.error('Error saving to Connection table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						return Log.error('Error saving to Engager table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
-					instagram.get('/users/' + connection.instagram_id, {client_id: instagram.client.id}, function(err, response) {
+					instagram.get('/users/' + engager.instagram_id, {client_id: instagram.client.id}, function(err, response) {
 						// if a connection error occurs retry request (up to 3 attempts) 
 						if(err && retries.indexOf(err.code) > -1) {
 							if(retry && retry > 2) {
-								Error.handler('instagram', 'Instagram user method failed to connect in 3 attempts!', err, credentials, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+								Error.handler('instagram', 'Instagram user method failed to connect in 3 attempts!', err, credentials, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 								return next(itr, cb);
 							}
 
-							return Harvest.user(itr, cb, connection._id, retry ? ++retry : 1)
+							return Harvest.user(itr, cb, engager._id, retry ? ++retry : 1)
 						}
 
 						// if the user has set account to private then exit gracefully since we cannot retrieve the user data
@@ -72,20 +72,20 @@ console.log('at instagram user information method...');
 
 						// error handling
 						if(err || (response && response.meta && response.meta.code !== 200)) {
-							Error.handler('instagram', err || response.meta.code, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							Error.handler('instagram', err || response.meta.code, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							return next(itr, cb)
 						}
 
-						connection.Instagram = {
+						engager.Instagram = {
 							id: response.data.id,
-							timestamp: Helper.timestamp(),
+							timestamp: Utils.timestamp(),
 							data: response.data
 						}
 
-						connection.save(function(err, save) {
+						engager.save(function(err, save) {
 							if(err)
-								return Log.error('Error saving to Connection table', {error: err, connection_id: connection._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-							console.log('saving new instagram user data to connections document...');
+								return Log.error('Error saving to Engager table', {error: err, engager_id: engager._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+							console.log('saving new instagram user data to engagers document...');
 							next(itr, cb);
 						})
 					})

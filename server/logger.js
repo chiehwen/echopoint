@@ -2,8 +2,7 @@
  * Winston logging abstration layer
  */
 
-var winston = require('winston'),
-		Helper = require('./helpers');
+var winston = require('winston');
 
 		require('winston-mail').Mail;
 		require('winston-papertrail').Papertrail;

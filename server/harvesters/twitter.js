@@ -9,17 +9,17 @@
 var Auth = require('../auth').getInstance(),
 		Log = require('../logger').getInstance().getLogger(),
 		Error = require('../error').getInstance(),
-		Helper = require('../helpers'),
+		Utils = require('../utilities'),
 		Model = Model || Object;
 
 var TwitterHarvester = function() {
 
 	var Analytics,
+			Engagers = [],
 			twitter,
 			data,
 			update = false,
-			connections = [],
-			retries = Helper.retryErrorCodes,
+			retries = Utils.retryErrorCodes,
 			next = function(i, cb, stop) {
 				var i = i+1;
 				if(!stop && data.methods[i])
@@ -36,14 +36,14 @@ var TwitterHarvester = function() {
 			search: function(itr, cb, retry) {
 	console.log('at twitter search method');
 
-				var tweets = Analytics.twitter.search.tweets.sort(Helper.sortBy('created_timestamp', false, parseInt)),
+				var tweets = Analytics.twitter.search.tweets.sort(Utils.sortBy('created_timestamp', false, parseInt)),
 					localUpdate = false;
 
 				twitter.get('/search/tweets.json', {q: '"Roll On Sushi Diner" "Roll On Sushi"', since_id: Analytics.twitter.search.since_id, result_type: 'recent', count: 20, include_entities: true}, function(err, response) {
 					// if a connection error occurs retry request (up to 3 attempts) 
 					if(err && retries.indexOf(err.code) > -1) {
 						if(retry && retry > 2) {
-							Error.handler('twitter', 'Twitter search failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+							Error.handler('twitter', 'Twitter search failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 							return next(itr, cb);
 						}
 
@@ -52,7 +52,7 @@ var TwitterHarvester = function() {
 
 					// error handling
 					if (err || !response || response.errors) {
-						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						Error.handler('twitter', err || response, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}
 
@@ -72,12 +72,12 @@ var TwitterHarvester = function() {
 
 						Analytics.twitter.search.tweets.push({
 							id: response.statuses[x].id_str,
-							created_timestamp: Helper.timestamp(response.statuses[x].created_at),
-							timestamp: Helper.timestamp(),
+							created_timestamp: Utils.timestamp(response.statuses[x].created_at),
+							timestamp: Utils.timestamp(),
 							data: response.statuses[x]
 						});
 
-						//connections.push({twitter_id: response.statuses[x].id_str, meta: {twitter: {analytics_id: Analytics._id}}})
+						//Engagers.push({twitter_id: response.statuses[x].id_str, meta: {twitter: {analytics_id: Analytics._id}}})
 					}
 
 					if(localUpdate)
@@ -94,7 +94,7 @@ console.log('at twitter credentials update method');
 					// if a connection error occurs retry request (up to 3 attempts) 
 					if(err && retries.indexOf(err.code) > -1) {
 						if(retry && retry > 2) {
-							Error.handler('twitter', 'Twitter credentials method failed to connect in 3 attempts!', err, credentials, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+							Error.handler('twitter', 'Twitter credentials method failed to connect in 3 attempts!', err, credentials, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 							return next(itr, cb);
 						}
 
@@ -103,11 +103,11 @@ console.log('at twitter credentials update method');
 
 					// error handling
 					if (err || !credentials || credentials.errors) {
-						Error.handler('twitter', err || credentials, err, credentials, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						Error.handler('twitter', err || credentials, err, credentials, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}
 
-					var timestamp = Helper.timestamp(),
+					var timestamp = Utils.timestamp(),
 							localUpdate = false;
 
 					// friends
@@ -181,7 +181,7 @@ console.log('at twitter timeline update method');
 					// if a connection error occurs retry request (up to 3 attempts) 
 					if(err && retries.indexOf(err.code) > -1) {
 						if(retry && retry > 2) {
-							Error.handler('twitter', 'Twitter timeline method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+							Error.handler('twitter', 'Twitter timeline method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 							return next(itr, cb);
 						}
 
@@ -190,7 +190,7 @@ console.log('at twitter timeline update method');
 
 					// error handling
 					if (err || !response || response.errors) {
-						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						Error.handler('twitter', err || response, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}
 					
@@ -201,12 +201,12 @@ console.log('at twitter timeline update method');
 					for(var i = 0, l = response.length; i < l; i++) {
 						//response[i].retweets = {history:[{timestamp:timestamp,total:parseInt(response[i].retweet_count, 10)}],total:parseInt(response[i].retweet_count, 10), timestamp: timestamp};
 						//response[i].favorited_count = {};
-						response[i].timestamp = Helper.timestamp();
+						response[i].timestamp = Utils.timestamp();
 						Analytics.twitter.timeline.tweets.push(response[i]);
 					}
 
 					Analytics.twitter.timeline.since_id = response[0].id_str;
-					Analytics.twitter.timeline.timestamp = Helper.timestamp();
+					Analytics.twitter.timeline.timestamp = Utils.timestamp();
 
 					console.log('saving twitter user timeline...');
 
@@ -221,7 +221,7 @@ console.log('at twitter new direct messages method');
 					// if a connection error occurs retry request (up to 3 attempts) 
 					if(err && retries.indexOf(err.code) > -1) {
 						if(retry && retry > 2) {
-							Error.handler('twitter', 'Twitter dm method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+							Error.handler('twitter', 'Twitter dm method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 							return next(itr, cb);
 						}
 
@@ -230,21 +230,21 @@ console.log('at twitter new direct messages method');
 
 					// error handling
 					if (err || !response || response.errors) {
-						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						Error.handler('twitter', err || response, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}
 					
 					if(!response.length)
 						return next(itr, cb);
 
-					var timestamp = Helper.timestamp();
+					var timestamp = Utils.timestamp();
 
 					update = true;
 					for(var i = 0, l = response.length; i < l; i++) {
 						response[i].timestamp = timestamp;
 						response[i].recipient = null;
 						Analytics.twitter.messages.list.push(response[i])
-						connections.push({twitter_id: response[i].sender.id_str, meta: {twitter: {analytics_id: Analytics._id}}})
+						Engagers.push({twitter_id: response[i].sender.id_str, meta: {twitter: {analytics_id: Analytics._id}}})
 					}
 
 					Analytics.twitter.messages.since_id = response[0].id_str;
@@ -263,7 +263,7 @@ console.log('at twitter new mentions method');
 					// if a connection error occurs retry request (up to 3 attempts) 
 					if(err && retries.indexOf(err.code) > -1) {
 						if(retry && retry > 2) {
-							Error.handler('twitter', 'Twitter mentions method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+							Error.handler('twitter', 'Twitter mentions method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 							return next(itr, cb);
 						}
 
@@ -272,7 +272,7 @@ console.log('at twitter new mentions method');
 
 					// error handling
 					if (err || !response || response.errors) {
-						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						Error.handler('twitter', err || response, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}
 					
@@ -280,20 +280,20 @@ console.log('at twitter new mentions method');
 						return next(itr, cb);
 
 					var //usersArray = [],
-							timestamp = Helper.timestamp();
+							timestamp = Utils.timestamp();
 
 					update = true;
 					for(var i = 0, l = response.length; i < l; i++) {
 						response[i].timestamp = timestamp;
 						Analytics.twitter.mentions.list.splice(i, 0, response[i]);
-						connections.push({twitter_id: response[i].user.id_str, meta: {twitter: {analytics_id: Analytics._id}}})
+						Engagers.push({twitter_id: response[i].user.id_str, meta: {twitter: {analytics_id: Analytics._id}}})
 					}
 
 					Analytics.twitter.mentions.since_id = response[0].id_str;
 					Analytics.twitter.mentions.timestamp = timestamp;
 
 					// insert user ids into Twitter user model for cron lookup 
-					//Model.Connections.collection.insert(usersArray, {continueOnError: true}, function(err, save) {
+					//Model.Engagers.collection.insert(usersArray, {continueOnError: true}, function(err, save) {
 						// TODO: put any errors in logs
 					//})
 					
@@ -310,7 +310,7 @@ console.log('at twitter retweets method');
 					// if a connection error occurs retry request (up to 3 attempts) 
 					if(err && retries.indexOf(err.code) > -1) {
 						if(retry && retry > 2) {
-							Error.handler('twitter', 'Twitter retweets method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+							Error.handler('twitter', 'Twitter retweets method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 							return next(itr, cb);
 						}
 
@@ -319,14 +319,14 @@ console.log('at twitter retweets method');
 
 					// error handling
 					if (err || !response || response.errors) {
-						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						Error.handler('twitter', err || response, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}
 					
 					if(!response || !response.length)
 						return next(itr, cb);
 
-					var timestamp = Helper.timestamp(),
+					var timestamp = Utils.timestamp(),
 							localUpdate = false;
 
 					for(var x = 0, l = response.length; x < l; x++) {
@@ -378,7 +378,7 @@ console.log('at twitter new favorited tweets method');
 					// if a connection error occurs retry request (up to 3 attempts) 
 					if(err && retries.indexOf(err.code) > -1) {
 						if(retry && retry > 2) {
-							Error.handler('twitter', 'Twitter favorited method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+							Error.handler('twitter', 'Twitter favorited method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 							return next(itr, cb);
 						}
 
@@ -387,14 +387,14 @@ console.log('at twitter new favorited tweets method');
 
 					// error handling
 					if (err || !response || response.errors) {
-						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						Error.handler('twitter', err || response, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}
 					
 					if(!response.length)
 						return next(itr, cb);
 
-					var timestamp = Helper.timestamp(),
+					var timestamp = Utils.timestamp(),
 							localUpdate = false;
 
 					for(var x = 0, l = response.length; x < l; x++) {
@@ -479,14 +479,14 @@ console.log('at twitter list of retweeters method');
 				if(tweet)
 					twitter.get('/statuses/retweeters/ids.json', {id: tweet.id, cursor: tweet.cursor, stringify_ids: true}, function(err, response) {
 						if (err || !response || response.errors) {
-							Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							Error.handler('twitter', err || response, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							return next(itr, cb)
 						}				
 
 						if(!response.ids || !response.ids.length)
 							return next(itr, cb);
 
-						var timestamp = Helper.timestamp();
+						var timestamp = Utils.timestamp();
 
 						Analytics.twitter.timeline.tweets[tweet.index].retweets.update = false;
 
@@ -501,7 +501,7 @@ console.log('at twitter list of retweeters method');
 
 							update = localUpdate = true;
 							Analytics.twitter.timeline.tweets[tweet.index].retweets.retweeters.push(response.ids[x])
-							connections.push({twitter_id: response.ids[x], meta: {twitter: {analytics_id: Analytics._id}}})
+							Engagers.push({twitter_id: response.ids[x], meta: {twitter: {analytics_id: Analytics._id}}})
 						}
 
 						if(localUpdate && response.next_cursor > 0) {
@@ -543,14 +543,14 @@ console.log('at twitter list of friends method');
 				if(params)
 					twitter.get('/friends/ids.json', {user_id: data.network_id, cursor: params.cursor, stringify_ids: true, count: 5000}, function(err, response) {
 						if (err || !response || response.errors) {
-							Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							Error.handler('twitter', err || response, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							return next(itr, cb)
 						}
 
 						if(!response.ids || !response.ids.length)
 							return next(itr, cb);
 
-						var timestamp = Helper.timestamp(),
+						var timestamp = Utils.timestamp(),
 								localUpdate = false;
 
 						if(!iteration) {
@@ -560,7 +560,7 @@ console.log('at twitter list of friends method');
 
 						for(var i=0, l=response.ids.length; i<l; i++) {
 							Analytics.twitter.friends.active.push(response.ids[i])
-							connections.push({twitter_id: response.ids[i], meta: {twitter: {analytics_id: Analytics._id}}})
+							Engagers.push({twitter_id: response.ids[i], meta: {twitter: {analytics_id: Analytics._id}}})
 						}
 
 						if(response.next_cursor > 0 && iteration < 5) {
@@ -626,7 +626,7 @@ console.log('at twitter list of followers method');
 				if(params)
 					twitter.get('/followers/ids.json', {user_id: data.network_id, cursor: params.cursor, stringify_ids: true, count: 5000}, function(err, response) {
 						if (err || !response || response.errors) {
-							Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							Error.handler('twitter', err || response, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							return next(itr, cb)
 						}
 
@@ -642,7 +642,7 @@ console.log('at twitter list of followers method');
 
 						for(var i=0, l=response.ids.length; i<l; i++) {
 							Analytics.twitter.followers.active.push(response.ids[i])
-							connections.push({twitter_id: response.ids[i], meta: {twitter: {analytics_id: Analytics._id}}})
+							Engagers.push({twitter_id: response.ids[i], meta: {twitter: {analytics_id: Analytics._id}}})
 						}
 
 						if(response.next_cursor > 0 && iteration < 5) {
@@ -709,7 +709,7 @@ console.log('at twitter list of followers method');
 
 					twitter.get('/followers/ids.json', {user_id: data.network_id, cursor: (cursor ? cursor : -1), stringify_ids: true, count: 1000}, function(err, followers) {
 						if (err || !followers || followers.errors) {
-							Error.handler('twitter', err || followers, err, followers, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							Error.handler('twitter', err || followers, err, followers, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							return next(itr, cb)
 						}
 
@@ -719,7 +719,7 @@ console.log('at twitter list of followers method');
 							Followers.twitter = followers.ids;
 							Followers.save(function(err, success) {
 								if(err)
-									return Log.error('Error saving to Connection table', {error: err, connection_id: users[x]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+									return Log.error('Error saving to Engager table', {error: err, engager_id: users[x]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 								console.log('saving first round of followers to Followers Model');
 								return next(itr, cb);
 							})
@@ -756,7 +756,7 @@ console.log('at twitter list of followers method');
 								
 								Followers.save(function(err, success) {
 									if(err)
-										return Log.error('Error saving to Connection table', {error: err, connection_id: users[x]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+										return Log.error('Error saving to Engager table', {error: err, engager_id: users[x]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 									console.log('we have saved new followers from the dropped followers twitter function');
 								})
 							}
@@ -771,11 +771,11 @@ console.log('at twitter list of followers method');
 
 								twitter.get('/users/lookup.json', {user_id: usersIdString.toString().slice(0,-1), include_entities: false}, function(err, leavers) {
 									if (err || !leavers || leavers.errors) {
-										Error.handler('twitter', err || leavers, err, leavers, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+										Error.handler('twitter', err || leavers, err, leavers, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 										return next(itr, cb)
 									}
 
-									var timestamp = Helper.timestamp();
+									var timestamp = Utils.timestamp();
 
 									for(var c=leavers.length-1;c>=0;c--)
 										// check if user has been removed from twitter, don't log them
@@ -821,12 +821,12 @@ console.log('at twitter list of followers method');
 			newest_followers: function(itr, cb) {
 
 				// check if enough time has passed to load new data
-				if(Analytics.twitter.tracking.followers.newest.timestamp > Helper.timestamp() - 900)
+				if(Analytics.twitter.tracking.followers.newest.timestamp > Utils.timestamp() - 900)
 					return next(itr, cb);
 
 				twitter.get('/followers/list.json', {user_id: data.network_id, skip_status: true, include_user_entities: false}, function(err, response) {
 					if (err || !response || response.errors) {
-						Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						Error.handler('twitter', err || response, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}
 
@@ -858,23 +858,20 @@ console.log('at twitter list of followers method');
 
 
 
-		connections: {
+		engagers: {
 
 			// call every 5 seconds (both populateBy... functions together, if ids list is emtpy then screen_names will process instead)
-			populateById: function(itr, cb) {
-				var timestamp = Helper.timestamp(),
-						twitterUsersCsv = '';
-
-				Model.Connections.find({twitter_id: {$exists: true}, Twitter: {$exists: false}}, null, {limit: 99}, function(err, users) {
+			populateById: function(itr, cb, retry) {
+				Model.Engagers.find({twitter_id: {$exists: true}, Twitter: {$exists: false}}, null, {limit: 99}, function(err, engagers) {
 					if (err)
-						return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						return Log.error(err, {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
-					if(!users.length)
+					if(!engagers.length)
 						return next(itr, cb);
 
-					Model.User.find({Business: {$exists: true}}, {'Business': {$elemMatch: {'Analytics.id': users[0].meta.twitter.analytics_id}}}, function(err, user) {
+					Model.User.find({Business: {$exists: true}}, {'Business': {$elemMatch: {'Analytics.id': engagers[0].meta.twitter.analytics_id}}}, function(err, user) {
 						if(err) {
-							Log.error('Error querying User table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+							Log.error('Error querying User table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 							return next(itr, cb);
 						}
 
@@ -883,79 +880,91 @@ console.log('at twitter list of followers method');
 						else 
 							twitter = Auth.load('twitter', user[0].Business[0].Social.twitter.auth.oauthAccessToken, user[0].Business[0].Social.twitter.auth.oauthAccessTokenSecret)
 
-						for(var i=0, l=users.length; i<l; i++) {
+						var timestamp = Utils.timestamp(),
+								twitterUsersCsv = '';
+
+						for(var i=0, l=engagers.length; i<l; i++) {
 							// create the query string for twitter api
-							twitterUsersCsv += users[i].twitter_id + ',';
+							twitterUsersCsv += engagers[i].twitter_id + ',';
 
 							// mark this lookup attempt
-							users[i].meta.twitter.discovery_attempt.timestamp = timestamp;
+							engagers[i].meta.twitter.discovery.timestamp = timestamp;
 						}
 
-						// why are we adding a static id at the end? because if all ids in id connections list
-						// are for removed accounts then this endpoint returns a 404 error
+						// why are we adding a static id at the end? because if all ids in id engagers list
+						// are for removed/deleted accounts then this endpoint returns a 404 error
 						// previously we added a special case error handling to skip if it returned 404 but 
 						// if twitter is down and returns a 404 then all those ids get marked as deleted!
-						// here we add the id for twitter's own account "twitter"
+						// here we add the numeric id for twitter's own account "twitter"
 						twitterUsersCsv += '783214'
 
 						twitter.get('/users/lookup.json', {user_id: twitterUsersCsv, include_entities: false}, function(err, response) {
+							// if a connection error occurs retry request (up to 3 attempts) 
+							if(err && retries.indexOf(err.code) > -1) {
+								if(retry && retry > 2) {
+									Error.handler('twitter', 'Twitter populateById method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+									return next(itr, cb);
+								}
+
+								return Harvest.engagers.populateById(itr, cb, retry ? ++retry : 1)
+							}
+
+							// error handling
 							if (err || !response || response.errors) {
-								Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+								Error.handler('twitter', err || response, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 								return next(itr, cb)
 							}
 
-							localConnectionUsers:
-							for(var x=0, l=users.length; x<l; x++) {
+							localEngagingUsers:
+							for(var x=0, l=engagers.length; x<l; x++) {
 								for(var y=0, len=response.length; y<len; y++)
-									if(response[y].id_str == users[x].twitter_id && response[y].id_str !== '783214') {
+									if(response[y].id_str == engagers[x].twitter_id && response[y].id_str !== '783214') {
 										response[y].status = null;
-										users[x].Twitter = {
-											id: users[x].twitter_id,
+										engagers[x].Twitter = {
+											id: engagers[x].twitter_id,
 											screen_name: response[y].screen_name,
 											screen_name_lower: response[y].screen_name.toLowerCase(),
 											timestamp: timestamp, // this is the update timestamp as well
 											data: response[y]
 										}
-										//users[i].meta.twitter.update.timestamp = timestamp;
-										users[x].save(function(err, save) {
+										//engagers[i].meta.twitter.update.timestamp = timestamp;
+										engagers[x].save(function(err, save) {
 											if(err)
-												return Log.error('Error saving to Connection table', {error: err, connection_id: users[x]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})							
+												return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})							
+											console.log('saved Twitter user to Engagers via ID');
 										})
-										continue localConnectionUsers;
+										continue localEngagingUsers;
 									}
 
 								// if we reached here it means the twitter_id returned no data from twitter (user removed or account deleted)
 								// remove the twitter_id
-								users[x].twitter_id = undefined;
-								users[x].save(function(err, save) {
+								engagers[x].twitter_id = undefined;
+								engagers[x].save(function(err, save) {
 									if(err)
-										return Log.error('Error saving to Connection table', {error: err, connection_id: users[x]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-									console.log('removed user from connections');
+										return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+									console.log('removed twitter id from engagers at populateById');
 								})
 							}
 
-							// stop here if we found users to not exceed api limits
-							// once all id'ed users are taken care of we will then process screen name only
+							// stop here if we found engagers to not exceed api limits
+							// once all id'ed engagers are taken care of we will then process screen name only
 							next(itr, cb, true)
 						})
 					})
 				})
 			},
 
-			populateByScreenName: function(itr, cb) {
-				var timestamp = Helper.timestamp(),
-						twitterUserHandlesCsv;
-
-				Model.Connections.find({'meta.foursquare.twitter_handle': {$exists: true}, twitter_id: {$exists: false}, Twitter: {$exists: false}}, null, {limit: 99}, function(err, users) {
+			populateByScreenName: function(itr, cb, retry) {
+				Model.Engagers.find({'meta.foursquare.twitter_handle': {$exists: true}, twitter_id: {$exists: false}, Twitter: {$exists: false}}, null, {limit: 99}, function(err, engagers) {
 					if (err)
-						return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						return Log.error(err, {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
-					if(!users.length)
+					if(!engagers.length)
 						return next(itr, cb);
 
-					Model.User.find({Business: {$exists: true}}, {'Business': {$elemMatch: {'Analytics.id': users[0].meta.twitter.analytics_id}}}, function(err, user) {
+					Model.User.find({Business: {$exists: true}}, {'Business': {$elemMatch: {'Analytics.id': engagers[0].meta.twitter.analytics_id}}}, function(err, user) {
 						if(err) {
-							Log.error('Error querying User table', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+							Log.error('Error querying User table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 							return next(itr, cb);
 						}
 
@@ -964,14 +973,17 @@ console.log('at twitter list of followers method');
 						else 
 							twitter = Auth.load('twitter', user[0].Business[0].Social.twitter.auth.oauthAccessToken, user[0].Business[0].Social.twitter.auth.oauthAccessTokenSecret)
 
-						for(var i=0, l=users.length; i<l; i++) {
-							twitterUserHandlesCsv += users[i].meta.foursquare.twitter_handle + ',';
+						var timestamp = Utils.timestamp(),
+								twitterUserHandlesCsv;
+
+						for(var i=0, l=engagers.length; i<l; i++) {
+							twitterUserHandlesCsv += engagers[i].meta.foursquare.twitter_handle + ',';
 							
 							// mark this lookup attempt
-							users[i].meta.twitter.discovery_attempt.timestamp = timestamp;
+							engagers[i].meta.twitter.discovery.timestamp = timestamp;
 						}
 
-						// why are we adding a static screens_name(SN) at the end? because if all SNs in SN connections list
+						// why are we adding a static screens_name(SN) at the end? because if all SNs in SN engagers list
 						// are for removed accounts then this endpoint returns a 404 error
 						// previously we added a special case error handling to skip if it returned 404 but 
 						// if twitter is down and returns a 404 then all those SNs get marked as deleted!
@@ -979,46 +991,59 @@ console.log('at twitter list of followers method');
 						twitterUsersCsv += 'twitter'
 
 						twitter.get('/users/lookup.json', {screen_name: twitterUserHandlesCsv, include_entities: false}, function(err, response) {
+							// if a connection error occurs retry request (up to 3 attempts) 
+							if(err && retries.indexOf(err.code) > -1) {
+								if(retry && retry > 2) {
+									Error.handler('twitter', 'Twitter populateByScreenName method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+									return next(itr, cb);
+								}
+
+								return Harvest.engagers.populateByScreenName(itr, cb, retry ? ++retry : 1)
+							}
+							
+							// error handling
 							if (err || !response || response.errors) {
-								Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+								Error.handler('twitter', err || response, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 								return next(itr, cb)
 							}
 
-							localConnectionUsers:
-							for(var x=0, l=users.length; x<l; x++) {
+							localEngagingUsers:
+							for(var x=0, l=engagers.length; x<l; x++) {
 								for(var y=0, len=response.length; y<len; y++)
-									if(response[y].screen_name == users[x].meta.foursquare.twitter_handle) {
-										users[x].twitter_id = response[y].id_str;
+									if(response[y].screen_name == engagers[x].meta.foursquare.twitter_handle) {
+										engagers[x].twitter_id = response[y].id_str;
 
 										response[y].status = null;
-										users[x].Twitter = {
+										engagers[x].Twitter = {
 											id: response[y].id_str,
 											screen_name: response[y].screen_name,
 											screen_name_lower: response[y].screen_name.toLowerCase(),
 											timestamp: timestamp, // this is the update timestamp as well
 											data: response[y]
 										}
-										users[x].save(function(err, save) {
+										engagers[x].save(function(err, save) {
 											// TODO
 											//if(err.indexOf('E11000 duplicate key error') > -1)
 												// we have a duplicate. we need to direct this to merge these twitter Id's
 											if(err)
-												return Log.error('Error saving to Connection table', {error: err, connection_id: users[x]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+												return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+											console.log('saved Twitter users to engagers via Screen Names');
 										})
-										continue localConnectionUsers;
+										continue localEngagingUsers;
 									}
 
 								// if we reached here it means the screen_name supplied returned no data from twitter
 								// remove the screen_name
-								users[x].meta.foursquare.twitter_handle = undefined;
-								users[x].save(function(err, save) {
+								engagers[x].meta.foursquare.twitter_handle = undefined;
+								engagers[x].save(function(err, save) {
 									if(err)
-										return Log.error('Error saving to Connection table', {error: err, connection_id: users[x]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+										return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+									console.log('removed twitter handle given by foursquare from engagers at populateByScreenName');
 								})
 							}
 
-							// stop here if we found users to not exceed api limits
-							// once all id'ed users are taken care of we will then process screen name only
+							// stop here if we found engagers to not exceed api limits
+							// once all id'ed engagers are taken care of we will then process screen name only
 							next(itr, cb, true)
 						})
 					})
@@ -1027,9 +1052,9 @@ console.log('at twitter list of followers method');
 
 			// use personal account ('speaksocial') to call every 10 seconds as user based api call to twitter
 			// duplicates can happen if we update a user who has changed their 
-			// twitter screen name to that of another users old screen name, but the old screen name hasn't been updated yet
+			// twitter screen name to that of another engagers old screen name, but the old screen name hasn't been updated yet
 			duplicates: function(itr, cb) {
-				Model.Connections.aggregate(
+				Model.Engagers.aggregate(
 					{ $group : {_id : "$Twitter.screen_name_lower", total : { $sum : 1 } } },
 					{ $match : { total : { $gte : 2 } } },
 					//{ $sort : {total : -1} },
@@ -1051,7 +1076,7 @@ console.log('at twitter list of followers method');
 							// if we have more than 2 duplicates something is very wrong
 							// log the error and continue so we can look into this further via the log files
 							if(groups[i].total > 2)	{
-								Log.error('Error saving to Connection table', {error: err, duplicate_screenname: groups[i]._id, total_duplicates: groups[i].total, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+								Log.error('Error saving to Engager table', {error: err, duplicate_screenname: groups[i]._id, total_duplicates: groups[i].total, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 								continue;
 							}
 
@@ -1061,17 +1086,17 @@ console.log('at twitter list of followers method');
 
 						if(!screen_name)
 							return next(itr, cb)
-
+console.log('duplicate twitter screen name detected');
 						// call the update function below with the duplicate screen_name param 
-						Harvest.connections.update(itr, cb, screen_name)
+						Harvest.engagers.update(itr, cb, screen_name)
 
 					}
 				)
 			},
 
 			// call every 15 minutes
-			update: function(itr, cb, duplicate) {
-				var timestamp = Helper.timestamp(),
+			update: function(itr, cb, duplicate, retry) {
+				var timestamp = Utils.timestamp(),
 						twitterUsersCsv = '',
 						query;
 
@@ -1080,21 +1105,21 @@ console.log('at twitter list of followers method');
 				else
 					query = {twitter_id: {$exists: true}, Twitter: {$exists: true}, 'Twitter.timestamp': {$exists: true}, 'Twitter.timestamp': {$lt: timestamp - 1296000 /* 1296000 seconds = 15 days */}}
 
-				Model.Connections.find(query, null, {limit: 99}, function(err, users) {
+				Model.Engagers.find(query, null, {limit: 99}, function(err, engagers) {
 					if (err)
-						return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						return Log.error(err, {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					
-					if(!users.length)
+					if(!engagers.length)
 						return next(itr, cb)
 
 					// TODO: use a vocada dev user account to get higher api rate limit, not the app acount 
 					twitter = Auth.load('twitter').setBearerToken()
 
 					// create the query string for twitter api
-					for(var i=0, l=users.length; i<l; i++) 
-						twitterUsersCsv += users[i].twitter_id + ',';
+					for(var i=0, l=engagers.length; i<l; i++) 
+						twitterUsersCsv += engagers[i].twitter_id + ',';
 
-					// why are we adding a static id at the end? because if all ids in id connections list
+					// why are we adding a static id at the end? because if all ids in id engagers list
 					// are for removed accounts then this endpoint returns a 404 error
 					// previously we added a special case error handling to skip if it returned 404 but 
 					// if twitter is down and returns a 404 then all those ids get marked as deleted!
@@ -1102,38 +1127,49 @@ console.log('at twitter list of followers method');
 					twitterUsersCsv += '783214'
 
 					twitter.get('/users/lookup.json', {user_id: twitterUsersCsv, include_entities: false}, function(err, response) {
+						// if a connection error occurs retry request (up to 3 attempts) 
+						if(err && retries.indexOf(err.code) > -1) {
+							if(retry && retry > 2) {
+								Error.handler('twitter', 'Twitter update method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+								return next(itr, cb);
+							}
+
+							return Harvest.engagers.update(itr, cb, duplicate, retry ? ++retry : 1)
+						}
+						
+						// error handling
 						if (err || !response || response.errors) {
-							Error.handler('twitter', err || response, err, response, {file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							Error.handler('twitter', err || response, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							return next(itr, cb)
 						}
 
-						localConnectionUsers:
-						for(var x=0, l=users.length; x<l; x++) {
+						localEngagingUsers:
+						for(var x=0, l=engagers.length; x<l; x++) {
 							for(var y=0, len=response.length; y<len; y++)
-								if(response[y].id_str == users[x].twitter_id && response[y].id_str !== '783214') {
+								if(response[y].id_str == engagers[x].twitter_id && response[y].id_str !== '783214') {
 									response[y].status = null;
-									users[x].Twitter = {
-										id: users[x].twitter_id,
+									engagers[x].Twitter = {
+										id: engagers[x].twitter_id,
 										screen_name: response[y].screen_name,
 										screen_name_lower: response[y].screen_name.toLowerCase(),
 										timestamp: timestamp, // this is the update timestamp as well
 										data: response[y]
 									}
 
-									users[x].save(function(err, save) {
+									engagers[x].save(function(err, save) {
 										if(err)
-											return Log.error('Error saving to Connection table', {error: err, connection_id: users[x]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})							
+											return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})							
 									})
-									continue localConnectionUsers;
+									continue localEngagingUsers;
 								}
 
 							// if we reached here it means the twitter_id returned no data from twitter (user removed or account deleted)
 							// remove the twitter_id
-							users[x].twitter_id = undefined;
-							users[x].save(function(err, save) {
+							engagers[x].twitter_id = undefined;
+							engagers[x].save(function(err, save) {
 								if(err)
-									return Log.error('Error saving to Connection table', {error: err, connection_id: users[x]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-								console.log('removed user from connections ');
+									return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+								console.log('removed user from engagers ');
 							})
 						}
 
@@ -1158,29 +1194,29 @@ console.log('at twitter list of followers method');
 				analytics = null;
 
 				Harvest.metrics[data.methods[0]](0, function() {
-					if(connections.length)
-						Model.Connections.collection.insert(connections, {safe: true, continueOnError: true}, function(err, save) {
+					if(Engagers.length)
+						Model.Engagers.collection.insert(Engagers, {safe: true, continueOnError: true}, function(err, save) {
 							if(err && err.code !== 11000)
-								Log.error('Error saving to Connection table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+								Log.error('Error saving to Engager table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 						})
 					
 					if(update) {
 						Analytics.save(function(err, save) {
 							if(err && err.name !== 'VersionError')
-								return Log.error('Error saving Twitter analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+								return Log.error('Error saving Twitter analytics to database', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 							// if we have a versioning overwrite error than load up the analytics document again
 							if(err && err.name === 'VersionError')
 								Model.Analytics.findById(data.analytics_id, function(err, analytics) {
 									if(err)
-										return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+										return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 									analytics.twitter = Analytics.twitter;
 									analytics.markModified('twitter')
 
 									analytics.save(function(err, save) {
 										if(err)
-											return Log.error('Error saving Twitter analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+											return Log.error('Error saving Twitter analytics to database', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 										callback(null);
 									})
 								})
@@ -1193,9 +1229,9 @@ console.log('at twitter list of followers method');
 				});
 			})
 		},
-		processConnectionUsers: function(methods, callback) {
-			Harvest.type = 'connections';
-			Harvest.connections[methods[0]](0, function() {
+		engagers: function(methods, callback) {
+			Harvest.type = 'engagers';
+			Harvest.engagers[methods[0]](0, function() {
 				callback(null)
 			})
 		}

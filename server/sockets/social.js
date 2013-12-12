@@ -1,6 +1,6 @@
 // Module dependencies.
 var Log = require('./logger').getInstance().getLogger(),
-    Helper = require('./helpers');		
+    Utils = require('../utilities'),		
 
 var Graphing = (function() {
 

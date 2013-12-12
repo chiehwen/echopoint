@@ -3,7 +3,7 @@ var http = require('http'),
 		fs = require('fs'),
 		Database = require('./database').getInstance(),
 		Auth = require('./auth').getInstance(),
-		Helper = require('./helpers'),
+		//Utils = require('./utilities'),
 		Model = Model || Object;
 
 var LoadServer = (function() {

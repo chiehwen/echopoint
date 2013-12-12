@@ -1,7 +1,7 @@
 // Module dependencies.
 var Auth = require('./auth').getInstance(),
 		Log = require('./logger').getInstance().getLogger(),
-		Helper = require('./helpers'),
+		Utils = require('./utilities'),
 		Notification = require('./notification'),
 		Session = require('./session'),
 		Url = require('url'),
@@ -24,7 +24,7 @@ var Socket = (function() {
 				passportUserId = JSON.parse(Session.store.sessions[sid]).passport.user;
 
 				if(passportUserId && passportUserId != '') {
-	 				Helper.getUser(passportUserId, function(err, user) {
+	 				Utils.getUser(passportUserId, function(err, user) {
 	 					if (err || !user) callback({loggedIn: false, error: err});
 	 					var response = {
 	 						loggedIn: true,
@@ -47,7 +47,7 @@ var Socket = (function() {
 			user: {
 				setUid: function(data, callback) {
 					if(passportUserId) {				
-		 				Helper.getUser(passportUserId, function(err, user) {
+		 				Utils.getUser(passportUserId, function(err, user) {
 		 					if (err || !user) callback({success: false, error: err});
 		 					user.id = data.uid;
 		 					
@@ -62,7 +62,7 @@ var Socket = (function() {
 				},
 				update: function(data, callback) {
 					if(passportUserId) {
-						Helper.getUser(passportUserId, function(err, user) {
+						Utils.getUser(passportUserId, function(err, user) {
 							if(err || !user) callback({success: false, error: err || 'no user found!'});
 				
 							if(data.name)
@@ -86,7 +86,7 @@ var Socket = (function() {
 			business: {
 				setBid: function(data, callback) {
 					if(passportUserId) {				
-		 				Helper.getUser(passportUserId, function(err, user) {
+		 				Utils.getUser(passportUserId, function(err, user) {
 		 					if (err || !user) callback({success: false, error: err});
 		 					user.Business[data.index].id = data.bid;
 		 					
@@ -101,7 +101,7 @@ var Socket = (function() {
 				},
 				select: function(data, callback) {
 					if(passportUserId) {				
-		 				Helper.getUser(passportUserId, function(err, user) {
+		 				Utils.getUser(passportUserId, function(err, user) {
 		 					for(var i=0,l=user.Business.length; i<l; i++) {
 		 						if(user.Business[i]._id == data.id) {
 		 							user.meta.Business.current = {
@@ -120,7 +120,7 @@ var Socket = (function() {
 				},
 				update: function(data, callback) {
 					if(passportUserId) {
-						Helper.getUser(passportUserId, function(err, user) {
+						Utils.getUser(passportUserId, function(err, user) {
 							if(err || !user) callback({success: false, error: err || 'no user found!'});
 						
 							for(var x=0, l=user.Business.length;x<l;x++) {
@@ -143,10 +143,10 @@ var Socket = (function() {
 				},
 				create: function(data, callback) {
 					if(passportUserId && data.bid) {
-						Helper.getUser(passportUserId, function(err, user) {
+						Utils.getUser(passportUserId, function(err, user) {
 							if(err || !user) callback({success: false, error: err || 'no user found!'});
 							
-							var timestamp = Helper.timestamp(true) + Helper.randomInt(10000, 99999),
+							var timestamp = Utils.timestamp(true) + Utils.randomInt(10000, 99999),
 	 								newBusiness = {
 	 									id: data.bid,
 			 							name: data.name,
@@ -178,7 +178,7 @@ var Socket = (function() {
 						if(!passportUserId) 
 							return callback(err || 'user id error!');
 						
-						Helper.getUser(passportUserId, function(err, user) {
+						Utils.getUser(passportUserId, function(err, user) {
 							if(err || !user) return callback(err || 'no user found!');
 
 							var yelp = Auth.load('yelp');
@@ -269,7 +269,7 @@ var Socket = (function() {
 						if(!passportUserId) 
 							return callback(err || 'user id error!');
 						
-						Helper.getUser(passportUserId, function(err, user) {
+						Utils.getUser(passportUserId, function(err, user) {
 							if(err || !user) 
 								return callback(err || 'no user found!');
 

@@ -4,7 +4,7 @@
 var Auth = require('./auth').getInstance(),
 		Log = require('./logger').getInstance().getLogger(),
 		Error = require('./error').getInstance(),
-		Helper = require('./helpers'),
+		//Utils = require('./utilities'),
 		Model = Model || Object,
 		CronJob = require('cron').CronJob,
 		Crons = {
@@ -37,12 +37,12 @@ var CronJobs = {
 			start: false
 		}),
 
-		connections: new CronJob({
+		engagers: new CronJob({
 			// NOTE: currently on five minutes for testing, but will cahnge to every 2 minutes
 			cronTime: '0 */5 * * * *', // every 2 minutes *processes 100 users every run with batch calling and once populated it won't call that user again so many calls won't even hit the FB api
 			onTick: function() {
-				var connections = new Crons.facebook;
-				connections.getJob('connections', ['connections'])
+				var engagers = new Crons.facebook;
+				engagers.getJob('engagers', ['engagers'])
 			},
 			start: false
 		}) 
@@ -77,12 +77,12 @@ var CronJobs = {
 			start: false
 		}),
 
-		connections: new CronJob({
+		engagers: new CronJob({
 			cronTime: '*/5 * * * * *',
-			onTick: function() { // every 5 seconds *again these wont call the api if no users need to be populated in the Connections table
+			onTick: function() { // every 5 seconds *again these wont call the api if no users need to be populated in the Engagers table
 				
-				var connections = new Crons.twitter
-				connections.getJob('connections', ['populateById', 'populateByScreenName'])
+				var engagers = new Crons.twitter
+				engagers.getJob('engagers', ['populateById', 'populateByScreenName'])
 			},
 
 			start: false
@@ -92,7 +92,7 @@ var CronJobs = {
 			cronTime: '*/15 * * * * *', // every 15 seconds
 			onTick: function() {
 				var duplicates = new Crons.twitter
-				duplicates.getJob('connections', ['duplicates'])
+				duplicates.getJob('engagers', ['duplicates'])
 			},
 			start: false
 		}),
@@ -101,7 +101,7 @@ var CronJobs = {
 			cronTime: '0 */15* * * *', // every 15 minutes
 			onTick: function() {
 				var update = new Crons.twitter
-				update.getJob('connections', ['update'])
+				update.getJob('engagers', ['update'])
 			},
 			start: false
 		})
@@ -136,11 +136,11 @@ var CronJobs = {
 			start: false
 		}),
 
-		users: new CronJob({
-			cronTime: '*/15 * * * * *', // every 15 seconds. *this is only called if we have user data in the Connections table
+		engagers: new CronJob({
+			cronTime: '*/15 * * * * *', // every 15 seconds. *this is only called if we have user data in the Engagers table
 			onTick: function() {
-				var users = new Crons.foursquare
-				users.getJob('users', ['user'])
+				var engagers = new Crons.foursquare
+				engagers.getJob('engagers', ['user'])
 			},
 
 			start: false
@@ -221,7 +221,7 @@ var CronJobs = {
 		cronTime: '*/5 * * * * *', // run every 5 seconds, each method is only run if the other isn't needed so only 1 in the array will be run every 5 seconds 
 		onTick: function() {
 			var klout = new Crons.klout
-			klout.getJob('metrics', ['id', 'score', 'update', 'discovery'])
+			klout.getJob('metrics', ['id', 'user', 'update', 'discovery'])
 		},
 		start: false
 	})

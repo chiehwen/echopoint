@@ -5,7 +5,7 @@
 // This is for real-time API listening (such as twitter search stream or facebook stream) if we ever decide to utilize this feature
 var //Auth = require('../server/auth').getInstance(),
 		Log = require('../server/logger').getInstance().getLogger(),
-		Helper = require('../server/helpers'),
+		Utils = require('../server/utilities'),
 		Model = Model || Object;
 
 

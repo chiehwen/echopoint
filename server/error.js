@@ -3,7 +3,7 @@
  */
 
 var Log = require('./logger').getInstance(),
-		Helper = require('./helpers');
+		Utils = require('./utilities');
 
 var ErrorHandler = (function() {
 
@@ -25,7 +25,7 @@ var ErrorHandler = (function() {
 				var error,
 						meta = meta || {},
 						date = new Date().toUTCString(),
-						timestamp = Helper.timestamp(),
+						timestamp = Utils.timestamp(),
 						level = meta.level || 'warn';
 
 				if(err && err.code)
@@ -63,7 +63,7 @@ var ErrorHandler = (function() {
 				var error,
 						meta = meta || {},
 						date = new Date().toUTCString(),
-						timestamp = Helper.timestamp(),
+						timestamp = Utils.timestamp(),
 						level = meta.level || 'warn';
 
 				// nTwitter module puts response errors into "err" return variable automatically, so "response" should really never exist unless API change breaks the nTwitter error abstraction layer 
@@ -115,7 +115,7 @@ var ErrorHandler = (function() {
 				
 				var meta = meta || {},
 						date = new Date().toUTCString(),
-						timestamp = Helper.timestamp(),
+						timestamp = Utils.timestamp(),
 						level = meta.level || 'warn';
 
 				if(response && response.meta && (response.meta.code !== 200 || response.meta.errorType)) {
@@ -149,7 +149,7 @@ var ErrorHandler = (function() {
 
 				var meta = meta || {},
 						date = new Date().toUTCString(),
-						timestamp = Helper.timestamp(),
+						timestamp = Utils.timestamp(),
 						level = meta.level || 'warn';
 
 				loggers.google[level](message || err || 'Google API error', {err: err, google_data: response, file: meta.file, line: meta.line, time: date, timestamp: timestamp, meta: meta})
@@ -163,7 +163,7 @@ var ErrorHandler = (function() {
 
 				var meta = meta || {},
 						date = new Date().toUTCString(),
-						timestamp = Helper.timestamp(),
+						timestamp = Utils.timestamp(),
 						level = meta.level || 'warn';
 
 				if(response && response.error) {
@@ -190,7 +190,7 @@ var ErrorHandler = (function() {
 				
 				var meta = meta || {},
 						date = new Date().toUTCString(),
-						timestamp = Helper.timestamp(),
+						timestamp = Utils.timestamp(),
 						level = meta.level || 'warn';
 
 				if(response && response.meta && (response.meta.code !== 200 || response.meta.error_type)) {
@@ -217,7 +217,7 @@ var ErrorHandler = (function() {
 				
 				var meta = meta || {},
 						date = new Date().toUTCString(),
-						timestamp = Helper.timestamp(),
+						timestamp = Utils.timestamp(),
 						level = meta.level || 'warn';
 
 				if(response && response.error) {
@@ -236,7 +236,7 @@ var ErrorHandler = (function() {
 				
 				var meta = meta || {},
 						date = new Date().toUTCString(),
-						timestamp = Helper.timestamp(),
+						timestamp = Utils.timestamp(),
 						level = meta.level || 'warn';
 
 				if(response && response.status_code !== 200) {

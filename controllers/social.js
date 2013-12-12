@@ -9,7 +9,7 @@ var crypto = require('crypto'),
 		Auth = require('../server/auth').getInstance(),
 		Log = require('../server/logger').getInstance().getLogger(),
 		Error = require('../server/error').getInstance(),
-		Helper = require('../server/helpers'),
+		Utils = require('../server/utilities'),
 		Model = Model || Object,
 		Harvester = {
 			facebook: require('../server/harvesters/facebook'),
@@ -24,41 +24,41 @@ var SocialController = {
 
 	facebook: {
 		get: function(req, res) {
-			res.render(Helper.bootstrapRoute);
+			res.render(Utils.bootstrapRoute);
 		}
 	},
 	twitter: {
 		get: function(req, res) {
-			res.render(Helper.bootstrapRoute);
+			res.render(Utils.bootstrapRoute);
 		}
 	},
 	foursquare: {
 		get: function(req, res) {
-			res.render(Helper.bootstrapRoute);
+			res.render(Utils.bootstrapRoute);
 		}
 	},
 	google_plus: {
 		path: '/social/google/plus',
 		get: function(req, res) {
 			req.session.googleChildNetwork = 'plus'
-			res.render(Helper.bootstrapRoute);
+			res.render(Utils.bootstrapRoute);
 		}
 	},
 	google_places: {
 		path: '/social/google/places',
 		get: function(req, res) {
 			req.session.googleChildNetwork = 'places'
-			res.render(Helper.bootstrapRoute);
+			res.render(Utils.bootstrapRoute);
 		}
 	},
 	yelp: {
 		get: function(req, res) {
-			res.render(Helper.bootstrapRoute);
+			res.render(Utils.bootstrapRoute);
 		}
 	},
 	instagram: {
 		get: function(req, res) {
-			res.render(Helper.bootstrapRoute);
+			res.render(Utils.bootstrapRoute);
 		}
 	},
 
@@ -70,10 +70,10 @@ var SocialController = {
 			if(!req.session.passport.user)
 				res.redirect('/login')
 
-			Helper.getUser(req.session.passport.user, function(err, user) {
+			Utils.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) {
 					// basic database error handling
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})
 				}
 
@@ -91,7 +91,7 @@ var SocialController = {
 					if(req.query.id)
 						facebook.get('me', {fields: 'id,accounts.fields(id,access_token)'}, function(err, response) {
 							if(err || response.error) {
-								Error.handler('facebook', err || response.error, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+								Error.handler('facebook', err || response.error, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 								return res.redirect('/social/facebook/connect?login=true')
 							}
 
@@ -112,7 +112,7 @@ var SocialController = {
 
 									user.save(function(err) {
 										if(err) {
-											Log.error('Error saving Facebook credentials', {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+											Log.error('Error saving Facebook credentials', {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 											req.session.messages.push('Error saving Facebook credentials to application')
 											res.redirect('/social/facebook/connect?login=true');
 										}
@@ -130,7 +130,7 @@ var SocialController = {
 					else if(!f.account.id || !f.account.oauthAccessToken || req.query.select)
 						facebook.get('me', {fields: 'accounts.fields(name,picture.type(square),id)'}, function(err, response) {
 							if(err || response.error) {
-								Error.handler('facebook', err || response.error, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+								Error.handler('facebook', err || response.error, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 								return res.redirect('/social/facebook/connect?login=true')
 							}
 
@@ -161,7 +161,7 @@ var SocialController = {
 							}, function(err) {
 								if (err) {
 									// if things didn't load properly log error and force user to relogin to facebook
-									Log.error(err, {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+									Log.error(err, {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 									return res.redirect('/social/facebook/connect?login=true')
 								}			
 
@@ -235,10 +235,10 @@ var SocialController = {
 			if(!req.session.passport.user)
 				res.redirect('/login')
 
-			Helper.getUser(req.session.passport.user, function(err, user) {
+			Utils.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) {
 					// basic database error handling
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})
 				}
 
@@ -283,7 +283,7 @@ console.log('we should be in here');
 					// seems we have nothing. lets get the request token used for the app oauth dialog url
 					twitter.oauth.getOAuthRequestToken(function(err, oauthRequestToken, oauthRequestTokenSecret, response) {
 						if (err || response.errors || !oauthRequestToken || !oauthRequestTokenSecret) {
-							Error.handler('twitter', err ? err : 'Error getting twitter request tokens for initial authorize url', err, response, {request_token: oauthRequestToken, token_secret: oauthRequestTokenSecret, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							Error.handler('twitter', err ? err : 'Error getting twitter request tokens for initial authorize url', err, response, {request_token: oauthRequestToken, token_secret: oauthRequestTokenSecret, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							return res.json({success: false, error: 'Error getting OAuth request token : ' + JSON.stringify(err)});
 						}
 
@@ -314,10 +314,10 @@ console.log('we should be in here');
 			if(!req.session.passport.user)
 				res.redirect('/login')
 
-			Helper.getUser(req.session.passport.user, function(err, user) {
+			Utils.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) {
 					// basic database error handling
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})
 				}
 
@@ -346,7 +346,7 @@ console.log('we should be in here');
 					else if(req.query.id)
 						foursquare.get('venues/managed', {v: foursquare.client.verified}, function(err, response) {
 							if(err || response.meta.code !== 200 || response.meta.errorType) {
-								Error.handler('foursquare', err || response.meta.errorType, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber()})
+								Error.handler('foursquare', err || response.meta.errorType, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber()})
 								return res.redirect('/social/foursquare/connect?login=true');
 							}
 
@@ -365,7 +365,7 @@ console.log('we should be in here');
 
 									user.save(function(err) {
 										if(err) {
-											Log.error('Error saving Foursquare credentials', {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+											Log.error('Error saving Foursquare credentials', {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 											req.session.messages.push('Error saving Foursquare credentials to application')
 											res.redirect('/social/foursquare/connect?login=true');
 										}
@@ -384,7 +384,7 @@ console.log('we should be in here');
 
 						foursquare.get('venues/managed', {v: foursquare.client.verified}, function(err, response) {
 							if(err || response.meta.code !== 200 || response.meta.errorType) {
-								Error.handler('foursquare', err || response.meta.errorType, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber()})
+								Error.handler('foursquare', err || response.meta.errorType, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber()})
 								return res.redirect('/social/foursquare/connect?login=true');
 							}
 
@@ -438,10 +438,10 @@ console.log('we should be in here');
 			if(!req.session.passport.user)
 				res.redirect('/login')
 
-			Helper.getUser(req.session.passport.user, function(err, user) {
+			Utils.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) {
 					// basic database error handling
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})	
 				}
 
@@ -482,7 +482,7 @@ console.log('child_network', network);
 								.withAuthClient(google.oauth)
 								.execute(function(err, data) {
 									if(err || !data) {
-										Error.handler('google', 'Failure on google plus execute after oauth process', err, data, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+										Error.handler('google', 'Failure on google plus execute after oauth process', err, data, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 										req.session.messages.push(err);
 										//return res.redirect('/social/google?error=true');
 										data = err || 'error';
@@ -588,10 +588,10 @@ console.log('child_network', network);
 			if(!req.session.passport.user)
 				res.redirect('/login')
 
-			Helper.getUser(req.session.passport.user, function(err, user) {
+			Utils.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) {
 					// basic database error handling
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})	
 				}
 
@@ -629,7 +629,7 @@ console.log(g.business.data);
 								.withAuthClient(google.oauth)
 								.execute(function(err, data) {
 									if(err || !data) {
-										Error.handler('google', 'Failure on google plus execute after oauth process', err, data, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+										Error.handler('google', 'Failure on google plus execute after oauth process', err, data, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 										req.session.messages.push(err);
 										//return res.redirect('/social/google?error=true');
 										data = err || 'error';
@@ -732,10 +732,10 @@ console.log(g.business.data);
 			if(!req.session.passport.user)
 				res.redirect('/login')
 
-			Helper.getUser(req.session.passport.user, function(err, user) {
+			Utils.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) {
 					// basic database error handling
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})	
 				}
 
@@ -773,7 +773,7 @@ console.log(g.business.data);
 								.withAuthClient(google.oauth)
 								.execute(function(err, data) {
 									if(err || !data) {
-										Error.handler('google', 'Failure on google plus execute after oauth process', err, data, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+										Error.handler('google', 'Failure on google plus execute after oauth process', err, data, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 										req.session.messages.push(err);
 										//return res.redirect('/social/google?error=true');
 										data = err || 'error';
@@ -875,10 +875,10 @@ console.log(g.business.data);
 			if(!req.session.passport.user)
 				res.redirect('/login')
 
-			Helper.getUser(req.session.passport.user, function(err, user) {
+			Utils.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) {
 					// basic database error handling
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})
 				}
 
@@ -910,7 +910,7 @@ console.log(g.business.data);
 
 					user.save(function(err) {
 						if(err) {
-							Log.error('Error saving Yelp url', {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+							Log.error('Error saving Yelp url', {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 							req.session.messages.push('Error saving Yelp url to application')
 							res.redirect('/social/yelp/connect?setup=true');
 						}
@@ -929,7 +929,7 @@ console.log(g.business.data);
 					function(err, response) {
 						// error handling
 						if(err || (response && response.statusCode !== 200)) {
-							Error.handler('yelp', err || response.statusCode, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							Error.handler('yelp', err || response.statusCode, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							return res.redirect('/social/yelp/connect?setup=true')
 						}
 
@@ -953,7 +953,7 @@ console.log(g.business.data);
 					function(err, response) {
 						// error handling
 						if(err || (response && response.statusCode !== 200)) {
-							Error.handler('yelp', err || response.statusCode, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							Error.handler('yelp', err || response.statusCode, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							return res.redirect('/social/yelp/connect?setup=true')
 						}
 
@@ -976,10 +976,10 @@ console.log(g.business.data);
 			if(!req.session.passport.user)
 				res.redirect('/login')
 
- 			Helper.getUser(req.session.passport.user, function(err, user) {
+ 			Utils.getUser(req.session.passport.user, function(err, user) {
 				if (err || !user) {
 					// basic database error handling
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})
 				}	
 
@@ -997,7 +997,7 @@ console.log(g.business.data);
 					// load feed just to check connect (will most likely be removed)
 					instagram.get('users/self/feed', function(err, response) {
 						if(err || (response.meta && (response.meta.code !== 200 || response.meta.error_type))) {
-							Error.handler('instagram', err || response.meta, response.meta, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							Error.handler('instagram', err || response.meta, response.meta, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							res.redirect('/social/instagram/connect?login=true');
 						}
 

@@ -3,7 +3,7 @@
  */
 
 var Log = require('../server/logger').getInstance().getLogger(),
-		Helper = require('../server/helpers'),
+		Utils = require('../server/utilities'),
 		Model = Model || Object;
 
 var AnalyticsController = {
@@ -20,9 +20,9 @@ var AnalyticsController = {
 
  		post: function(req, res, next) {
  			if(req.session.passport.user) {
- 				Helper.getUser(req.session.passport.user, function(err, user) {
+ 				Utils.getUser(req.session.passport.user, function(err, user) {
  					if (err || !user) {
-						Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 						req.session.messages.push('Error finding user for business')
 						res.redirect(err ? '/logout' : '/login')
 						return
@@ -41,7 +41,7 @@ var AnalyticsController = {
 						{$set: {Business: businesses}},
 						function(err){
 							if (err) {
-								Log.error('Error on Mongoose Model.User.update query', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+								Log.error('Error on Mongoose Model.User.update query', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 								return next(err)
 							}
 							req.session.messages.push("Hooray! New business has been created!")
@@ -64,7 +64,7 @@ var AnalyticsController = {
  				var id = req.session.passport.user;
  				Model.User.remove({ _id: id }, function (err) {
  				  if (err) {
-						Log.error('Error on Mongoose Model.User.remove query', {error: err, user_id: id, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						Log.error('Error on Mongoose Model.User.remove query', {error: err, user_id: id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 						return next(err)
 					}
  				  req.session.destroy(function(){

@@ -5,7 +5,7 @@
 // controller dependencies
 var passport = require('passport'),
 		Log = require('../server/logger').getInstance().getLogger(),
-		Helper = require('../server/helpers'),
+		Utils = require('../server/utilities'),
 		Model = Model || Object,
 		googleTimestampHash = require('../server/harvesters/config/google').getInstance();
 
@@ -64,7 +64,7 @@ var UserController = {
 		post: function(req, res, next) {
 			Model.User.findOne({email: req.body.email}, function(err, user) {
 				if (err) {
-					Log.error(err, {error: err, user_email: req.body.email, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(err, {error: err, user_email: req.body.email, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 					req.session.messages.push('Error with database query')
 					return res.redirect('/logout')
 				}
@@ -82,13 +82,13 @@ var UserController = {
 
 				newUser.save(function(err){
 					if (err) {
-						Log.error(err, {error: err, user_email: req.body.email, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+						Log.error(err, {error: err, user_email: req.body.email, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 						req.session.messages.push('Error with mongoose save')
 						return res.redirect('/logout')
 					}
 					req.login(newUser, function(err) {
 					  if (err) {
-							Log.error(err, {error: err, user_email: req.body.email, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+							Log.error(err, {error: err, user_email: req.body.email, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 							req.session.messages.push('Error with automatic user login')
 							return res.redirect('/logout')
 						}
@@ -103,7 +103,7 @@ var UserController = {
 		path: '/dashboard',
 		get: function(req, res) {
 			res.render(
-				Helper.bootstrapRoute, //'user/dashboard', 
+				Utils.bootstrapRoute, //'user/dashboard', 
 				{
 			  	title: 'Vocada | User Dashboard'
 			 	}
@@ -115,7 +115,7 @@ var UserController = {
 		path: '/account/settings',
 		get: function(req, res) {
 			res.render(
-				Helper.bootstrapRoute, //'user/profile', 
+				Utils.bootstrapRoute, //'user/profile', 
 				{
 			  	title: 'Vocada | User Account Settings'
 			 	}
@@ -148,7 +148,7 @@ var UserController = {
 				'user/google_hash', 
 				{
 					title: 'Vocada | Google Hash',
-					current_hash: googleTimestampHash.getTimestampHash() || Helper.googleTimestampHash
+					current_hash: googleTimestampHash.getTimestampHash() || Utils.googleTimestampHash
 				}
 			)
 		}
@@ -164,7 +164,7 @@ var UserController = {
 
 			Model.User.remove({ _id: req.session.passport.user}, function (err) {
 			  if (err) {
-					Log.error(err, {error: err, user_email: req.body.email, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					Log.error(err, {error: err, user_email: req.body.email, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 					req.session.messages.push('Error with mongoose remove for User')
 					return res.redirect('/logout')
 				}

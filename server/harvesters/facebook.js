@@ -1,17 +1,18 @@
 var Auth = require('../auth').getInstance(),
 		Log = require('../logger').getInstance().getLogger(),
 		Error = require('../error').getInstance(),
-		Helper = require('../helpers'),
+		Utils = require('../utilities'),
 		Model = Model || Object;
 
 var FacebookHarvester = function() {
 
 	// private vars and methods
 	var Analytics,
+			Engagers = [],
 			facebook,
 			data,
 			update = false,
-			retries = Helper.retryErrorCodes.push(2),
+			retries = Utils.retryErrorCodes.push(2),
 			since = 0,
 			next = function(i, cb, stop) {
 				var i = i+1;
@@ -30,7 +31,7 @@ console.log('at facebook business page update method...');
 				// if a connection error occurs retry request (up to 3 attempts) 
 				if(err && retries.indexOf(err.code) > -1) {
 					if(retry && retry > 2) {
-						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 						return next(itr, cb);
 					}
 
@@ -39,12 +40,12 @@ console.log('at facebook business page update method...');
 
 				// error handling
 				if(err || !response || response.error) {
-					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 					return next(itr, cb);
 				}
 
 				var cached = Analytics.facebook.business.data,
-						timestamp = Helper.timestamp(),
+						timestamp = Utils.timestamp(),
 						localUpdate = false;
 
 				if( !cached || (cached && (response.name != cached.name || response.category != cached.category || response.description != cached.description || response.about != cached.about || response.location.street != cached.location.street || response.website != cached.website || response.username != cached.username)) ) {
@@ -58,7 +59,7 @@ console.log('at facebook business page update method...');
 						user.Business[data.index].Social.facebook.account.data = Analytics.facebook.business.data;
 						user.save(function(err) {
 							if(err)
-								return Log.error('Error saving Facebook page data to user table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+								return Log.error('Error saving Facebook page data to user table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 						})
 					})
 				}
@@ -113,7 +114,7 @@ console.log('at facebook business page update method...');
 		posts: function(itr, cb, retry) {
 console.log('at facebook posts [new] method...');
 
-			var posts = Analytics.facebook.tracking.posts.sort(Helper.sortBy('timestamp', false, parseInt)),
+			var posts = Analytics.facebook.tracking.posts.sort(Utils.sortBy('timestamp', false, parseInt)),
 					localUpdate = false;
 
 			since = posts.length ? posts[0].timestamp : 0;
@@ -122,7 +123,7 @@ console.log('at facebook posts [new] method...');
 				// if a connection error occurs retry request (up to 3 attempts) 
 				if(err && retries.indexOf(err.code) > -1) {
 					if(retry && retry > 2) {
-						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 						return next(itr, cb);
 					}
 
@@ -131,7 +132,7 @@ console.log('at facebook posts [new] method...');
 
 				// error handling
 				if(err || !response || response.error) {
-					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 					return Harvest.posts_update(itr, cb);
 				}
 
@@ -143,10 +144,10 @@ console.log('at facebook posts [new] method...');
 
 				for(var i = 0, l = results.length; i < l; i++) {
 
-					var timestamp = Helper.timestamp(),
+					var timestamp = Utils.timestamp(),
 							post = {
 								id: results[i].id,
-								timestamp: Helper.timestamp(results.created_time),
+								timestamp: Utils.timestamp(results.created_time),
 								local_timestamp: timestamp,
 								data: results[i],
 								likes: {},
@@ -154,7 +155,7 @@ console.log('at facebook posts [new] method...');
 								shares: {}
 							}
 
-					if(results[i].likes)
+					if(results[i].likes) {
 						post.likes = {
 							meta: [{
 								timestamp: timestamp,
@@ -165,7 +166,11 @@ console.log('at facebook posts [new] method...');
 							data: results[i].likes.data
 						}
 
-					if(results[i].comments)
+						for(var x = 0, len = results[i].likes.data.length; x<len; x++)
+							engager.push({facebook_id: results[i].likes.data[x].id})
+					}
+
+					if(results[i].comments) {
 						post.comments = {
 							meta: [{
 								timestamp: timestamp,
@@ -175,6 +180,10 @@ console.log('at facebook posts [new] method...');
 							total: results[i].comments.data.length,
 							data: results[i].comments.data
 						}
+
+						for(var y = 0, length = results[i].comments.data.length; y<length; y++)
+							engager.push({facebook_id: results[i].comments.data[y].from.id})
+					}
 
 					if(results[i].shares)
 						post.shares = {
@@ -207,7 +216,7 @@ console.log('at the facebook posts [update] method...');
 				// if a connection error occurs retry request (up to 3 attempts) 
 				if(err && retries.indexOf(err.code) > -1) {
 					if(retry && retry > 2) {
-						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 						return next(itr, cb);
 					}
 
@@ -216,7 +225,7 @@ console.log('at the facebook posts [update] method...');
 
 				// error handling
 				if(err || !response || response.error) {
-					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 					return next(itr, cb);
 				}
 
@@ -228,7 +237,7 @@ console.log('at the facebook posts [update] method...');
 
 				for(var x = 0, l = results.length; x < l; x++) {
 					for(var y = 0, len = Analytics.facebook.tracking.posts.length; y < len; y++) {
-						var timestamp = Helper.timestamp();
+						var timestamp = Utils.timestamp();
 
 						if(Analytics.facebook.tracking.posts[y].id == results[x].id) {
 							
@@ -241,6 +250,11 @@ console.log('at the facebook posts [update] method...');
 								Analytics.facebook.tracking.posts[y].likes.timestamp = timestamp;
 								Analytics.facebook.tracking.posts[y].likes.total = results[x].likes.data.length,
 								Analytics.facebook.tracking.posts[y].likes.data = results[x].likes.data;
+
+								// put user ids into engagers array for the engagers table
+								for(var a = 0, a_length = results[x].likes.data.length; a < a_length; a++)
+									engager.push({facebook_id: results[x].likes.data[a].id})
+
 								update = localUpdate = true;
 							}
 
@@ -253,6 +267,11 @@ console.log('at the facebook posts [update] method...');
 								Analytics.facebook.tracking.posts[y].comments.timestamp = timestamp;
 								Analytics.facebook.tracking.posts[y].comments.total = results[x].comments.data.length,
 								Analytics.facebook.tracking.posts[y].comments.data = results[x].comments.data;
+
+								// put user ids into engagers array for the engagers table
+								for(var b = 0, b_length = results[i].comments.data.length; b < b_length; b++)
+									engager.push({facebook_id: results[i].comments.data[b].from.id})
+
 								update = localUpdate = true;
 							}
 
@@ -287,7 +306,7 @@ console.log('at facebook page_insights method...');
 				// if a connection error occurs retry request (up to 3 attempts) 
 				if(err && retries.indexOf(err.code) > -1) {
 					if(retry && retry > 2) {
-						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 						return next(itr, cb);
 					}
 
@@ -296,7 +315,7 @@ console.log('at facebook page_insights method...');
 
 				// error handling
 				if(err || !response || response.error) {
-					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 					return next(itr, cb);
 				}
 
@@ -313,7 +332,7 @@ console.log('at facebook page_insights method...');
 
 					if(initial)
 						Analytics.facebook.tracking.page.insights[insights[i].name] = {
-							timestamp: Helper.timestamp(),
+							timestamp: Utils.timestamp(),
 							data: []
 						}
 
@@ -353,7 +372,7 @@ console.log('at facebook posts_insights method');
 				// if a connection error occurs retry request (up to 3 attempts) 
 				if(err && retries.indexOf(err.code) > -1) {
 					if(retry && retry > 2) {
-						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber()})
+						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 						return next(itr, cb);
 					}
 
@@ -362,11 +381,11 @@ console.log('at facebook posts_insights method');
 
 				// error handling
 				if(err || !response || response.error) {
-					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 					return next(itr, cb);
 				}
 
-				var timestamp = Helper.timestamp()
+				var timestamp = Utils.timestamp()
 
 				for(var x=0,l=response.posts.data.length;x<l;x++) {
 					
@@ -390,13 +409,13 @@ console.log('at facebook posts_insights method');
 									data: []
 								}
 
-							if(Analytics.facebook.tracking.posts[y].insights[insights[z].name].timestamp < Helper.timestamp()-86400) {
+							if(Analytics.facebook.tracking.posts[y].insights[insights[z].name].timestamp < Utils.timestamp()-86400) {
 								Analytics.facebook.tracking.posts[y].insights[insights[z].name].data.push({
 									// facebook puts "." in key values of JSON which Mongo will not except
 									value: JSON.parse(JSON.stringify(insights[z].values[0].value).replace(/\./gm, '_')),
 									timestamp: timestamp
 								})
-								Analytics.facebook.tracking.posts[y].insights[insights[z].name].timestamp = Helper.timestamp();
+								Analytics.facebook.tracking.posts[y].insights[insights[z].name].timestamp = Utils.timestamp();
 								update = localUpdate = true;
 							}
 						}
@@ -412,57 +431,76 @@ console.log('at facebook posts_insights method');
 			})
 		},
 
-		connections: function(itr, cb, retry) {
-			var timestamp = Helper.timestamp(),
-					batchArray = [];
+		engagers: function(itr, cb, retry) {
 
-			Model.Connections.find({facebook_id: {$exists: true}, Facebook: {$exists: false}}, null, {limit: 100}, function(err, users) {
+			Model.Engagers.find({
+				facebook_id: {$exists: true}, 
+				Facebook: {$exists: false},
+				$or: [
+					{'meta.facebook.discovery.timestamp': {$exists: false}}, 
+					{'meta.facebook.discovery.timestamp': {$lt: Utils.timestamp() - 864000 /* 864000 = 10 days */} },
+				] 
+			}, null, {limit: 100}, function(err, engagers) {
 				if (err)
-					return Log.error(err, {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					return Log.error(err, {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
-				if(!users.length)
+				if(!engagers.length)
 					return;
 
-				for(var i=0, l=users.length; i<l; i++)
-					batchArray.push({method: "GET", relative_url: users[i].facebook_id});
-	
+				var timestamp = Utils.timestamp(),
+						batchArray = [];
+
+				// update all discovery attempt timestamps (but not save) and build our facebook batch call array
+				for(var i=0, l=engagers.length; i<l; i++) {
+					engagers[i].meta.facebook.discovery.timestamp = timestamp
+					batchArray.push({method: "GET", relative_url: engagers[i].facebook_id});
+				}
+		
+				// call Facebook batch API endpoint
 				facebook.get('/', {batch: batchArray, access_token: facebook.client.id+'|'+facebook.client.secret}, function(err, response) {
 					// if a connection error occurs retry request (up to 3 attempts) 
-					if(err && ((err.exception && err.exception.code === 'ENETUNREACH') || err.code === 2)) {
+					if(err && retries.indexOf(err.code) > -1) {
 						if(retry && retry > 2) {
-							Error.handler('facebook', 'Facebook connections method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+							Error.handler('facebook', 'Facebook engagers method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							return next(itr, cb);
 						}
 
-						return Harvest.page(itr, cb, retry ? ++retry : 1)
+						return Harvest.engagers(itr, cb, retry ? ++retry : 1)
+					}
+
+					// once we make sure we don't have a connection error to Facebook we save the discovery timestamps set above
+					for(var i=0, l=engagers.length; i<l; i++) {
+						engagers[i].save(function(err, save) {
+							if(err)
+								Log.error('Error saving to Engagers table', {error: err, engagers_id: engagers[i]._id, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+						})
 					}
 
 					// error handling
 					if(err || !response || response.error) {
-						Error.handler('facebook', err || response.error, err, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						Error.handler('facebook', 'Facebook API error', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}
 
 					for(var x=0, l=response.length; x<l; x++) {
 
-						if(response[x].code !== 200 || !response[x].body || response[x].body == '') {
-							Error.handler('facebook', response[x].code, response[x].code, response, {meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), level: 'error'})
+						if(response[x].code !== 200 || !response[x].body || response[x].body === '') {
+							Error.handler('facebook', response[x].code, response[x].code, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							continue;
 						}
 
-						var responseBody = JSON.parse(response[x].body)
+						var facebookUserData = JSON.parse(response[x].body)
 
-						for(var y=0, len=users.length; y<len; y++)
-							if(responseBody.id == users[y].facebook_id) {
-								users[y].Facebook = {
-									id: users[y].facebook_id,
+						for(var y=0, len=engagers.length; y<len; y++)
+							if(facebookUserData.id == engagers[y].facebook_id) {
+								engagers[y].Facebook = {
+									id: engagers[y].facebook_id,
 									timestamp: timestamp,
-									data: responseBody
+									data: facebookUserData
 								}
-								users[y].save(function(err, save) {
+								engagers[y].save(function(err, save) {
 									if(err)
-										return Log.error('Error saving to Connection table', {error: err, connections_id: users[y]._id, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
-
+										return Log.error('Error saving to Engager table', {error: err, engagers_id: engagers[y]._id, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 								})
 								break
 							}
@@ -482,29 +520,35 @@ console.log('at facebook posts_insights method');
 
 			Model.Analytics.findById(data.analytics_id, function(err, analytics) {
 				if(err)
-					return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 				Analytics = analytics;
 				analytics = null;
 
-				Harvest[data.methods[0]](0, function() {			
+				Harvest[data.methods[0]](0, function() {
+					if(Engagers.length)
+						Model.Engagers.collection.insert(Engagers, {safe: true, continueOnError: true}, function(err, save) {
+							if(err && err.code !== 11000)
+								Log.error('Error saving to Engager table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+						})
+
 					if(update)
 						Analytics.save(function(err, save) {
 							if(err && err.name !== 'VersionError')
-								return Log.error('Error saving Facebook analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+								return Log.error('Error saving Facebook analytics to database', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 							// if we have a versioning overwrite error than load up the analytics document again
 							if(err && err.name === 'VersionError')
 								Model.Analytics.findById(data.analytics_id, function(err, analytics) {
 									if(err)
-										return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+										return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 									analytics.facebook = Analytics.facebook;
 									analytics.markModified('facebook')
 
 									analytics.save(function(err, save) {
 										if(err)
-											return Log.error('Error saving Facebook analytics to database', {error: err, meta: data, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+											return Log.error('Error saving Facebook analytics to database', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 										callback();
 									})
 								})
@@ -518,7 +562,7 @@ console.log('at facebook posts_insights method');
 		},
 		appData: function(methods, callback) {
 			facebook = Auth.load('facebook');
-			//Harvest.type = 'connections';
+
 			Harvest[methods[0]](0, function() {
 				callback(null)
 			})

@@ -1,8 +1,8 @@
 /**
- * Social Media Connections Caching Model
+ * Social Media Engagers Caching Model
  */
 
-var ConnectionsModel = {
+var EngagersModel = {
 
   Architecture: {
     schema: {
@@ -108,7 +108,7 @@ var ConnectionsModel = {
         twitter: {
           business_id: {type: String},
           analytics_id: {type: String},
-          discovery_attempt: {
+          discovery: {
             timestamp: {type: Number, default: 0}
           },
           //update: {
@@ -120,7 +120,7 @@ var ConnectionsModel = {
           business_id: {type: String},
           analytics_id: {type: String},
           twitter_handle: {type: String},
-          discovery_attempt: {
+          discovery: {
             timestamp: {type: Number, default: 0}
           }
         },
@@ -128,7 +128,7 @@ var ConnectionsModel = {
         instagram: {
           discovery: {
             timestamp: {type: Number, default: 0}
-            //isPrivate: {type: Boolean, default: false} // this is just a schema placeholder
+            //isPrivate: {type: Boolean, default: false}
           }
         },
       }
@@ -161,4 +161,4 @@ var ConnectionsModel = {
   }
 };
 
-module.exports = ConnectionsModel;
+module.exports = EngagersModel;

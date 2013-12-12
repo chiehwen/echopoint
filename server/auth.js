@@ -7,7 +7,7 @@ var fs = require('fs'),
 		passport = require('passport'),
 		oauth = require('oauth'),
 		Log = require('./logger').getInstance().getLogger(),
-		Helper = require('./helpers'),
+		Utils = require('./utilities'),
 		Model = Model || Object,
 		LocalStrategy = require('passport-local').Strategy,
 		Api = require('socialite'),
@@ -47,7 +47,7 @@ var Auth = (function() {
 				  function(email, password, callback) {
 				    Model.User.findOne({ email: email }, function(err, user) {
 				    	if (err) {
-								Log.error('Error on Mongoose User.findOne query', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+								Log.error('Error on Mongoose User.findOne query', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 								return callback(err)
 							}
 
@@ -57,7 +57,7 @@ var Auth = (function() {
 							// check if password is a match
 							user.authenticate(password, function(err, match) {
 								if (err) {
-									Log.error('Error on authenticating user', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+									Log.error('Error on authenticating user', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 									return callback(err)
 								}
 								if(!match) 
@@ -251,7 +251,7 @@ var Auth = (function() {
 				passport.deserializeUser(function(id, callback) {
 				  Model.User.findById(id, function(err, user) {
 				  	if(err)
-				  		Log.error('Error on Mongoose User.findById query', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+				  		Log.error('Error on Mongoose User.findById query', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 				    callback(err, user);
 				  });
 				});				
@@ -276,7 +276,7 @@ var Auth = (function() {
 		function _salt(callback) {
 			bcrypt.genSalt(saltWorkFactor, function(err, salt) {
 				if (err) {
-					Log.error('Error with bcrypt salt generation (bcrypt.genSalt) @ _salt function in auth.js file', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+					Log.error('Error with bcrypt salt generation (bcrypt.genSalt) @ _salt function in auth.js file', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					callback(err)
 				}
 				callback(null, salt)
@@ -289,7 +289,7 @@ var Auth = (function() {
 				// hash the password using our salt
 				bcrypt.hash(password, salt, function(progress){}, function(err, hash) {
 					if (err) {
-						Log.error('Error with bcrypt hashing (bcrypt.hash) @ _hash function in auth.js file', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						Log.error('Error with bcrypt hashing (bcrypt.hash) @ _hash function in auth.js file', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 						callback(err)
 					}
 					callback(null, hash)
@@ -322,7 +322,7 @@ var Auth = (function() {
 			authenticate: function(unverified, password, callback) {
 				bcrypt.compare(unverified, password, function(err, match) {
 					if (err) {
-						Log.error('Error with bcrypt compare (bcrypt.compare) @ authenticate function in auth.js file', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+						Log.error('Error with bcrypt compare (bcrypt.compare) @ authenticate function in auth.js file', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 						return callback(err)
 					}
 					callback(null, match)
@@ -337,7 +337,7 @@ var Auth = (function() {
 
 			// These are Authorization functions
 			restrict: function(req, res, next) {
-				if(!Helper.isPath(req.url))
+				if(!Utils.isPath(req.url))
 					req.session.returnTo = req.url;
 
 				if(!req.session.passport.user) {
@@ -349,16 +349,16 @@ var Auth = (function() {
 				}
 					
 				// attempted to put this in middleware but got page load glitches, works fine here
-				if(!req.session.Business && !Helper.isPath(req.url, ['/login', '/logout', '/business/select', '/business/create', '/user/create'], [])) {
-		 			Helper.getUser(req.session.passport.user, function(err, user) {
+				if(!req.session.Business && !Utils.isPath(req.url, ['/login', '/logout', '/business/select', '/business/create', '/user/create'], [])) {
+		 			Utils.getUser(req.session.passport.user, function(err, user) {
 		 				if (err) {
-							Log.error('Helper.getUser error @ restrict() in auth.js file', {error: err, user_id: req.session.passport.user, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+							Log.error('Utils.getUser error @ restrict() in auth.js file', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 							res.redirect('/logout')
 							return
 						}	
 
 	 					if(!user) {
-	 						Log.warn('No User found @ restrict() in auth.js file', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp()})
+	 						Log.warn('No User found @ restrict() in auth.js file', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 							req.session.messages.push("Error finding user")
 	 						res.redirect('/login')
 	 						return next(err)

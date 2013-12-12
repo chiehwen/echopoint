@@ -4,7 +4,7 @@
 var Auth = require('../auth').getInstance(),
 		Log = require('../logger').getInstance().getLogger(),
 		Error = require('../error').getInstance(),
-		Helper = require('../helpers'),
+		Utils = require('../utilities'),
 		Cron = require('cron').CronJob,
 		Model = Model || Object,
 		Harvester = {facebook: require('../harvesters/facebook')};
@@ -17,7 +17,7 @@ var FacebookCron = function() {
 		metrics: function(methods) {
 			Model.User.find(function(err, users) {
 				if (err || !users)
-					return Log.error(err ? err : 'No users returned', {error: err, file: __filename, line: Helper.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Helper.timestamp(1)})
+					return Log.error(err ? err : 'No users returned', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 
 				users.forEach(function(user) {
 					user.Business.forEach(function(business, index) {
@@ -49,8 +49,8 @@ var FacebookCron = function() {
 			}) // End of Model users array
 		},
 
-		connections: function(methods) {
-			methods = methods || ['connections'];
+		engagers: function(methods) {
+			methods = methods || ['engagers'];
 			var harvest = new Harvester.facebook
 							
 			harvest.appData(methods,
