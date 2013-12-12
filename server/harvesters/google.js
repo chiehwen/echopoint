@@ -754,7 +754,8 @@ console.log('at the google plus activity method');
 		},
 		directToMethod: function(methods, callback) {
 			update = false;
-
+			data = {methods: methods};
+			
 			Harvest[methods[0]](0, function() {
 				callback(null, update);
 			});

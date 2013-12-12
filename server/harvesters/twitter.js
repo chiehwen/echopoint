@@ -1231,6 +1231,8 @@ console.log('duplicate twitter screen name detected');
 		},
 		engagers: function(methods, callback) {
 			Harvest.type = 'engagers';
+			data = {methods: methods};
+			
 			Harvest.engagers[methods[0]](0, function() {
 				callback(null)
 			})

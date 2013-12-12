@@ -39,7 +39,7 @@ var CronJobs = {
 
 		engagers: new CronJob({
 			// NOTE: currently on five minutes for testing, but will cahnge to every 2 minutes
-			cronTime: '0 */5 * * * *', // every 2 minutes *processes 100 users every run with batch calling and once populated it won't call that user again so many calls won't even hit the FB api
+			cronTime: '0 */5 * * * *', // every 2 minutes *processes 50 users every run with batch calling and once populated it won't call that user again so many calls won't even hit the FB api
 			onTick: function() {
 				var engagers = new Crons.facebook;
 				engagers.getJob('engagers', ['engagers'])

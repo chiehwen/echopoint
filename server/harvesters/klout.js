@@ -59,7 +59,7 @@ console.log('at klout id method...');
 
 			Model.Engagers.findOne(query, function(err, engager) {
 				if(err)
-					return Log.error('Error querying Engagers table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
+					return Log.error('Error querying Engagers collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
 
 				if(!engager)
 					return next(itr, cb);
@@ -67,7 +67,7 @@ console.log('at klout id method...');
 				engager.meta.klout.id.timestamp = Utils.timestamp();
 				engager.save(function(err) {
 					if(err)
-						return Log.error('Error saving to Engager table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+						return Log.error('Error saving to Engager collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 				
 					if(engager.twitter_id)
 						var endpoint = 'identity.json/tw/' + engager.twitter_id;
@@ -103,7 +103,7 @@ console.log('con_id: ', engager.id, ' | ', engager._id );
 						engager.klout_id = response.id;
 						engager.save(function(err, save) {
 							if(err)
-								return Log.error('Error saving to Engager table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+								return Log.error('Error saving to Engager collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 							console.log('saving engager Klout ID');
 							next(itr, cb, true)
 						})
@@ -135,7 +135,7 @@ console.log('at klout user method...');
 
 			Model.Engagers.findOne(query, function(err, engager) {
 				if(err)
-					return Log.error('Error querying Engagers table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+					return Log.error('Error querying Engagers collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 				if(!engager)
 					return next(itr, cb);
@@ -144,7 +144,7 @@ console.log('at klout user method...');
 				engager.meta.klout.score.attempts = engager.meta.klout.score.attempts++;
 				engager.save(function(err) {
 					if(err)
-						Log.error('Error saving to Engager table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+						Log.error('Error saving to Engager collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 				
 					klout.get('user.json/' + engager.klout_id, {key: klout.client.key}, function(err, response) {
 						// if a connection error occurs retry request (up to 3 attempts) 
@@ -195,7 +195,7 @@ console.log('at klout user method...');
 
 						engager.save(function(err, save) {
 							if(err)
-								return Log.error('Error saving to Engager table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+								return Log.error('Error saving to Engager collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 							console.log('saving engager Klout score');
 							next(itr, cb, true)
 						})
@@ -212,7 +212,7 @@ console.log('at klout score method...');
 
 			Model.Engagers.findOne({_id: id}, function(err, engager) {
 				if(err)
-					return Log.error('Error querying Engagers table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+					return Log.error('Error querying Engagers collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 				if(!engager)
 					return next(itr, cb);
@@ -278,7 +278,7 @@ console.log('at klout score method...');
 
 					engager.save(function(err, save) {
 						if(err)
-							return Log.error('Error saving to Engager table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+							return Log.error('Error saving to Engager collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 						console.log('saving engager Klout score');
 						next(itr, cb, true)
 					})
@@ -310,7 +310,7 @@ console.log('at klout score update method...');
 
 			Model.Engagers.findOne(query, function(err, engager) {
 				if(err)
-					return Log.error('Error querying Engagers table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+					return Log.error('Error querying Engagers collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 				if(!engager)
 					return next(itr, cb);
@@ -318,7 +318,7 @@ console.log('at klout score update method...');
 				engager.Klout.score.timestamp = timestamp;
 				engager.save(function(err) {
 					if(err)
-						Log.error('Error saving to Engager table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+						Log.error('Error saving to Engager collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 				
 					klout.get('user.json/' + engager.klout_id, {key: klout.client.key}, function(err, response) {
 						// if a connection error occurs retry request (up to 3 attempts) 
@@ -363,7 +363,7 @@ console.log('at klout score update method...');
 
 						engager.save(function(err, save) {
 							if(err)
-								return Log.error('Error saving to Engager table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+								return Log.error('Error saving to Engager collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 							console.log('saving Klout engager update');
 							next(itr, cb, true)
 						})
@@ -376,13 +376,34 @@ console.log('at klout score update method...');
 		 * Discover is called only after checking that no
 		 * Klout ids and Klout scores (incl updates) need to be populated.
 		 * This is to prevent API rate limit problems.
-		 * In time this, and all seperate engagers table api calls,
+		 * In time this, and all seperate engagers collection api calls,
 		 * should be moved to a different server in the future
 		 */
 		// run this funtion every 10 seconds. This method uses a klout ID to attempt to gather a social ID of eitehr twitter, G+, or instagram
 		discovery: function(itr, cb) {
 console.log('at klout discovery method...');
 			var timestamp = Utils.timestamp();
+
+			function discover(type, network_id, success, klout_id, callback) {
+				// if we already have the data in the database then callback
+				if(network_id || success)
+					return callback(false)
+
+				var suffix = type === 'twitter' ? 'tw' : type === 'google' ? 'gp' : 'ig',
+						endpoint = 'identity.json/klout/' + klout_id + '/' + suffix;
+
+				klout.get(endpoint, {key: klout.client.key}, function(err, response) {
+					if (err || (response && response.error)) {
+						Error.handler('klout', err || response, err, response, {api_url_endpoint: endpoint, klout_id: klout_id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+						return callback(false)
+					}
+
+					if(!response || !response.id)
+						return callback(false)
+
+					callback(response.id)
+				})
+			}
 
 			Model.Engagers.findOne({
 				klout_id: {$exists: true},
@@ -403,84 +424,53 @@ console.log('at klout discovery method...');
 					},
 					{
 						$or: [
-							{'meta.klout.discovery.attempt_timestamp': {$exists: false}}, 
-							{'meta.klout.discovery.attempt_timestamp': {$lt: timestamp - 2592000 /* 2592000 = 30 days */}}
+							{'meta.klout.discovery.timestamp': {$exists: false}}, 
+							{'meta.klout.discovery.timestamp': {$lt: timestamp - 2592000 /* 2592000 = 30 days */}}
 						]
 					}
 				]
 			}, function(err, engager) {
 				if(err)
-					return Log.error('Error querying Engagers table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+					return Log.error('Error querying Engagers collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 				if(!engager)
 					return next(itr, cb);
 
+				var match = false;
 				engager.meta.klout.discovery.timestamp = timestamp;
 
-				// only two of these next three "if" conditionals will ever be called
+				// only two of these next three discover http request will ever be called
 				// since we must have at least one id type to get here
-				if(!engager.twitter_id && !engager.meta.klout.discovery.twitter.success)
-					klout.get('identity.json/klout/' + engager.klout_id +'/tw', {key: klout.client.key}, function(err, response) {
-						if (err || (response && response.error)) {
-							Error.handler('klout', err || response, err, response, {api_url_endpoint: 'identity.json/klout/' + engager.klout_id +'/tw', klout_id: engager.klout_id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
-							return next(itr, cb)
-						}
+				discover('twitter', engager.twitter_id, engager.meta.klout.discovery.twitter.success, engager.klout_id, function(twitter_id) {
+					if(twitter_id) {
+						match = true;
+						engager.twitter_id = twitter_id;
+						engager.meta.klout.discovery.twitter.success = true;
+					}
 
-						if(response && response.id) {							
-							engager.twitter_id = response.id;
-							engager.meta.klout.discovery.twitter.success = true;
-							//console.log('twitter_id from kloutId: ', response);
-							engager.save(function(err, save) {
-								if(err)
-									Log.error('Error saving to Engager table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
-								console.log('saving Klout twitter discovery id');
-							})
-						}
-					})
-
-				if(!engager.google_id && !engager.meta.klout.discovery.google.success)
-					klout.get('identity.json/klout/' + engager.klout_id +'/gp', {key: klout.client.key}, function(err, response) {
-						if (err || (response && response.error)) {
-							Error.handler('klout', err || response, err, response, {api_url_endpoint: 'identity.json/klout/' + engager.klout_id +'/gp', klout_id: engager.klout_id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
-							return next(itr, cb)
-						}
-
-						if(response && response.id) {									
-							engager.google_id = response.id;	
+					discover('google', engager.google_id, engager.meta.klout.discovery.google.success, engager.klout_id, function(google_id) {
+						if(google_id) {
+							match = true;
+							engager.google_id = google_id;
 							engager.meta.klout.discovery.google.success = true;
-							//console.log('google_id from kloutId: ', response);
+						}
+
+						discover('instagram', engager.instagram_id, engager.meta.klout.discovery.instagram.success, engager.klout_id, function(instagram_id) {
+							if(instagram_id) {
+								match = true;
+								engager.instagram_id = instagram_id;
+								engager.meta.klout.discovery.instagram.success = true;
+							}
+
 							engager.save(function(err, save) {
 								if(err)
-									Log.error('Error saving to Engager table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
-								console.log('saving Klout G+ discovery id');
+									return Log.error('Error saving to Engager collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
+
+								next(itr, cb, true)
 							})
-						}
+
+						})
 					})
-
-				if(!engager.instagram_id && !engager.meta.klout.discovery.instagram.success)
-					klout.get('identity.json/klout/' + engager.klout_id +'/ig', {key: klout.client.key}, function(err, response) {
-						if (err || (response && response.error)) {
-							Error.handler('klout', err || response, err, response, {api_url_endpoint: 'identity.json/klout/' + engager.klout_id +'/ig', klout_id: engager.klout_id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
-							return next(itr, cb)
-						}
-
-						if(response && response.id) {
-							engager.instagram_id = response.id;
-							engager.meta.klout.discovery.instagram.success = true;
-							//console.log('instagram_id from kloutId: ', response);
-							engager.save(function(err, save) {
-								if(err)
-									Log.error('Error saving to Engager table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
-								console.log('saving Klout instagram discovery id');
-							})
-						}
-					})
-
-				engager.save(function(err, save) {
-					if(err)
-						return Log.error('Error saving to Engager table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp(1)})
-
-					next(itr, cb, true)
 				})
 			})
 		},

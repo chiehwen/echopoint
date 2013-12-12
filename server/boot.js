@@ -21,6 +21,15 @@ var AppSetup = (function() {
 				return this.charAt(0).toUpperCase() + this.slice(1)
 			}
 
+			String.prototype.isJSON = function() {
+				try {
+					JSON.parse(this);
+				} catch (e) {
+					return false;
+				}
+				return true;
+			}
+
 			// attach the .equals method to Array's prototype
 			// http://stackoverflow.com/a/14853974
 			Array.prototype.equals = function (array) {

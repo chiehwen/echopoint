@@ -54,9 +54,9 @@ Cron.google.reviews.start();
 
 Cron.yelp.start();
 
-//Cron.instagram.users.start();
+Cron.instagram.users.start();
 
-//Cron.klout.start();
+Cron.klout.start();
 
 //////// END OF CRON TESTING ////////
 */

@@ -12,7 +12,7 @@ var FacebookHarvester = function() {
 			facebook,
 			data,
 			update = false,
-			retries = Utils.retryErrorCodes.push(2),
+			retries = Utils.retryErrorCodes,
 			since = 0,
 			next = function(i, cb, stop) {
 				var i = i+1;
@@ -167,7 +167,7 @@ console.log('at facebook posts [new] method...');
 						}
 
 						for(var x = 0, len = results[i].likes.data.length; x<len; x++)
-							engager.push({facebook_id: results[i].likes.data[x].id})
+							Engagers.push({facebook_id: results[i].likes.data[x].id})
 					}
 
 					if(results[i].comments) {
@@ -182,7 +182,7 @@ console.log('at facebook posts [new] method...');
 						}
 
 						for(var y = 0, length = results[i].comments.data.length; y<length; y++)
-							engager.push({facebook_id: results[i].comments.data[y].from.id})
+							Engagers.push({facebook_id: results[i].comments.data[y].from.id})
 					}
 
 					if(results[i].shares)
@@ -253,7 +253,7 @@ console.log('at the facebook posts [update] method...');
 
 								// put user ids into engagers array for the engagers table
 								for(var a = 0, a_length = results[x].likes.data.length; a < a_length; a++)
-									engager.push({facebook_id: results[x].likes.data[a].id})
+									Engagers.push({facebook_id: results[x].likes.data[a].id})
 
 								update = localUpdate = true;
 							}
@@ -270,7 +270,7 @@ console.log('at the facebook posts [update] method...');
 
 								// put user ids into engagers array for the engagers table
 								for(var b = 0, b_length = results[i].comments.data.length; b < b_length; b++)
-									engager.push({facebook_id: results[i].comments.data[b].from.id})
+									Engagers.push({facebook_id: results[i].comments.data[b].from.id})
 
 								update = localUpdate = true;
 							}
@@ -432,7 +432,7 @@ console.log('at facebook posts_insights method');
 		},
 
 		engagers: function(itr, cb, retry) {
-
+console.log('at facebook engagers method');
 			Model.Engagers.find({
 				facebook_id: {$exists: true}, 
 				Facebook: {$exists: false},
@@ -440,7 +440,7 @@ console.log('at facebook posts_insights method');
 					{'meta.facebook.discovery.timestamp': {$exists: false}}, 
 					{'meta.facebook.discovery.timestamp': {$lt: Utils.timestamp() - 864000 /* 864000 = 10 days */} },
 				] 
-			}, null, {limit: 100}, function(err, engagers) {
+			}, null, {limit: 50}, function(err, engagers) {
 				if (err)
 					return Log.error(err, {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
@@ -448,26 +448,26 @@ console.log('at facebook posts_insights method');
 					return;
 
 				var timestamp = Utils.timestamp(),
-						batchArray = [];
+						batch = '[';
 
 				// update all discovery attempt timestamps (but not save) and build our facebook batch call array
 				for(var i=0, l=engagers.length; i<l; i++) {
 					engagers[i].meta.facebook.discovery.timestamp = timestamp
-					batchArray.push({method: "GET", relative_url: engagers[i].facebook_id});
+					batch += '{method:"GET",relative_url:'+engagers[i].facebook_id+'},';
 				}
 		
 				// call Facebook batch API endpoint
-				facebook.get('/', {batch: batchArray, access_token: facebook.client.id+'|'+facebook.client.secret}, function(err, response) {
+				facebook.post('/', {batch: batch+']', access_token: facebook.client.id+'|'+facebook.client.secret}, function(err, response) {
 					// if a connection error occurs retry request (up to 3 attempts) 
 					if(err && retries.indexOf(err.code) > -1) {
 						if(retry && retry > 2) {
-							Error.handler('facebook', 'Facebook engagers method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+							Error.handler('facebook', 'Facebook update method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							return next(itr, cb);
 						}
 
 						return Harvest.engagers(itr, cb, retry ? ++retry : 1)
 					}
-
+					
 					// once we make sure we don't have a connection error to Facebook we save the discovery timestamps set above
 					for(var i=0, l=engagers.length; i<l; i++) {
 						engagers[i].save(function(err, save) {
@@ -486,6 +486,11 @@ console.log('at facebook posts_insights method');
 
 						if(response[x].code !== 200 || !response[x].body || response[x].body === '') {
 							Error.handler('facebook', response[x].code, response[x].code, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+							continue;
+						}
+
+						if(!response[x].body.isJSON()) {
+							Error.handler('facebook', 'Not valid JSON', null, response[x].body, {response: response, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							continue;
 						}
 
@@ -562,6 +567,7 @@ console.log('at facebook posts_insights method');
 		},
 		appData: function(methods, callback) {
 			facebook = Auth.load('facebook');
+			data = {methods: methods};
 
 			Harvest[methods[0]](0, function() {
 				callback(null)
