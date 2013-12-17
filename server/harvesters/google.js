@@ -17,6 +17,7 @@ var GoogleHarvester = function() {
 
 	var User,
 			Analytics,
+			Engagers = [],
 			index = 0,
 			//requester = new Requester({
 				//debug: 1,
@@ -35,9 +36,293 @@ var GoogleHarvester = function() {
 
 	var Harvest = {
 
+		plus: function(itr, cb, retry) {	
+console.log('at the google plus business update method');
+	
+			// mark the attempt time 
+			//var timestamp = Utils.timestamp();
+			//User.Business[index].Social.google.plus.update.timestamp = timestamp;
+
+			if(Utils.productionModeActive)
+				if(!Analytics.google.plus.id)
+					return next(itr, cb);
+
+			var google = Auth.load('google_discovery');
+
+			var tokens = {
+						access_token: data.accessToken,
+						refresh_token: data.refreshToken
+					};
+
+			google.oauth.setAccessTokens(tokens);
+
+			google
+				.discover('plus', 'v1')
+				.execute(function(err, client) {
+					// error handling						
+					if(err || !client) {
+						Error.handler('google', 'Failure on Google discover API module .execute()', err, client, {error: err, user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+						return next(itr, cb)
+					}		
+
+					client
+						.plus.people.get({userId: '100524621236878636693'})
+						.withAuthClient(google.oauth)
+						.execute(function(err, response) {
+							if(err || !response) { // attempt again with application API key
+								client
+									.plus.people.get({userId: '100524621236878636693'})
+									.withApiKey(google.apiKey)
+									.execute(function(err, response) {
+										// if a connection error occurs retry request (up to 3 attempts) 
+										if(err && retries.indexOf(err.code) > -1) {
+											if(retry && retry > 2) {
+												Error.handler('google', 'Google activity method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
+												return next(itr, cb);
+											}
+
+											return Harvest.plus(itr, cb, retry ? ++retry : 1)
+										}
+
+										// error handling						
+										if(err || !response) {
+											Error.handler('google', 'Failure on google plus execute after oauth process', err, response, {user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+											return next(itr, cb)
+										}
+
+										Log.warn('Google application API key used in place of user credentials for Google Plus Business activity feed query', {file: __filename, line: Utils.stack()[0].getLineNumber(), timestamp: Utils.timestamp()})
+										saveGoogleBusiness(response)
+
+									})
+							} else {
+								saveGoogleBusiness(response)
+							}
+						})
+				})
+
+			function saveGoogleBusiness(business) {
+				var cached = Analytics.google.plus.data,
+						timestamp = Utils.timestamp(),
+						localUpdate = false;
+
+				if(
+					!cached
+					|| business.id != cached.id
+					|| business.displayName != cached.displayName
+					|| business.aboutMe != cached.aboutMe 
+					|| business.url != cached.url 
+					//|| !business.image || JSON.stringify(business.image) != JSON.stringify(business.image) 
+					|| business.isPlusUser != cached.isPlusUser 
+					|| business.verified != cached.verified
+					|| (business.urls.length && !cached.urls)
+					|| business.urls.length != cached.urls.length
+				) {
+					update = localUpdate = true;
+
+					
+					Analytics.google.places = {
+						id: Analytics.google.plus.id,
+						timestamp: timestamp,
+						data: place
+					}
+
+					User.Business[index].Social.google.places.data = Analytics.google.places.data;
+				}
+
+				if(Analytics.google.tracking.plusOnes.total != business.plusOneCount) {
+					update = localUpdate = true;
+
+					Analytics.google.tracking.plusOnes.history.push({
+						timestamp: timestamp,
+						total: business.plusOneCount
+					})
+
+					Analytics.google.tracking.plusOnes.timestamp = timestamp;
+					Analytics.google.tracking.plusOnes.total = business.plusOneCount
+				}
+
+				if(Analytics.google.tracking.circledByCount.total != business.circledByCount) {
+					update = localUpdate = true;
+
+					Analytics.google.tracking.circledByCount.history.push({
+						timestamp: timestamp,
+						total: business.circledByCount
+					})
+
+					Analytics.google.tracking.circledByCount.timestamp = timestamp;
+					Analytics.google.tracking.circledByCount.total = business.circledByCount
+				}	
+
+				if(localUpdate) {
+					console.log('saving updated Google plus business information...');
+					next(itr, cb)
+				}
+			}
+		},
+
+		activity: function(itr, cb, retry) {
+console.log('at the google plus activity method');
+
+			// mark the attempt time 
+			var timestamp = Utils.timestamp();
+			User.Business[index].Social.google.plus.update.timestamp = timestamp;
+
+			if(Utils.productionModeActive)
+				if(!Analytics.google.plus.id)
+					return next(itr, cb);
+
+			var google = Auth.load('google_discovery');
+
+			var tokens = {
+						access_token: data.accessToken,
+						refresh_token: data.refreshToken
+					},
+					limit = 100; //Analytics.google.activities.length ? 10 : 100;
+
+			google.oauth.setAccessTokens(tokens);
+
+			google
+				.discover('plus', 'v1')
+				.execute(function(err, client) {
+					// error handling						
+					if(err || !client) {
+						Error.handler('google', 'Failure on Google discover API module .execute()', err, client, {error: err, user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+						return next(itr, cb)
+					}		
+
+					client
+						.plus.activities.list({userId: '100524621236878636693', collection: 'public', maxResults: limit}) // do not put these into a single variable, somehow the variable gets manipulated after first execute
+						.withAuthClient(google.oauth)
+						.execute(function(err, response) {
+							if(err || !response || !response.items) { // attempt again with application API key
+									client
+										.plus.activities.list({userId: '100524621236878636693', collection: 'public', maxResults: limit}) // do not put these into a single variable, somehow the variable gets manipulated after first execute
+										.withApiKey(google.apiKey)
+										.execute(function(err, response) {
+											// if a connection error occurs retry request (up to 3 attempts) 
+											if(err && retries.indexOf(err.code) > -1) {
+												if(retry && retry > 2) {
+													Error.handler('google', 'Google activity method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
+													return next(itr, cb);
+												}
+
+												return Harvest.activity(itr, cb, retry ? ++retry : 1)
+											}
+
+											// error handling						
+											if(err || !response || !response.items) {
+												Error.handler('google', 'Failure on google plus execute after oauth process', err, response, {user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+												return next(itr, cb)
+											}
+
+											Log.warn('Google application API key used in place of user credentials for Google Plus Business activity feed query', {file: __filename, line: Utils.stack()[0].getLineNumber(), timestamp: Utils.timestamp()})
+											saveGoogleActivities(response.items)
+
+										})
+							} else {
+								saveGoogleActivities(response.items)
+							}
+						})
+				})
+				
+			// DRY seperated save function for Google activities method
+			function saveGoogleActivities(list) {
+
+				var timestamp = Utils.timestamp(),
+						localUpdate = false;
+
+				activitiesListLoop:
+				for(var x=0,l=list.length;x<l;x++) {
+					for(var y=0,len=Analytics.google.activities.length;y<len;y++)
+						if(list[x].id === Analytics.google.activities[y].id) {
+
+							if(list[x].object.plusoners.totalItems !== Analytics.google.activities[y].plusones.total) {
+								update = localUpdate = true;
+
+								Analytics.google.activities[y].plusones.history.push({
+									total: list[x].object.plusoners.totalItems,
+									timestamp: timestamp
+								})
+							}
+
+							if(list[x].object.replies.totalItems !== Analytics.google.activities[y].replies.total) {
+								update = localUpdate = true;
+
+								Analytics.google.activities[y].replies.history.push({
+									total: list[x].object.replies.totalItems,
+									timestamp: timestamp
+								})
+							}
+
+							if(list[x].object.resharers.totalItems !== Analytics.google.activities[y].reshares.total) {
+								update = localUpdate = true;
+
+								Analytics.google.activities[y].plusones.history.push({
+									total: list[x].object.resharers.totalItems,
+									timestamp: timestamp
+								})
+							}
+
+							if(list[x].updated !== Analytics.google.activities[y].data.updated) {
+								update = localUpdate = true;
+
+								Analytics.google.activities[y].data = list[x];
+							}
+
+							continue activitiesListLoop
+						}
+
+					// if we have reached this point then it's a new post
+					update = localUpdate = true;
+					Analytics.google.activities.push({
+						id: list[x].id,
+						timestamp: timestamp,
+						created_timestamp: Utils.timestamp(list[x].published),
+						plusones: {
+							history: [{
+								timestamp: timestamp,
+								total: list[x].object.plusoners.totalItems
+							}],
+							timestamp: timestamp,
+							total: list[x].object.plusoners.totalItems,
+							link: list[x].object.plusoners.selfLink
+						},
+						replies: {
+							history: [{
+								timestamp: timestamp,
+								total: list[x].object.replies.totalItems
+							}],
+							timestamp: timestamp,
+							total: list[x].object.replies.totalItems,
+							link: list[x].object.replies.selfLink
+						},
+						reshares: {
+							history: [{
+								timestamp: timestamp,
+								total: list[x].object.resharers.totalItems
+							}],
+							timestamp: timestamp,
+							total: list[x].object.resharers.totalItems,
+							link: list[x].object.resharers.selfLink
+						},
+						data: list[x]
+					})
+
+					Engagers.push({google_id: results[i].likes.data[x].id})
+				}
+
+				var orderedActivites = Analytics.google.activities.sort(Utils.sortBy('created_timestamp', false, parseInt))
+				Analytics.google.activities = orderedActivites;
+				Analytics.markModified('google.activities')
+				console.log('saving new Google Plus business activites...');
+
+				next(itr, cb)
+			}
+		},
+
 		// call every 5 minutes (using time tracking to call only one business every 5 minutes)
-		business: function(itr, cb) {	
-console.log('at the google business update method');
+		places: function(itr, cb) {	
+console.log('at the google places business update method');
 	
 			var google = Auth.load('google')
 
@@ -49,7 +334,7 @@ console.log('at the google business update method');
 						return next(itr, cb);
 					}
 
-					return Harvest.metrics.search(itr, cb, retry ? ++retry : 1)
+					return Harvest.places(itr, cb, retry ? ++retry : 1)
 				}
 
 				// error handling
@@ -75,6 +360,8 @@ console.log('at the google business update method');
 					|| place.types.length != cached.types.length
 				) {
 					update = localUpdate = true;
+
+					// clear out the sample reviews in the resposne data
 					place.reviews = [];
 					Analytics.google.places = {
 						id: Analytics.google.places.id,
@@ -303,6 +590,7 @@ console.log('at the google reviews method');
 							}
 
 							reviewObjects.push(reviewObject);
+							Engagers.push({google_id: reviewObject.user.id})
 
 							for(var y=0,len=initialAnalyticReviewsLength; y<len; y++) {
 								if(reviewObject.id == Analytics.google.reviews.active[y].id)
@@ -374,6 +662,119 @@ console.log('at the google reviews method');
 			} // end Google page id else
 		},
 
+		engagers: function(itr, cb, indx, retry) {
+console.log('at facebook engagers method');
+
+			if(indx && indx > 5) {	
+				// LOG ERROR HERE
+				return next(itr, cb)
+			}
+
+			Model.Engagers.find({
+				google_id: {$exists: true}, 
+				Google: {$exists: false},
+				$or: [
+					{'meta.google.discovery.timestamp': {$exists: false}}, 
+					{'meta.google.discovery.timestamp': {$lt: Utils.timestamp() - 864000 /* 864000 = 10 days */} },
+				] 
+			}, null, {limit: 1000}, function(err, engagers) { // limited to 1000 calls in a batch request (https://developers.google.com/storage/docs/json_api/v1/how-tos/batch#overview)
+				if (err)
+					return Log.error(err, {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+
+				if(!engagers.length)
+					return next(itr, cb);
+
+				Model.User.find({Business: {$exists: true}}, {'Business': {$elemMatch: { $and: [{'Social.google.auth.oauthAccessToken': {$exists: true}}, {'Social.google.auth.oauthRefreshToken': {$exists: true}}]} }}, {lean: true}, function(err, user) {
+					if(err) {
+						Log.error('Error querying User collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+						return next(itr, cb);
+					}
+
+					var indx = indx || 0;
+
+					// if for some reason not a single business exists with auth credentials then exit
+					if(!user || !user[indx])
+						return next(itr, cb);
+
+					if(!user[indx].Business || !user[indx].Business.length || !user[indx].Business[0].Social.google.auth.oauthAccessToken || !user[indx].Business[0].Social.google.auth.oauthRefreshToken)
+						return Harvest.engagers(itr, cb, indx ? ++indx : 1, 0)
+
+					var google = Auth.load('google_discovery');
+
+					google.oauth.setAccessTokens({
+						access_token: user[indx].Business[0].Social.google.auth.oauthAccessToken,
+						refresh_token: user[indx].Business[0].Social.google.auth.oauthRefreshToken
+					});
+
+					google
+						.discover('plus', 'v1')
+						.execute(function(err, client) {
+							// error handling						
+							if(err || !client) {
+								Error.handler('google', 'Failure on Google discover API module .execute()', err, client, {error: err, user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+								return next(itr, cb)
+							}
+
+							var batch = client.newBatchRequest();
+
+							for(var i = 0, l = engagers.length; i < l; i++)
+								batch.add(client.plus.people.get({userId: engagers[i].google_id}).withAuthClient(google.oauth))
+
+							batch.execute(function(err, response) {
+								// if a connection error occurs retry request (up to 3 attempts) 
+								if(err && retries.indexOf(err.code) > -1) {
+									if(retry && retry > 2) {
+										Error.handler('google', 'Google activity method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
+										return next(itr, cb);
+									}
+
+									return Harvest.engagers(itr, cb, indx ? indx : 0, retry ? ++retry : 1)
+								}
+
+								// error handling						
+								if(err && (!response || !response.length)) {
+									Error.handler('google', 'Failure on google plus execute after oauth process', err, response, {user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+									//return next(itr, cb)
+									return Harvest.engagers(itr, cb, indx ? ++indx : 1, retry)
+								}
+
+								var timestamp = Util.timestamp();
+
+								// google has stupidly set error and returned items in two seperate arrays but with no real way to relate the two, here we rely on an error index count
+								var errorIndex = 0;
+								for(var x=0, l=response.length; x<l; x++) {
+
+									if(!response[x]) {
+										if(err[errorIndex])
+											Error.handler('google', 'Error in batch return item', err[errorIndex], null, {user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+										else
+											Error.handler('google', 'Errored or missing batch return item with no related error index in err array!', err[errorIndex], null, {user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+										continue;
+									}
+
+									for(var y=0, len=engagers.length; y<len; y++)
+										if(response[x].id == engagers[y].google_id) {
+											engagers[y].Google = {
+												id: response[x].id,
+												timestamp: timestamp,
+												data: response[x]
+											}
+											engagers[y].save(function(err, save) {
+												if(err)
+													return Log.error('Error saving to Engager collection', {error: err, engagers_id: engagers[y]._id, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+											})
+											break
+										}
+								}
+
+								// stop here if we found engagers to not exceed api limits
+								next(itr, cb, true)
+
+							})
+						})
+				})
+			})
+		},
 
 		// quickly save a scraped page for debugging
 		savePage: function(itr, cb) {
@@ -585,104 +986,6 @@ console.log('at the google reviews method');
 			}
 
 			callback(null)
-		},
-
-				// called only if a change has occured from above
-		activity: function(itr, cb, retry) {
-console.log('at the google plus activity method');
-
-			// mark the attempt time 
-			var timestamp = Utils.timestamp();
-			User.Business[index].Social.google.plus.update.timestamp = timestamp;
-
-			if(Utils.productionModeActive)
-				if(!Analytics.google.plus.id)
-					return next(itr, cb);
-
-			var google = Auth.load('google_discovery');
-
-			var tokens = {
-						access_token: data.accessToken,
-						refresh_token: data.refreshToken
-					},
-					limit = Analytics.google.activities.length ? 10 : 100;
-
-			google.oauth.setAccessTokens(tokens);
-
-			google
-				.discover('plus', 'v1')
-				.execute(function(err, client) {
-					// error handling						
-					if(err || !client) {
-						Error.handler('google', 'Failure on Google discover API module .execute()', err, client, {error: err, user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
-						return next(itr, cb)
-					}		
-
-					client
-						.plus.activities.list({userId: '100524621236878636693', collection: 'public', maxResults: limit}) // do not put these into a single variable, somehow the variable gets manipulated after first execute
-						.withAuthClient(google.oauth)
-						.execute(function(err, response) {
-							if(err || !response || !response.items) { // attempt again with application API key								
-									client
-										.plus.activities.list({userId: '100524621236878636693', collection: 'public', maxResults: limit}) // do not put these into a single variable, somehow the variable gets manipulated after first execute
-										.withApiKey(google.apiKey)
-										.execute(function(err, response) {
-											// if a connection error occurs retry request (up to 3 attempts) 
-											if(err && retries.indexOf(err.code) > -1) {
-												if(retry && retry > 2) {
-													Error.handler('google', 'Google activity method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
-													return next(itr, cb);
-												}
-
-												return Harvest.activity(itr, cb, retry ? ++retry : 1)
-											}
-
-											// error handling						
-											if(err || !response || !response.items) {
-												Error.handler('google', 'Failure on google plus execute after oauth process', err, response, {user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
-												return next(itr, cb)
-											}
-
-											Log.warn('Google application API key used in place of user credentials for Google Plus Business activity feed query', {file: __filename, line: Utils.stack()[0].getLineNumber(), timestamp: Utils.timestamp()})
-											saveGoogleActivities(response.items)
-
-										})
-								} else {
-								saveGoogleActivities(response.items)
-							}
-						})
-				})
-				
-				// DRY seperated save function for Google activities method
-				function saveGoogleActivities(list) {
-
-					var timestamp = Utils.timestamp(),
-							localeUpdate = false;
-
-					activitiesListLoop:
-					for(var x=0,l=list.length;x<l;x++) {
-						for(var y=0,len=Analytics.google.activities.length;y<len;y++)
-							if(list[x].id === Analytics.google.activities[y].id)
-								break activitiesListLoop
-
-						update = localeUpdate = true;
-						Analytics.google.activities.push({
-							id: list[x].id,
-							timestamp: timestamp,
-							created_timestamp: Utils.timestamp(list[x].published),
-							data: list[x]
-						})
-					}
-
-					if(localeUpdate) {
-						var orderedActivites = Analytics.google.activities.sort(Utils.sortBy('created_timestamp', false, parseInt))
-						Analytics.google.activities = orderedActivites;
-						Analytics.markModified('google.activities')
-						console.log('saving new Google Plus business activites...');
-					}
-
-					next(itr, cb)
-				}
 		}
 
 
@@ -720,10 +1023,19 @@ console.log('at the google plus activity method');
 			update = false;
 
 			Model.Analytics.findById(Business.Analytics.id, function(err, analytics) {
+				if(err)
+					return Log.error('Error querying Analytic collection', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+
 				Analytics = analytics;
 				analytics = null;
 
 				Harvest[data.methods[0]](0, function() {
+					if(Engagers.length)
+						Model.Engagers.collection.insert(Engagers, {safe: true, continueOnError: true}, function(err, save) {
+							if(err && err.code !== 11000)
+								Log.error('Error saving to Engager table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+						})
+
 					if(update)
 						Analytics.save(function(err, save) {
 							if(err && err.name !== 'VersionError')
@@ -755,7 +1067,7 @@ console.log('at the google plus activity method');
 		directToMethod: function(methods, callback) {
 			update = false;
 			data = {methods: methods};
-			
+
 			Harvest[methods[0]](0, function() {
 				callback(null, update);
 			});

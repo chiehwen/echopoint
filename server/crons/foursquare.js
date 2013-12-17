@@ -89,7 +89,7 @@ var FoursquareCron = function() {
 		},
 
 		engagers: function(methods) {
-			methods = methods || ['user'];
+			methods = methods || ['engagers'];
 			var harvest = new Harvester.foursquare;
 
 			harvest.appData({

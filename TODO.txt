@@ -47,12 +47,22 @@ IF HERE LOOK BACK AND REFER TO 5.5!
 11.4) MAYBE DONE - TEST: work on Twitter retweeters method to be more ffiecient (todo listed in method)
 
 11.5) DONE - NEEDS TESTING! Setup twitter search harvesting for users (use dummy search for now)
-11.6) Setup Google+ user Engagers from reviewers!
-11.7) Setup Facebook to load in users to Conenctions page
+
+11.7) DONE - SEE IF WE CAN LOAD MORE ENGAGERS FROM INSIGHTS HARVESTING Setup Facebook to load in users to Conenctions page
 11.8) Cleanup: commenting; and setup production Util variable for quickly switching between dev and production modes
 
-12.) Sentiment
-13.) Notifications setup
-14.) Graphing (graphing.js to be called from socket.io to produce graph data)
+12) Expand Google plus activities harvesting
+12.1) Make sure we are using user based calls and not app bearer tokens (this might involve Auth overhaul [see 13])
+12.2) DONE - get Followers count!
+12.3) DONE - setup G+ to look for updates in last 100ish posts
+12.4) DONE - Setup Google+ user Engagers loading from reviewers and activity!
+12.5) Google+ Engagers lookup using API
+12.6) Look into the openId connection call with G+ API (https://developers.google.com/+/api/latest/people/getOpenIdConnect) for Engagers collection
+
+13.) Overhaul Auth file to not use instances anymore
+
+14.) Sentiment
+15.) Notifications setup
+16.) Graphing (graphing.js to be called from socket.io to produce graph data)
 
 00.) setup request abstraction layer to handle poxies and compressed file returns! [http://nickfishman.com/post/49533681471/nodejs-http-requests-with-gzip-deflate-compression]

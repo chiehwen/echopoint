@@ -445,7 +445,7 @@ console.log('at facebook engagers method');
 					return Log.error(err, {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 				if(!engagers.length)
-					return;
+					return next(itr, cb);
 
 				var timestamp = Utils.timestamp(),
 						batch = '[';
@@ -525,7 +525,7 @@ console.log('at facebook engagers method');
 
 			Model.Analytics.findById(data.analytics_id, function(err, analytics) {
 				if(err)
-					return Log.error('Error querying Analytic table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+					return Log.error('Error querying Analytic collection', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 				Analytics = analytics;
 				analytics = null;

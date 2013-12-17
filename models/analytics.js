@@ -468,6 +468,22 @@
             timestamp: {type: Number, default: 0},
             api_timestamp: {type: Number, default: 0}, // mark when the api timestamp was last updated (not harvesting)
             api_score: {type: Number, default: 0} // this is used to compare score to identify new reviews and initiate page harvest
+          },
+          plusOnes: {
+            history: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+            }],
+            total: {type: Number},
+            timestamp: {type: Number, default: 0},
+          },
+          circledByCount: {
+            history: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+            }],
+            total: {type: Number},
+            timestamp: {type: Number, default: 0},
           }
         },
         reviews: {
@@ -478,7 +494,35 @@
           // so review count will still work
           api_samples: []  // this is the sample api reviews, if these change then we call the harvester
         },
-        activities: []
+        activities: [
+        // the below is just a schema demonstration
+        /*
+          plusones: {
+            history: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+            }],
+            timestamp: {type: Number},
+            total: {type: Number}
+          },
+          replies: {
+            history: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+            }],
+            timestamp: {type: Number},
+            total: {type: Number}
+          },
+          reshares: {
+            history: [{
+              timestamp: {type: Number},
+              total: {type: Number}
+            }],
+            timestamp: {type: Number},
+            total: {type: Number}
+          }
+        */
+        ]
       },
 
       yelp: {

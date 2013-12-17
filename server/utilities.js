@@ -61,6 +61,37 @@ exports.getBusinessIndex = function(user_id, business_id, callback) {
 	})
 }
 
+// this is not used and probably not needed
+exports.engagersImport = function(network, engagers, callback) {
+
+	var networkKey = network + '_id',
+			queryObject = {},
+			queryArray = [];
+
+	for(var i = 0, l = engagers.length; i<l; i++) {
+		queryObject[networkKey] = engagers[i][networkKey];
+		queryArray.push(queryObject);
+	}
+
+	Model.Engagers.find({$or: queryArray}, function(err, matched) {
+
+		if(!matched || !matched.length) {
+			engagersCollectionInsert(engagers)
+		} else {
+			for(var x = 0, l = matched.length; x<l; x++) {
+				for(var y = 0, len = matched.length; y<len; y++) {
+
+				}
+			}
+		}
+
+	})
+
+	function engagersCollectionInsert(documents) {
+
+	}
+} 		
+
 // great object sorting function found at http://stackoverflow.com/questions/979256/sorting-an-array-of-javascript-objects#answer-979325
 // working jsfiddle version: http://jsfiddle.net/dFNva/1/
 exports.sortBy = function(field, reverse, primer) {

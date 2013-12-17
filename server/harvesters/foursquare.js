@@ -395,7 +395,7 @@ console.log('at foursquare tips method');
 		},
 
 		// call every 10 seconds
-		user: function(itr, cb) {
+		engagers: function(itr, cb, retry) {
 
 			Model.Engagers.findOne({
 				foursquare_id: {$exists: true},
@@ -416,10 +416,10 @@ console.log('at foursquare tips method');
 
 				// mark this lookup attempt and save
 				engager.meta.foursquare.discovery.timestamp = Utils.timestamp();
-				engager.save(function(err) {
+				/*engager.save(function(err) {
 					if(err)
 						Log.error('Error saving to Engager table', {error: err, user_id: user[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
-				})
+				})*/
 
 				Model.User.findOne({Business: {$exists: true}}, {'Business': {$elemMatch: {'Analytics.id': engager.meta.foursquare.analytics_id} }}, {lean: true}, function(err, user) {
 					if(err) {
@@ -427,19 +427,35 @@ console.log('at foursquare tips method');
 						return next(itr, cb);
 					}
 
-					if(!user || !user.Business || !user.Business.length)
+					if(!user || !user.Business || !user.Business[0] || !user.Business[0].Social || !user.Business[0].Social.foursquare)
 						return next(itr, cb);
 
 					var f = user.Business[0].Social.foursquare;
 
-					// check that user has foursquare credentials
-					// TODO: if not then use a dev account
+					// check that user has needed foursquare credentials
+					// TODO: if not then use a dev account. ie f = {auth: {oauthAccessToken: **DEV_ACCOUNT_TOKEN**}}
 					if (!f.auth.oauthAccessToken || !f.venue.id)
 						return next(itr, cb); // f = {auth: {oauthAccessToken: **DEV_ACCOUNT_TOKEN**}}
 
 					foursquare.setAccessToken(f.auth.oauthAccessToken)
 
 					foursquare.get('users/' + engager.foursquare_id, {v: foursquare.client.verified}, function(err, response) {
+						// if a connection error occurs retry request (up to 3 attempts) 
+						if(err && retries.indexOf(err.code) > -1) {
+							if(retry && retry > 2) {
+								Error.handler('foursquare', 'Foursquare update method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+								return next(itr, cb);
+							}
+
+							return Harvest.engagers(itr, cb, retry ? ++retry : 1)
+						}
+						
+						// once we make sure we don't have a connection error to Facebook we save the discovery timestamps set above
+						engager.save(function(err, save) {
+							if(err)
+								Log.error('Error saving to Engagers table', {error: err, engagers_id: engagers[i]._id, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+						})
+
 						if(err || !response || !response.meta || response.meta.code !== 200 || response.meta.errorType) {
 							Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {user_id: user[0]._id, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 							return next(itr, cb);
@@ -496,6 +512,7 @@ console.log('match found! ', match);
 										
 									} else {
 
+										match.meta.foursquare.discovery.timestamp = Utils.timestamp();
 										match.foursquare_id = engager.foursquare_id;
 										match.meta.foursquare.analytics_id = engager.meta.foursquare.analytics_id;
 										match.Foursquare = response.response.user;
@@ -528,10 +545,9 @@ console.log('match found! ', match);
 							engager.save(function(err) {
 								if(err)
 									return Log.error('Error saving to Engager table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+								next(itr, cb)
 							})
-						}
-
-						next(itr, cb)
+						}		
 					})
 				})
 			})

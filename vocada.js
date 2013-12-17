@@ -105,9 +105,22 @@ var Crons = {
 //Crons.yelp.getJob('metrics', ['business', 'reviews'])
 
 
+Model.Engagers.find(function(err, ents) {
+	console.log(ents.length);
+})
 
+/*
+var request = require('request');
 
-
+request.post({
+	url: 'https://clients6.google.com/rpc?key=AIzaSyCKSbrvQasunBoV16zDH9R33D88CeLr9gQ',
+	json: true,
+	body: '[{"method":"pos.plusones.get","id":"p","params":{"nolog":true,"id":"http://www.yelp.com/biz/roll-on-sushi-diner-austin","source":"widget","userId":"@viewer","groupId":"@self"},"jsonrpc":"2.0","key":"p","apiVersion":"v1"}]'
+}, function(err, res) {
+//console.log(err, res.body);
+console.log(err, res.body[0].result);
+})
+*/
 
 
 Model.Analytics.find(function(err, analytic) {

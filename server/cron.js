@@ -140,7 +140,7 @@ var CronJobs = {
 			cronTime: '*/15 * * * * *', // every 15 seconds. *this is only called if we have user data in the Engagers table
 			onTick: function() {
 				var engagers = new Crons.foursquare
-				engagers.getJob('engagers', ['user'])
+				engagers.getJob('engagers', ['engagers'])
 			},
 
 			start: false

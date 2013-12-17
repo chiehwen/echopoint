@@ -862,6 +862,7 @@ console.log('at twitter list of followers method');
 
 			// call every 5 seconds (both populateBy... functions together, if ids list is emtpy then screen_names will process instead)
 			populateById: function(itr, cb, retry) {
+console.log('at twitter populateById method');
 				Model.Engagers.find({twitter_id: {$exists: true}, Twitter: {$exists: false}}, null, {limit: 99}, function(err, engagers) {
 					if (err)
 						return Log.error(err, {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
@@ -869,13 +870,13 @@ console.log('at twitter list of followers method');
 					if(!engagers.length)
 						return next(itr, cb);
 
-					Model.User.find({Business: {$exists: true}}, {'Business': {$elemMatch: {'Analytics.id': engagers[0].meta.twitter.analytics_id}}}, function(err, user) {
+					Model.User.find({Business: {$exists: true}}, {'Business': {$elemMatch: {'Analytics.id': engagers[0].meta.twitter.analytics_id}}}, {lean: true}, function(err, user) {
 						if(err) {
-							Log.error('Error querying User table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+							Log.error('Error querying User collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 							return next(itr, cb);
 						}
 
-						if(!user[0] || !user[0].Business || !user[0].Business.length || !user[0].Business[0].Analytics.id || !user[0].Business[0].Social.twitter.auth.oauthAccessToken || user[0].Business[0].Social.twitter.auth.oauthAccessTokenSecret || user[0].Business[0].Social.twitter.id)
+						if(!user[0] || !user[0].Business || !user[0].Business.length || !user[0].Business[0].Analytics.id || !user[0].Business[0].Social.twitter.auth.oauthAccessToken || !user[0].Business[0].Social.twitter.auth.oauthAccessTokenSecret || !user[0].Business[0].Social.twitter.id)
 							twitter = Auth.load('twitter').setBearerToken()
 						else 
 							twitter = Auth.load('twitter', user[0].Business[0].Social.twitter.auth.oauthAccessToken, user[0].Business[0].Social.twitter.auth.oauthAccessTokenSecret)
@@ -908,6 +909,9 @@ console.log('at twitter list of followers method');
 
 								return Harvest.engagers.populateById(itr, cb, retry ? ++retry : 1)
 							}
+
+							// TODO if using user account and an auth failure occurs then call again and use bearer app token
+							// ie return Harvest.engagers.populateById(itr, cb, retry, true) true = bearer token param 
 
 							// error handling
 							if (err || !response || response.errors) {
@@ -955,6 +959,7 @@ console.log('at twitter list of followers method');
 			},
 
 			populateByScreenName: function(itr, cb, retry) {
+console.log('at twitter populateByScreenName method');				
 				Model.Engagers.find({'meta.foursquare.twitter_handle': {$exists: true}, twitter_id: {$exists: false}, Twitter: {$exists: false}}, null, {limit: 99}, function(err, engagers) {
 					if (err)
 						return Log.error(err, {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
@@ -962,13 +967,13 @@ console.log('at twitter list of followers method');
 					if(!engagers.length)
 						return next(itr, cb);
 
-					Model.User.find({Business: {$exists: true}}, {'Business': {$elemMatch: {'Analytics.id': engagers[0].meta.twitter.analytics_id}}}, function(err, user) {
+					Model.User.find({Business: {$exists: true}}, {'Business': {$elemMatch: {'Analytics.id': engagers[0].meta.twitter.analytics_id}}}, {lean: true}, function(err, user) {
 						if(err) {
-							Log.error('Error querying User table', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+							Log.error('Error querying User collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 							return next(itr, cb);
 						}
 
-						if(!user[0] || !user[0].Business || !user[0].Business.length || !user[0].Business[0].Analytics.id || !user[0].Business[0].Social.twitter.auth.oauthAccessToken || user[0].Business[0].Social.twitter.auth.oauthAccessTokenSecret || user[0].Business[0].Social.twitter.id)
+						if(!user[0] || !user[0].Business || !user[0].Business.length || !user[0].Business[0].Analytics.id || !user[0].Business[0].Social.twitter.auth.oauthAccessToken || !user[0].Business[0].Social.twitter.auth.oauthAccessTokenSecret || !user[0].Business[0].Social.twitter.id)
 							twitter = Auth.load('twitter').setBearerToken()
 						else 
 							twitter = Auth.load('twitter', user[0].Business[0].Social.twitter.auth.oauthAccessToken, user[0].Business[0].Social.twitter.auth.oauthAccessTokenSecret)
@@ -1000,6 +1005,9 @@ console.log('at twitter list of followers method');
 
 								return Harvest.engagers.populateByScreenName(itr, cb, retry ? ++retry : 1)
 							}
+
+							// TODO if using user account and an auth failure occurs then call again and use bearer app token
+							// ie return Harvest.engagers.populateByScreenName(itr, cb, retry, true) true = bearer token param 
 							
 							// error handling
 							if (err || !response || response.errors) {
@@ -1054,23 +1062,24 @@ console.log('at twitter list of followers method');
 			// duplicates can happen if we update a user who has changed their 
 			// twitter screen name to that of another engagers old screen name, but the old screen name hasn't been updated yet
 			duplicates: function(itr, cb) {
+console.log('at twitter engagers duplicate method');						
 				Model.Engagers.aggregate(
 					{ $group : {_id : "$Twitter.screen_name_lower", total : { $sum : 1 } } },
 					{ $match : { total : { $gte : 2 } } },
 					//{ $sort : {total : -1} },
 					{ $limit : 5 }, 
 					function(err, groups) {
-						console.log('data me! ', err, dats)
 						if(!groups || !groups.length)
 							return next(itr, cb)
 
-						var group = {
+						var screen_name,
+								group = {
 									handle: null,
 									total: 0
 								}
 
 						for(var i=0, l=groups.length; i<l; i++) {
-							if(!groups[i]._id) // any null, undefined, false, or 0 duplicates will be skipped
+							if(!groups[i]._id) // any null, undefined, false, or '0' duplicates will be skipped
 								continue;
 
 							// if we have more than 2 duplicates something is very wrong
@@ -1096,6 +1105,7 @@ console.log('duplicate twitter screen name detected');
 
 			// call every 15 minutes
 			update: function(itr, cb, duplicate, retry) {
+console.log('at twitter engagers update method');						
 				var timestamp = Utils.timestamp(),
 						twitterUsersCsv = '',
 						query;
@@ -1232,7 +1242,7 @@ console.log('duplicate twitter screen name detected');
 		engagers: function(methods, callback) {
 			Harvest.type = 'engagers';
 			data = {methods: methods};
-			
+
 			Harvest.engagers[methods[0]](0, function() {
 				callback(null)
 			})

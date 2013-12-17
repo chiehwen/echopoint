@@ -125,6 +125,12 @@ var EngagersModel = {
           }
         },
 
+        google: {
+          discovery: {
+            timestamp: {type: Number, default: 0}
+          }
+        },
+
         instagram: {
           discovery: {
             timestamp: {type: Number, default: 0}
