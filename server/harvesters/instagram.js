@@ -27,8 +27,8 @@ var InstagramHarvester = function() {
 
 	var Harvest = {
 
-		user: function(itr, cb, id, retry) {
-console.log('at instagram user information method...');
+		engagers: function(itr, cb, id, retry) {
+console.log('at instagram engagers populate method...');
 
 			if(id)
 				var query = {_id: id}

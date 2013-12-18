@@ -34,27 +34,28 @@ var Cron = require('./server/cron');
 
 Cron.facebook.feed.start();
 Cron.facebook.insights.start();
-//Cron.facebook.engagers.start();
+Cron.facebook.engagers.start();
 
 Cron.twitter.timeline.start();
 Cron.twitter.interactions.start();
 Cron.twitter.search.start();
-//Cron.twitter.engagers.start();
-//Cron.twitter.duplicates.start();
-//Cron.twitter.update.start();
+Cron.twitter.engagers.start();
+Cron.twitter.duplicates.start();
+Cron.twitter.update.start();
 
 Cron.foursquare.venue.start();
 Cron.foursquare.stats.start();
 Cron.foursquare.tips.start();
-//Cron.foursquare.engagers.start();
+Cron.foursquare.engagers.start();
 
-Cron.google.activity.start();
-Cron.google.business.start();
+Cron.google.plus.start();
+Cron.google.places.start();
 Cron.google.reviews.start();
+Cron.google.engagers.start();
 
 Cron.yelp.start();
 
-Cron.instagram.users.start();
+Cron.instagram.engagers.start();
 
 Cron.klout.start();
 
@@ -105,9 +106,21 @@ var Crons = {
 //Crons.yelp.getJob('metrics', ['business', 'reviews'])
 
 
-Model.Engagers.find(function(err, ents) {
-	console.log(ents.length);
-})
+
+
+//google = Auth.load('google_discovery');
+//google = Auth.load('google');
+/*
+						google.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {key: google.client.key, query: 'Roll On Sushi Diner, Austin, Texas', sensor: false}, function(err, response) {
+							console.log(err, response.results[0]);
+							
+						})*/
+
+
+/*google.get('https://maps.googleapis.com/maps/api/place/details/json', {key: google.client.key, reference: 'CoQBdgAAACl8v_EXYZr2dtvKl7KSx_buOcE1FXBGWr4AlADBdJ7fl7Q4j7YGuJY-h8vRkn3DyYBgpIL9NqVs9azMoj8jbVf_6JPXa-ao3lAzmqkfkeHu7ckoY-X9_zFGqrGchXzz8c9DtuehPvDIwVRoqa73dMrLzdztcdwAWGcW-z027MwKEhAew2cLWOrqCC-3FBcBm1FnGhTyN5T5oh__2svQiQWh9-_n3C63Zg', sensor: false, review_summary: true}, function(err, response) {
+console.log(err, response);
+})*/
+
 
 /*
 var request = require('request');

@@ -26,10 +26,6 @@ var YelpHarvester = function() {
 	var User,
 			Analytics,
 			index = 0,
-			//requester = new Requester({
-				//debug: 1,
-				//proxies: [{ip: '107.17.100.254', port: 8080}]
-			//}),
 			yelp,
 			response,
 			data,
@@ -47,7 +43,7 @@ var YelpHarvester = function() {
 	var Harvest = {
 
 		// call every 5 minutes (using time tracking to call only one business every 5 minutes)
-		business: function(itr, cb) {
+		business: function(itr, cb, retry) {
 console.log('at yelp business info update method...');
 			request.get({
 					url: yelp.base + 'business/' + data.network_id,
@@ -135,7 +131,7 @@ console.log('here1');
 		},
 
 		// called only if a change has occured from above
-		reviews: function(itr, cb, pagination) {
+		reviews: function(itr, cb, pagination, retry) {
 console.log('at yelp reviews harvesting method...');		
 			// mark the attempt time 
 			var timestamp = Utils.timestamp();

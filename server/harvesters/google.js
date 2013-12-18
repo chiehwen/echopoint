@@ -19,10 +19,6 @@ var GoogleHarvester = function() {
 			Analytics,
 			Engagers = [],
 			index = 0,
-			//requester = new Requester({
-				//debug: 1,
-				//proxies: [{ip: '107.17.100.254', port: 8080}]
-			//}),
 			data,
 			update = false,
 			retries = Utils.retryErrorCodes,
@@ -61,17 +57,17 @@ console.log('at the google plus business update method');
 				.execute(function(err, client) {
 					// error handling						
 					if(err || !client) {
-						Error.handler('google', 'Failure on Google discover API module .execute()', err, client, {error: err, user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+						Error.handler('google', 'Failure on Google discover API module .execute()', err, client, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}		
 
 					client
-						.plus.people.get({userId: '100524621236878636693'})
+						.plus.people.get({userId: data.network_id})
 						.withAuthClient(google.oauth)
 						.execute(function(err, response) {
 							if(err || !response) { // attempt again with application API key
 								client
-									.plus.people.get({userId: '100524621236878636693'})
+									.plus.people.get({userId: data.network_id})
 									.withApiKey(google.apiKey)
 									.execute(function(err, response) {
 										// if a connection error occurs retry request (up to 3 attempts) 
@@ -86,7 +82,7 @@ console.log('at the google plus business update method');
 
 										// error handling						
 										if(err || !response) {
-											Error.handler('google', 'Failure on google plus execute after oauth process', err, response, {user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+											Error.handler('google', 'Failure on google plus execute after oauth process', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 											return next(itr, cb)
 										}
 
@@ -120,13 +116,13 @@ console.log('at the google plus business update method');
 					update = localUpdate = true;
 
 					
-					Analytics.google.places = {
+					Analytics.google.plus = {
 						id: Analytics.google.plus.id,
 						timestamp: timestamp,
 						data: place
 					}
 
-					User.Business[index].Social.google.places.data = Analytics.google.places.data;
+					User.Business[index].Social.google.plus.data = Analytics.google.plus.data;
 				}
 
 				if(Analytics.google.tracking.plusOnes.total != business.plusOneCount) {
@@ -186,17 +182,17 @@ console.log('at the google plus activity method');
 				.execute(function(err, client) {
 					// error handling						
 					if(err || !client) {
-						Error.handler('google', 'Failure on Google discover API module .execute()', err, client, {error: err, user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+						Error.handler('google', 'Failure on Google discover API module .execute()', err, client, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}		
 
 					client
-						.plus.activities.list({userId: '100524621236878636693', collection: 'public', maxResults: limit}) // do not put these into a single variable, somehow the variable gets manipulated after first execute
+						.plus.activities.list({userId: data.network_id, collection: 'public', maxResults: limit}) // do not put these into a single variable, somehow the variable gets manipulated after first execute
 						.withAuthClient(google.oauth)
 						.execute(function(err, response) {
 							if(err || !response || !response.items) { // attempt again with application API key
 									client
-										.plus.activities.list({userId: '100524621236878636693', collection: 'public', maxResults: limit}) // do not put these into a single variable, somehow the variable gets manipulated after first execute
+										.plus.activities.list({userId: data.network_id, collection: 'public', maxResults: limit}) // do not put these into a single variable, somehow the variable gets manipulated after first execute
 										.withApiKey(google.apiKey)
 										.execute(function(err, response) {
 											// if a connection error occurs retry request (up to 3 attempts) 
@@ -211,7 +207,7 @@ console.log('at the google plus activity method');
 
 											// error handling						
 											if(err || !response || !response.items) {
-												Error.handler('google', 'Failure on google plus execute after oauth process', err, response, {user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+												Error.handler('google', 'Failure on google plus execute after oauth process', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 												return next(itr, cb)
 											}
 
@@ -492,7 +488,7 @@ console.log('at the google reviews method');
 							if(retry && retry > 2) {
 								Alert.file('Google reviews JSON harvest failed to connect in 3 attempts!', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), timestamp: Utils.timestamp()})
 								Alert.broadcast('Google reviews JSON harvest failed to connect in 3 attempts!', {file: __filename, line: Utils.stack()[0].getLineNumber()})
-								ScrapingLog.error('Google reviews JSON harvest failed to connect in 3 attempts!', {error: err, user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+								ScrapingLog.error('Google reviews JSON harvest failed to connect in 3 attempts!', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 								return next(itr, cb)
 							}
 
@@ -501,7 +497,7 @@ console.log('at the google reviews method');
 
 						// error handling
 						if(err || !res || res.statusCode !== 200 || !res.body || res.body == '') {
-							ScrapingLog.error('Google reviews JSON harvest error or no response', {error: err, response: res || err, user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+							ScrapingLog.error('Google reviews JSON harvest error or no response', {error: err, response: res || err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 							return next(itr, cb)
 						}
 
@@ -510,7 +506,7 @@ console.log('at the google reviews method');
 							//Error.handler('google', "Google reviews return did not contain )]}' at begining", null, res.body.toString(), {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							Alert.file("Google reviews return did not contain )]}' at begining", {file: __filename, line: Utils.stack()[0].getLineNumber(), timestamp: Utils.timestamp()})
 							Alert.broadcast("Google reviews did not contain )]}", {file: __filename, line: Utils.stack()[0].getLineNumber()})
-							ScrapingLog.error('Google reviews return did not contain )]}\' at begining', {response: res.body.toString(), user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+							ScrapingLog.error('Google reviews return did not contain )]}\' at begining', {response: res.body.toString(), meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 							return next(itr, cb)
 						}
 
@@ -520,7 +516,7 @@ console.log('at the google reviews method');
 						if(!parsedReviewData[0] || !parsedReviewData[0][1] || !parsedReviewData[0][1][11] || !parsedReviewData[0][1][11][0]){
 							Alert.file('Google reviews array undefined in response JSON! should be at [0][1][11][0]', {file: __filename, line: Utils.stack()[0].getLineNumber(), timestamp: Utils.timestamp()})
 							Alert.broadcast('Google reviews array undefined in response JSON', {file: __filename, line: Utils.stack()[0].getLineNumber()})
-							ScrapingLog.error('Google reviews array undefined in response JSON! should be at [0][1][11][0]', {response: parsedReviewData, user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+							ScrapingLog.error('Google reviews array undefined in response JSON! should be at [0][1][11][0]', {response: parsedReviewData, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 							return next(itr, cb)
 						}
 
@@ -663,7 +659,7 @@ console.log('at the google reviews method');
 		},
 
 		engagers: function(itr, cb, indx, retry) {
-console.log('at facebook engagers method');
+console.log('at google engagers method');
 
 			if(indx && indx > 5) {	
 				// LOG ERROR HERE
@@ -711,11 +707,12 @@ console.log('at facebook engagers method');
 						.execute(function(err, client) {
 							// error handling						
 							if(err || !client) {
-								Error.handler('google', 'Failure on Google discover API module .execute()', err, client, {error: err, user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+								Error.handler('google', 'Failure on Google discover API module .execute()', err, client, {error: err, user_id: user[indx]._id, business_id: user[indx].Business[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 								return next(itr, cb)
 							}
 
-							var batch = client.newBatchRequest();
+							var batch = client.newBatchRequest()
+									saveCount = 0;
 
 							for(var i = 0, l = engagers.length; i < l; i++)
 								batch.add(client.plus.people.get({userId: engagers[i].google_id}).withAuthClient(google.oauth))
@@ -724,7 +721,7 @@ console.log('at facebook engagers method');
 								// if a connection error occurs retry request (up to 3 attempts) 
 								if(err && retries.indexOf(err.code) > -1) {
 									if(retry && retry > 2) {
-										Error.handler('google', 'Google activity method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
+										Error.handler('google', 'Google activity method failed to connect in 3 attempts!', err, response, {error: err, user_id: user[indx]._id, business_id: user[indx].Business[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber()})
 										return next(itr, cb);
 									}
 
@@ -733,7 +730,7 @@ console.log('at facebook engagers method');
 
 								// error handling						
 								if(err && (!response || !response.length)) {
-									Error.handler('google', 'Failure on google plus execute after oauth process', err, response, {user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+									Error.handler('google', 'Failure on google plus execute after oauth process', err, response, {user_id: user[indx]._id, business_id: user[indx].Business[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 									//return next(itr, cb)
 									return Harvest.engagers(itr, cb, indx ? ++indx : 1, retry)
 								}
@@ -746,9 +743,9 @@ console.log('at facebook engagers method');
 
 									if(!response[x]) {
 										if(err[errorIndex])
-											Error.handler('google', 'Error in batch return item', err[errorIndex], null, {user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+											Error.handler('google', 'Error in batch return item', err[errorIndex], null, {user_id: user[indx]._id, business_id: user[indx].Business[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 										else
-											Error.handler('google', 'Errored or missing batch return item with no related error index in err array!', err[errorIndex], null, {user_id: User._id, business_id: User.Business[index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+											Error.handler('google', 'Errored or missing batch return item with no related error index in err array!', err[errorIndex], null, {user_id: user[indx]._id, business_id: user[indx].Business[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 										continue;
 									}
 
@@ -762,10 +759,14 @@ console.log('at facebook engagers method');
 											engagers[y].save(function(err, save) {
 												if(err)
 													return Log.error('Error saving to Engager collection', {error: err, engagers_id: engagers[y]._id, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+												saveCount++;
 											})
 											break
 										}
 								}
+
+								if(saveCount)	
+									console.log('saved '+saveCount+' google engager(s)');
 
 								// stop here if we found engagers to not exceed api limits
 								next(itr, cb, true)
@@ -1064,7 +1065,7 @@ console.log('at facebook engagers method');
 				});
 			})
 		},
-		directToMethod: function(methods, callback) {
+		directToMethods: function(methods, callback) {
 			update = false;
 			data = {methods: methods};
 

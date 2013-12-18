@@ -23,8 +23,30 @@ var PartialsController = {
  			res.render('partials/loading');
  		}
  	},
+ 	
+ 	// navigation partials
+ 	header: {
+ 		restricted: false,
+		path: '/partials/header',
+		get: function(req, res) {
+			res.render('partials/header');
+		}
+	},
+	navigation: {
+		restricted: false,
+		path: '/partials/menus/navigation',
+		get: function(req, res) {
+			res.render('partials/menus/navigation');
+		}
+	},
 
- 	// account partials
+ 	// user partials
+ 	dashboard: {
+ 		path: '/partials/user/dashboard',
+		get: function(req, res) {
+ 			res.render('partials/user/dashboard');
+ 		}
+ 	},
  	account: {
  		path: '/partials/user/account',
 		get: function(req, res) {
@@ -86,39 +108,35 @@ var PartialsController = {
  		}
  	},
 
- 	// navigation partials
- 	header: {
- 		restricted: false,
-		path: '/partials/header',
-		get: function(req, res) {
-			res.render('partials/header');
-		}
-	},
-	navigation: {
-		restricted: false,
-		path: '/partials/menus/navigation',
-		get: function(req, res) {
-			res.render('partials/menus/navigation');
-		}
-	},
-
 	// social network specific setup partials
-	google_setup: {
-		path: '/partials/social/google/setup',
+	google_plus_search: {
+		path: '/partials/social/google/plus/search',
 		get: function(req, res) {
-			res.render('partials/social/google/setup');
+			res.render('partials/social/google/plus/search');
 		}
 	},
-	google_select: {
-		path: '/partials/social/google/select',
+	google_places_search: {
+		path: '/partials/social/google/places/search',
 		get: function(req, res) {
-			res.render('partials/social/google/select');
+			res.render('partials/social/google/places/search');
 		}
 	},
-	yelp_setup: {
-		path: '/partials/social/yelp/setup',
+	google_plus_select: {
+		path: '/partials/social/google/plus/select',
 		get: function(req, res) {
-			res.render('partials/social/yelp/setup');
+			res.render('partials/social/google/plus/select');
+		}
+	},
+	google_places_select: {
+		path: '/partials/social/google/places/select',
+		get: function(req, res) {
+			res.render('partials/social/google/places/select');
+		}
+	},
+	yelp_search: {
+		path: '/partials/social/yelp/search',
+		get: function(req, res) {
+			res.render('partials/social/yelp/search');
 		}
 	},
 	yelp_select: {

@@ -53,7 +53,7 @@ var FacebookCron = function() {
 			methods = methods || ['engagers'];
 			var harvest = new Harvester.facebook
 							
-			harvest.appData(methods,
+			harvest.directToMethods(methods,
 				function(err) {
 				console.log('Facebook callbacks complete [' + methods.toString() + ']');
 			})

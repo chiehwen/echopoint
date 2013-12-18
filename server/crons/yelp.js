@@ -48,13 +48,8 @@ var YelpCron = function() {
 							index: index,
 							network_id: y.id
 						}, function(err, update) {
-							/*user.save(function(err) {
-								if(err)
-									return Log.error('Error saving to Users table', {error: err, user_id: user._id, business_id: user.Business[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
-								console.log('Yelp callbacks complete')
-							})*/
-
 							console.log('Yelp callback complete [' + methods.toString() + ']')
+							
 							user.save(function(err, save) {
 								if(err && err.name !== 'VersionError')
 									return Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})

@@ -28,7 +28,7 @@ Vocada
 			action: $routeParams.action || false,
 			loading: true
 		}
-console.log($scope.page);
+
 		// some secure routes are still run by the server, route these paths to the actual addresses
 		if($scope.page.controller === 'logout')
 			$window.location.href = '/logout';
@@ -90,28 +90,33 @@ console.log($scope.page);
 				$window.location.href = '/logout';
 			}
 		});
-		
+
+		// on-the-fly partials routing
+		if($scope.page.controller === 'dashboard')
+			$scope.template = '/partials/user/dashboard';
+
 		if($scope.page.controller === 'account')
 			$scope.template = '/partials/user/account';
 
 		if($scope.page.controller === 'business')
 			$scope.template = '/partials/business/'+$scope.page.view;
 
+
+		// specific routing for social pages
 		if($scope.page.controller  === 'social') {
 
 			$scope.network = {
 				name: $scope.page.view,
 				google: {
-					save: function(ref) {
-console.log(ref);
-						socket.emit('saveGoogle', {index: $scope.user.business.index, ref: ref || null, name: $scope.network.google.name, city: $scope.network.google.city, state: $scope.network.google.state, zipcode: $scope.network.google.zipcode, url: $scope.network.google.url}, function (err, res) {
+					save: function(network, id, ref) {
+						socket.emit('saveGoogle', {network: network, id: id || null, ref: ref || null, index: $scope.user.business.index, name: $scope.network.google.name, city: $scope.network.google.city, state: $scope.network.google.state, zipcode: $scope.network.google.zipcode}, function (err, res) {
 							if(err) 
 								return console.log(err)
 							if(res.success) {								
 								$scope.template = '/partials/social/index';
-							} else if(res.list) {
+							} else if(res.list) {							
 								$scope.network.businesses = res.list;
-								$scope.template = '/partials/social/google/select';
+								$scope.template = '/partials/social/google/'+network+'/select';
 							} else {
 								$scope.template = '/partials/social/connect';
 							}
@@ -119,14 +124,14 @@ console.log(ref);
 					}
 				},
 				yelp: {
-					setup: function() {
-						$scope.template = '/partials/social/yelp/setup';
-					},
+					//search: function() {
+					//	$scope.template = '/partials/social/yelp/search';
+					//},
 					save: function(id) {
-						socket.emit('saveYelp', {index: $scope.user.business.index, id: id || null, name: $scope.network.yelp.name, city: $scope.network.yelp.city, state: $scope.network.yelp.state, url: $scope.network.yelp.url}, function (err, res) {
+						socket.emit('saveYelp', {index: $scope.user.business.index, id: id || null, name: $scope.network.yelp.name, city: $scope.network.yelp.city, state: $scope.network.yelp.state}, function (err, res) {
 							if(err) 
 								return console.log(err)
-							if(res.success) {								
+							if(res.success) {
 								$scope.template = '/partials/social/index';
 							} else if(res.list.businesses) {
 								$scope.network.businesses = res.list.businesses;
@@ -161,9 +166,11 @@ console.log(ref);
 				console.log(res);
 				
 				if(res.success)
-					if(res.url || (!res.connected && $scope.network.name === 'yelp')) {
+					if(res.url) {
 						$scope.network.url = res.url
-						$scope.template = '/partials/social/connect';		
+						$scope.template = '/partials/social/connect';	
+					} else if(res.search) {
+						$scope.template = '/partials/social/' + $scope.network.name + (res.child_network ? '/'+res.child_network : '') + '/search'
 					} else if(res.connected && res.data.businesses) {
 						$scope.network.businesses = res.data.businesses;
 						$scope.template = '/partials/social/select';

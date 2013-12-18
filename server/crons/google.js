@@ -13,7 +13,7 @@ var GoogleCron = function() {
 
 	// private functions
 	var jobs = {
-		activity: function(methods) { // CHANGE THE FALSE BACK TO TRUE
+		plus: function(methods) { // CHANGE THE FALSE BACK TO TRUE
 			Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: { $and: [{'Social.google.plus.id': {$exists: false}}, {$or : [{'Social.google.update.plus.timestamp': {$exists: false}}, {'Social.google.update.plus.timestamp': {$lt: Utils.timestamp() - 86400 /* 86400 seconds = 24 hours */}}]} ] }}}, {lean: true}, function(err, match) {
 				if (err)
 					return Log.error(err, {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
@@ -29,7 +29,7 @@ var GoogleCron = function() {
 						return
 					}
 
-// I don't think this is needed now that we are using auth credentials, we can call every 15 min or so
+// I don't think this is needed now that we are using auth credentials, we can call every 15 min or so for each user
 					// update and save api call attempt timestamp
 //						user.Business[index].Social.google.plus.update.timestamp = Utils.timestamp();
 					user.save(function(err) {
@@ -37,14 +37,18 @@ var GoogleCron = function() {
 							Log.error('Error saving to Users table', {error: err, user_id: user._id, business_id: user.Business[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					})
 
-					var g = user.Business[index].Social.google;					
+					var g = user.Business[index].Social.google;
+// UNCOMMENT g.plus.id WHEN WE HAVE PROPER FRONT-END CONNECTION FOR PLUS
 					if (/*g.plus.id && */g.auth.oauthAccessToken && g.auth.oauthRefreshToken) {
 						var harvest = new Harvester.google;
 
 						harvest.getMetrics(user, {
 							methods: methods,
+							user_id: user._id,
+							business_id: user.Business[index]._id,
+							analytics_id: user.Business[index].Analytics.id,
 							index: index,
-//								network_id: g.plus.id
+							network_id: '100524621236878636693',// network_id: g.plus.id
 							accessToken: g.auth.oauthAccessToken,
 							refreshToken: g.auth.oauthRefreshToken
 						}, function(err, update) {
@@ -55,7 +59,7 @@ var GoogleCron = function() {
 							})*/
 
 							console.log('Google activity callback complete [' + methods.toString() + ']')
-return							
+return // TEMP, remove in production
 							user.save(function(err, save) {
 								if(err && err.name !== 'VersionError')
 									return Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
@@ -82,7 +86,7 @@ return
 			})
 		},
 
-		business: function(methods) {
+		places: function(methods) {
 			Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: { $and: [{'Social.google.places.id': {$exists: true}}, {'Social.google.places.data.reference': {$exists: true}}, {$or : [{'Social.google.update.places.timestamp': {$exists: false}}, {'Social.google.places.update.timestamp': {$lt: Utils.timestamp() - 86400 /* 86400 seconds = 24 hours */}}]} ] }}}, {lean: true}, function(err, match) {
 				if (err)
 					return Log.error(err, {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
@@ -91,7 +95,7 @@ return
 					return
 
 				Utils.getBusinessIndex(match._id, match.Business[0]._id, function(err, user, index) {
-					if (err) { // a failure here is really bad because the attempt time isn't updated so this User/Business will be called repeatedly
+					if (err) { // a failure here is bad because the attempt time isn't updated so this User/Business will be called repeatedly
 						Log.error('Business index lookup failure', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 						Alert.file('Business index lookup failure', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), timestamp: Utils.timestamp()})
 						Alert.broadcast('Business index lookup failure', {file: __filename, line: Utils.stack()[0].getLineNumber()})
@@ -111,6 +115,9 @@ return
 
 						harvest.getMetrics(user, {
 							methods: methods,
+							user_id: user._id,
+							business_id: user.Business[index]._id,
+							analytics_id: user.Business[index].Analytics.id,
 							index: index,
 							network_id: g.id,
 							network_ref: g.data.reference
@@ -192,20 +199,18 @@ return
 
 						harvest.getMetrics(user, {
 							methods: methods,
+							user_id: user._id,
+							business_id: user.Business[index]._id,
+							analytics_id: user.Business[index].Analytics.id,
 							index: index
 						}, function(err, update) {
-							/*user.save(function(err) {
-								if(err)
-									return Log.error('Error saving to Users table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
-								console.log('Google reviews callback complete')
-							})*/
 							
 							console.log('Google reviews callback complete [' + methods.toString() + ']')
 							user.save(function(err, save) {
 								if(err && err.name !== 'VersionError')
 									return Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
-								// if we have a versioning overwrite error than load up the analytics document again
+								// if we have a versioning overwrite error than load up the User collection again
 								if(err && err.name === 'VersionError')
 									Model.User.findById(user._id, function(err, saveUser) {
 										if(err)
@@ -225,13 +230,23 @@ return
 					})
 				})
 			})
+		},
+
+		engagers: function(methods) {
+			methods = methods || ['engagers'];
+			var harvest = new Harvester.google
+							
+			harvest.directToMethods(methods,
+				function(err) {
+				console.log('Google callbacks complete [' + methods.toString() + ']');
+			})
 		}
 	}
 
 	// public members
 	return {
 		getJob: function(type) {
-			return jobs[type](arguments[1], 0)
+			return jobs[type](arguments[1])
 		}
 	} // end return object
 }

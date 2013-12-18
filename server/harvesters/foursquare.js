@@ -396,7 +396,7 @@ console.log('at foursquare tips method');
 
 		// call every 10 seconds
 		engagers: function(itr, cb, retry) {
-
+console.log('at foursquare engagers method...');
 			Model.Engagers.findOne({
 				foursquare_id: {$exists: true},
 				Foursquare: {$exists: false},
@@ -603,7 +603,7 @@ console.log('match found! ', match);
 				});
 			})
 		},
-		appData: function(params, callback) {
+		directToMethods: function(params, callback) {
 			// load foursquare api and set access tokens from database
 			foursquare = Auth.load('foursquare'),
 			data = params,

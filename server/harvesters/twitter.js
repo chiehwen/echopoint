@@ -1239,7 +1239,7 @@ console.log('at twitter engagers update method');
 				});
 			})
 		},
-		engagers: function(methods, callback) {
+		directToMethods: function(methods, callback) {
 			Harvest.type = 'engagers';
 			data = {methods: methods};
 

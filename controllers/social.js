@@ -448,93 +448,43 @@ console.log('we should be in here');
 				// load google business credentials
 				var g = user.Business[req.session.Business.index].Social.google,
 						network = req.query.child_network || req.session.googleChildNetwork || 'plus';
-console.log('child_network', network);
+//console.log('child_network', network);
 //console.log(g.business.data);
-				// if we have a google session loaded and no forced login GET param then lets load foursquare
+				// if we have a google session loaded and no forced login GET param then lets load google
 				if(req.session.google && req.session.google.oauthAccessToken && req.session.google.oauthRefreshToken && !req.query.login) {
 
-					// if tokens have expired then force user to relogin to google plus
-					// Scratch this, I believe that the google_discovery api will automatically update token with refresh token
-					//if((req.session.google.created + req.session.google.expires) * 1000 <= Date.now())
-						//res.redirect('/social/google/login');
-
-					// TODO: fix this cluster f**k below
-					// TODO: check if first load and then call harvester for initial data (refer to facebook above for example)
-					if(g.places.id && g.places.data.reference) {
-
-						google = Auth.load('google_discovery');
-
-						var tokens = {
-							access_token: g.auth.oauthAccessToken,
-							refresh_token: g.auth.oauthRefreshToken
-						}
-
-						google.oauth.setAccessTokens(tokens);
-
-						google
-							.discover('plus', 'v1')
-							.execute(function(err, client) {
-								client
-								.plus.people.search({ query: 'Speak Social' })
-								//.plus.people.get({ userId: 'me' })
-								//.plus.people.get({ userId: '100941364374251988809' }) // andy
-								//.plus.activities.list({ userId: '100941364374251988809', collection: 'public' })
-								.withAuthClient(google.oauth)
-								.execute(function(err, data) {
-									if(err || !data) {
-										Error.handler('google', 'Failure on google plus execute after oauth process', err, data, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
-										req.session.messages.push(err);
-										//return res.redirect('/social/google?error=true');
-										data = err || 'error';
-									}
-
-
-									res.json({
-										success: true,
-										connected: true,
-										data: {success: true, plus: data}, //data,
-										child_network: network
-									})
-
-								})
-							})
-
-						
-					} else {
-						user.Business[req.session.Business.index].Social.google.places = {
-							id: 'e4353411a15c29a7f2f815a3d9cecf4fcad0c87f',
-							data: { 
-								formatted_address: '5350 Burnet Road #2, Austin, TX, United States',
-					       icon: 'http://maps.gstatic.com/mapfiles/place_api/icons/restaurant-71.png',
-					       id: 'e4353411a15c29a7f2f815a3d9cecf4fcad0c87f',
-					       name: 'Roll On Sushi Diner',
-					       price_level: 2,
-					       rating: 4.6,
-					       reference: 'CoQBdQAAALO078NBmk-qhyi42NaMhwIoKqdJtkyIHvnfI5YnmBKWNR8nhk61XtxUtr_lxFKSCRbcZDbLYp2rdQaxw8GVY7mm5fO8EqNPP9QAZp9Sc11pYzdqrv93uEiAbOxeYfYG6PiPiADUFnRAvnpxCxFGDd43-OHoVEgNSKjSiX3DAtAqEhCBICO8NNA9HK2jes1iDUN5GhRdhjetEewmfhY_P2-MIutpL3Pzcw',
-					     }
-						}
-						user.save(function(err, save) {
-
-						})
-						// set this up via sockets and not GET http request
-						/*google = Auth.load('google');
-						google.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {key: google.client.key, query: 'Roll On Sushi Diner, Austin, Texas', sensor: false}, function(err, response) {
-							console.log(err, response);
+					if(network === 'plus') {
+						if(!g.plus.id || !g.plus.data)
 							res.json({
 								success: true,
 								connected: true,
-								account: true,
-								data: {success: true}, //data,
+								data: false,
+								search: true,
+								child_network: network
 							})
-						})*/
-
-						res.json({
-							success: true,
-							connected: true,
-							setup: true,
-							data: {success: true}, //data,
-							child_network: network
-						})
+						else
+							res.json({
+								success: true,
+								connected: true,
+								data: {success: true},
+								child_network: network
+							})
+					} else {
+						if(!g.places.id || !g.places.data)
+							res.json({
+								success: true,
+								connected: true,
+								data: false,
+								search: true,
+								child_network: network
+							})
+						else
+							res.json({
+								success: true,
+								connected: true,
+								data: {success: true},
+								child_network: network
+							})
 					}
 
 				} else if(
@@ -542,9 +492,6 @@ console.log('child_network', network);
 					!req.query.login
 					&& g.auth.oauthAccessToken
 					&& g.auth.oauthRefreshToken
-					//&& g.auth.expires
-					//&& g.auth.created
-					//&& ((g.auth.created + g.auth.expires) * 1000 > Date.now())
 				) {
 
 					// load google api and set access tokens from database
@@ -560,7 +507,6 @@ console.log('child_network', network);
 						oauthRefreshToken: g.auth.oauthRefreshToken,
 						expires: g.auth.expires,
 						created: g.auth.created
-						//network: network
 					}
 					res.redirect('/social/google/connect');
 				
@@ -885,39 +831,8 @@ console.log(g.business.data);
 				// load google business credentials
 				var y = user.Business[req.session.Business.index].Social.yelp;
 
-				// if url GET param is sent then process if it's valid and load into business
-				if (req.query.url) {
-					// uri decode the sent url
-					var page = decodeURIComponent(req.query.url);
-
-					// check if url is a proper yelp.com address
-					if (page.indexOf('yelp.com/') === -1) {
-						req.session.messages.push('Invalid Yelp URL');
-						res.redirect('/social/yelp/connect?setup=true');
-					}
-
-					// if http/https is missing from link then add it
-					if (page.indexOf('http://') != -1 || page.indexOf('https://') != -1)
-						page = 'http://' + page;
-
-					// use node built in url module to get path data
-					var path = url.parse(page).pathname;
-
-					// get business name from last index in path and load into database
-					user.Business[req.session.Business.index].Social.yelp = {
-						id: path.substring(path.lastIndexOf('/') + 1)
-					}
-
-					user.save(function(err) {
-						if(err) {
-							Log.error('Error saving Yelp url', {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
-							req.session.messages.push('Error saving Yelp url to application')
-							res.redirect('/social/yelp/connect?setup=true');
-						}
-					});
-					res.redirect('/social/yelp/connect');	
-
-				} else if (y.id && !req.query.setup)	{
+				// if we have yelp credentials then load the page data
+				if (y.id && !req.query.setup)	{
 
 					// load yelp api
 					yelp = Auth.load('yelp');
@@ -943,7 +858,7 @@ console.log(g.business.data);
 				} else {
 
 					// load yelp api
-					yelp = Auth.load('yelp');
+					/*yelp = Auth.load('yelp');
 					request.get({
 						url: yelp.base + 'search',
 						qs: {term: 'Roll On Sushi Diner', location: 'Austin'}, // real search terms here
@@ -955,15 +870,16 @@ console.log(g.business.data);
 						if(err || (response && response.statusCode !== 200)) {
 							Error.handler('yelp', err || response.statusCode, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							return res.redirect('/social/yelp/connect?setup=true')
-						}
+						}*/
 
 						res.json({
 							success: true,
 							connected: false,
 							setup: req.query.setup ? true : false,
+							search: true,
 							data: null
 						});
-					})
+					//})
 				}
 			});
 		}

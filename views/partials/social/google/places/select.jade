@@ -1,0 +1,12 @@
+div.page-notice
+	h1 Please select a Google Places business account page
+	p This needs to match the Vocada business you are currently logged into
+div(class='simple-select-menu google-account-select-menu')
+	ul
+		li(ng-repeat='business in network.businesses')
+			div
+				a(ng-click='network.google.save("places",null,business.reference)')
+					//-img(src='{{business.image_url}}')
+					span {{business.name}}
+					br
+					span(style='font-size:10px;color:#999') {{business.formatted_address}}

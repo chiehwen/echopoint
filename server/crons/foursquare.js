@@ -59,7 +59,7 @@ var FoursquareCron = function() {
 				methods = methods || ['tips'];
 				var harvest = new Harvester.foursquare;
 
-				harvest.appData({
+				harvest.directToMethods({
 					methods: methods,
 					business: business
 				}, function(err) {
@@ -92,7 +92,7 @@ var FoursquareCron = function() {
 			methods = methods || ['engagers'];
 			var harvest = new Harvester.foursquare;
 
-			harvest.appData({
+			harvest.directToMethods({
 				methods: methods
 			}, function(err) {
 				console.log('Foursquare callbacks complete [' + methods.toString() + ']')

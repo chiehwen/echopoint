@@ -1,0 +1,12 @@
+div#login-logo
+	h3.subheader search google+ for your business
+ 
+div(class="form login-page-containers float-left")
+	form(ng-submit='network.google.save("plus")', id="create-business-form", class="yelp-business-id-form", accept-charset="utf-8")
+		fieldset
+			div(class="input text required")
+				label business name
+				input(ng-model='network.google.name', type="text", name="name", id="google-business-name")
+		div.submit
+			input(type='submit', value='submit')
+

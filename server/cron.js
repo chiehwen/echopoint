@@ -152,21 +152,21 @@ var CronJobs = {
 	// increase call time when app has more businesses!
 	google: {
 		// run every 10 seconds
-		activity: new CronJob({
+		plus: new CronJob({
 			cronTime: '0 */5 * * * *', // every 15 minutes [5 for testing]
 			onTick: function() {
 				var activity = new Crons.google
-				activity.getJob('activity', ['activity'])
+				activity.getJob('plus', ['plus', 'activity'])
 			},
 			start: false
 		}),
 
 		// run every 5 minutes
-		business: new CronJob({
+		places: new CronJob({
 			cronTime: '0 */5 * * * *', // every 5 minutes
 			onTick: function() {
 				var business = new Crons.google
-				business.getJob('business', ['business', 'reviews'])
+				business.getJob('places', ['places', 'reviews'])
 			},
 
 	// THIS IS A SCRAPER, REMOVE MASS USER CALL AND call only one user at a time
@@ -182,6 +182,16 @@ var CronJobs = {
 			onTick: function() {
 				var reviews = new Crons.google
 				reviews.getJob('reviews', ['reviews'])
+			},
+			start: false
+		}),
+
+		// run every  minute, it is called in batches of 1000 so G+ engagers should be populated quickly
+		engagers: new CronJob({
+			cronTime: '0 */1 * * * *', // every 5 minutes
+			onTick: function() {
+				var reviews = new Crons.google
+				reviews.getJob('engagers', ['engagers'])
 			},
 			start: false
 		})
@@ -206,11 +216,11 @@ var CronJobs = {
 	}),
 
 	instagram: {
-		users: new CronJob({
+		engagers: new CronJob({
 			cronTime: '*/10 * * * * *', // run every 10 seconds (can technically be run every second )
 			onTick: function() {
-				var instagram = new Crons.instagram
-				instagram.getJob('metrics', ['user'])
+				var engagers = new Crons.instagram
+				engagers.getJob('metrics', ['engagers'])
 			},
 			start: false
 		})

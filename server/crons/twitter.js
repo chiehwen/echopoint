@@ -51,7 +51,7 @@ var TwitterCron = function() {
 		engagers: function(methods) {
 			var harvest = new Harvester.twitter;
 			
-			harvest.engagers(methods, function(err) {
+			harvest.directToMethods(methods, function(err) {
 				console.log('Twitter callbacks complete [' + methods.toString() + ']')
 			})
 		}

@@ -56,6 +56,9 @@ console.log('at facebook business page update method...');
 					}
 
 					Model.User.findById(data.user, function(err, user) {
+						if(err || !user)
+							return Log.error('Error querying user in User collection', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+						
 						user.Business[data.index].Social.facebook.account.data = Analytics.facebook.business.data;
 						user.save(function(err) {
 							if(err)
@@ -565,7 +568,7 @@ console.log('at facebook engagers method');
 				})
 			})
 		},
-		appData: function(methods, callback) {
+		directToMethods: function(methods, callback) {
 			facebook = Auth.load('facebook');
 			data = {methods: methods};
 

@@ -103,7 +103,8 @@ var UserModel = {
             },
             places: {
               id: {type: String},
-              oauthAccessToken: {type: String},
+              pageId: {type: String}, // places have a seperate G+ page that only includes reviews and basic business info... it's very confusing 
+              //oauthAccessToken: {type: String},
               data: {},
               update: {
                 timestamp: {type: Number, default: 0} // this is the last places/maps api call time

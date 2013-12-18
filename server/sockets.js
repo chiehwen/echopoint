@@ -1,6 +1,7 @@
 // Module dependencies.
 var Auth = require('./auth').getInstance(),
 		Log = require('./logger').getInstance().getLogger(),
+		Error = require('./error').getInstance(),
 		Utils = require('./utilities'),
 		Notification = require('./notification'),
 		Session = require('./session'),
@@ -183,10 +184,15 @@ var Socket = (function() {
 
 							var yelp = Auth.load('yelp');
 
+							// load dependencies for processing yelp requests
+							var request = require('request'),
+									qs = require('querystring');
+
 							if(data.id)
 								checkYelpId(data.id, function(success) {
 									if(!success)
 										return callback('Invalid Yelp Business ID');
+console.log('indexing', data.index);									
 									user.Business[data.index].Social.yelp = {id: data.id}
 									user.save(function(err) {
 										if(err) console.log(err);
@@ -194,68 +200,71 @@ var Socket = (function() {
 									callback(null, {success: true})
 								})
 							else 
-								checkYelpUrl(function(err, found, message) {
-									if(found)
-										return callback(null, {success: true});
-
-									processYelpSearch(message, function(err, found, msg) {
-										if(err || !found)
-											return callback(err || msg || 'No results we\'re returned');
-										callback(null, found);
-									})
-								});
-								
-							function checkYelpUrl(cb) {
-								if(!data.url)
-									return cb(null, false)
-
-								if(!parseYelpUrl(data.url)) 
-									return cb(null, false, 'Invalid Yelp Business URL')
-								
-								checkYelpId(yelpId, function(success) {
-									if(!success) 
-										return cb(null, false, 'Invalid Yelp Business URL')
-
-									user.Business[data.index].Social.yelp = {id: yelpId}
-									user.save(function(err) {
-										if(err) callback(err);
-										cb(null, true, 'Invalid Yelp Business URL')
-									});
+								processYelpSearch(function(err, list) {
+									if(err || !list)
+										return callback(err || 'No results we\'re returned');
+									callback(null, list);
 								})
-							}
 
-							function processYelpSearch(msg, cb) {
+							function processYelpSearch(cb, retry) {
 								if(!data.name || !data.city)
 									cb(msg || 'No search parameters provided')
 
 								var location = data.state ? (data.city + ', ' + data.state) : data.city;
 
-								yelp.search({term: data.name.trim(), location: location.trim()}, function(err, response) {
-									if(err || response.error)
-										return cb(err || response.error)
+								request.get({
+									url: yelp.base + 'search?' + qs.stringify({term: data.name.trim(), location: location.trim()}),
+									oauth: yelp.client,
+									json: true
+								},
+								function(err, response) {
+									// if a connection error occurs retry request (up to 3 attempts) 
+									if(err && (response.statusCode === 503 || response.statusCode === 504 || retries.indexOf(err.code) > -1)) {
+										if(retry && retry > 2) {
+											Error.handler('yelp', 'Yelp business method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
+											return callback(err || response.statusCode || 'Error reaching Yelp');
+										}
 
-									if(response.businesses && response.businesses.length)
-										cb(null, {list: response})
+										return processYelpSearch(cb, retry ? ++retry : 1)
+									}
+
+									// error handling
+									if(err || (response && response.statusCode !== 200)) {	
+										Error.handler('yelp', err || response.statusCode, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+										return callback(err || response.statusCode || 'Error querying Yelp');
+									}
+
+									if(response.body && response.body.businesses && response.body.businesses.length)
+										cb(null, {list: response.body})
 									else
 										cb('No businesses were found')
 								})
 							}
 
-							function parseYelpUrl(url) {
-								var address = decodeURIComponent(url);
-								if (address.indexOf('yelp.com/') == -1)
-									return false;
+							function checkYelpId(id, cb, retry) {
+								request.get({
+									url: yelp.base + 'business/' + id,
+									oauth: yelp.client,
+									json: true
+								},
+								function(err, response) {
+									// if a connection error occurs retry request (up to 3 attempts) 
+									if(err && (response.statusCode === 503 || response.statusCode === 504 || retries.indexOf(err.code) > -1)) {
+										if(retry && retry > 2) {
+											Error.handler('yelp', 'Yelp business method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
+											return cb(false)
+										}
 
-								if (address.indexOf('http://') != -1 || address.indexOf('https://') != -1)
-									address = 'http://' + address;
+										return checkYelpId(id, cb, retry ? ++retry : 1)
+									}
 
-								var path = Url.parse(address).pathname;
-								return path.substring(path.lastIndexOf('/') + 1);
-							}
+									// error handling
+									if(err || (response && response.statusCode !== 200) || !response || !response.body) {	
+										Error.handler('yelp', err || response.statusCode, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+										return cb(false)
+									}
 
-							function checkYelpId(id, cb) {
-								yelp.business(id, function(err, response) {
-									cb(err||response.error ? false : true);
+									cb(true);
 								})
 							}
 						})
@@ -275,87 +284,150 @@ var Socket = (function() {
 
 							var g = user.Business[data.index].Social.google;
 
-							if(data.ref)
-								checkGooglePlacesDetails(data.ref, function(err, result) {									
+							// load proper api request module
+							if(data.network === 'plus')
+								var google = Auth.load('google_discovery');
+							else
+								var google = Auth.load('google')
+
+							var search = {
+								plus: function(cb) {
+
+									google.oauth.setAccessTokens({
+										access_token: g.auth.oauthAccessToken,
+										refresh_token: g.auth.oauthRefreshToken
+									})
+
+									google
+										.discover('plus', 'v1')
+										.execute(function(err, client) {
+											client
+											.plus.people.search({ query: data.name })
+											.withAuthClient(google.oauth)
+											.execute(function(err, response) {
+												if(err || !response) {
+													Error.handler('google', 'Failure on google plus execute after oauth process', err, data, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+													return cb(err || 'No data returned from Google')
+												}
+
+												if(!response.items || !response.items.length)
+													return cb('No results found')
+
+												cb(null, response.items)
+											})
+										})
+								},
+								places: function(cb) {
+									if(!data.name || !data.city)
+										cb(msg || 'No search parameters provided')
+
+									var location = data.state ? (data.city + ', ' + data.state) : data.city;
+
+									google.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {key: google.client.key, query: data.name.trim() + ' ,' + location.trim(), sensor: false}, function(err, response) {
+										if(err || response.error)
+											return cb(err || response.error)
+
+										if(response.results && response.results.length)
+											cb(null, response.results)
+										else
+											cb('No businesses were found')
+									})
+								}
+							}
+
+							var details = {
+								plus: function(id, cb) {
+
+									google.oauth.setAccessTokens({
+										access_token: g.auth.oauthAccessToken,
+										refresh_token: g.auth.oauthRefreshToken
+									});
+
+									google
+										.discover('plus', 'v1')
+										.execute(function(err, client) {
+											if(err || !response || response.error) {
+												// LOG ERROR HERE
+												return cb(err || 'No response returned from google')
+											}
+
+											client
+												.plus.people.get({ userId: id })
+												.withAuthClient(google.oauth)
+												.execute(function(err, response) {
+//console.log(results);
+													if(err || !response || response.error) {
+														// LOG ERROR HERE
+														return cb(err || 'No response returned from google')
+													}
+
+													cb(null, response);
+												})
+										})
+								},
+								places: function(ref, cb) {
+									google.get('https://maps.googleapis.com/maps/api/place/details/json', {key: google.client.key, reference: ref, sensor: false, review_summary: true}, function(err, response) {
+										if(err || response.error)
+											return cb(err || response.error)
+//console.log(response);
+										if(response.result)
+											cb(null, response.result)
+										else
+											cb('No businesses was found by search reference')
+									})
+								}
+							}
+
+							if(data.id)
+								details.plus(data.id, function(err, result) {
 									if(err)
-										return callback('Invalid Google details reference');
-					console.log(result);
-									//console.log(url.parse(result.url));
-									user.Business[data.index].Social.google.business = {
-										// TODO use url parse to get cid
-										id: parseGoogleUrl(result.url),
+										return callback('Invalid Google+ ID');
+
+									user.Business[data.index].Social.google.plus = {
+										id: result.id,
 										data: result
 									}
 									user.save(function(err) {
-										if(err) console.log(err);
+										if(err) {
+											// LOG ERROR HERE
+											callback('Failure to save Google Places data')
+										}
+										callback(null, {success: true})
 									});
-									callback(null, {success: true})
 								})
-							else 
-								checkGoogleUrl(function(err, found, message) {
-									if(found)
-										return callback(null, {success: true});
+							else if(data.ref)
+								details.places(data.ref, function(err, result) {									
+									if(err)
+										return callback('Invalid Google details reference');
 
-									processGoogleSearch(message, function(err, found, msg) {
-										if(err || !found)
-											return callback(err || msg || 'No results we\'re returned');
-										callback(null, found);
-									})
-								});
-								
-							function checkGoogleUrl(cb) {
-								if(!data.url)
-									return cb(null, false)
-
-								var googleId = parseGoogleUrl(data.url);
-								if(!googleId) 
-									return cb(null, false, 'Invalid Google Business URL')
-								
-								checkGoogleId(googleId, function(results) {
-									if(!results) 
-										return cb(null, false, 'Invalid Google Business URL')
-
-									user.Business[data.index].Social.google.business = {
-										id: googleId,
-										data: results
+									user.Business[data.index].Social.google.places = {
+										id: result.id,
+										pageId: parseGoogleUrl(result.url),
+										data: result
 									}
 									user.save(function(err) {
-										if(err) callback(err);
-										cb(null, true, 'Invalid Google Business URL')
+										if(err) {
+											// LOG ERROR HERE
+											callback('Failure to save Google Places data')
+										}
+										callback(null, {success: true})
 									});
 								})
-							}
-
-							function processGoogleSearch(msg, cb) {
-								if(!data.name || !data.city)
-									cb(msg || 'No search parameters provided')
-
-								var google = Auth.load('google'),
-										location = data.state ? (data.city + ', ' + data.state) : data.city;
-							
-								//google.oauth.setAccessTokens({
-									//access_token: g.auth.oauthAccessToken,
-									//refresh_token: g.auth.oauthRefreshToken
-								//});
-
-								google.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {key: google.client.key, query: data.name.trim() + ' ,' + location.trim(), sensor: false}, function(err, response) {
-									if(err || response.error)
-										return cb(err || response.error)
-
-									if(response.results && response.results.length)
-										cb(null, {list: response.results})
-									else
-										cb('No businesses were found')
+							else 
+								search[data.network](function(err, list) {
+									if(err || !list)
+										return callback(err || 'No results we\'re returned');
+									callback(null, {list: list});
 								})
-							}
+							
 
 							function parseGoogleUrl(url) {
 								var address = decodeURIComponent(url);
-								if (address.indexOf('plus.google.com/') == -1)
+								if (address.indexOf('plus.google.com/') === -1)
 									return false;
 
-								if (address.indexOf('http://') != -1 || address.indexOf('https://') != -1)
-									address = 'https://' + address;
+								//if (address.indexOf('http://') === -1 && address.indexOf('https://') === -1)
+									//address = 'https://' + address;
 
 								var path = Url.parse(address).pathname.replace('/about', '');
 								return path.substring(path.lastIndexOf('/') + 1);
@@ -373,11 +445,11 @@ var Socket = (function() {
 									.discover('plus', 'v1')
 									.execute(function(err, client) {
 										client
-											.plus.people.get({ userId: 'me' })
+											.plus.people.get({ userId: id })
 											.withAuthClient(google.oauth)
-											.execute(function(err, results) {
-		console.log(results);
-												cb(err||response.error ? false : results);
+											.execute(function(err, response) {
+		console.log(response);
+												cb(err||response.error ? false : response);
 											})
 									})
 							}
