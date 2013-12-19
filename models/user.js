@@ -32,7 +32,8 @@ var UserModel = {
 
             account: {
               id: {type: String},
-              oauthAccessToken: {type: String}, 
+              oauthAccessToken: {type: String},
+              populated: {type: Boolean, default: false},
               data: {}
             },
 
@@ -44,6 +45,7 @@ var UserModel = {
           twitter: {
             id: {type: String},
             username: {type: String},
+            populated: {type: Boolean, default: false},
             auth: {  
               oauthAccessToken: {type: String},
               oauthAccessTokenSecret: {type: String},
@@ -84,6 +86,7 @@ var UserModel = {
             venue: {
               id: {type: String},
               name: {type: String},
+              populated: {type: Boolean, default: false},
               data: {}
             }
           },
@@ -101,22 +104,24 @@ var UserModel = {
               id: {type: String},
               data: {}
             },
-            places: {
-              id: {type: String},
-              pageId: {type: String}, // places have a seperate G+ page that only includes reviews and basic business info... it's very confusing 
-              //oauthAccessToken: {type: String},
-              data: {},
-              update: {
-                timestamp: {type: Number, default: 0} // this is the last places/maps api call time
-              }
-            },
             plus: {
               id: {type: String},
-              data: {},
+              //populated: {type: Boolean, default: false},
+              //data: {},
               update: {
                 timestamp: {type: Number, default: 0} // this is the last plus api call time
               }
             },
+            places: {
+              id: {type: String},
+              //pageId: {type: String}, // places have a seperate G+ page (with a seperate ID) that only includes reviews and basic business info... it's very confusing 
+              reference: {type: String},
+              //populated: {type: Boolean, default: false},
+              //data: {},
+              update: {
+                timestamp: {type: Number, default: 0} // this is the last places/maps api call time
+              }
+            },  
             reviews: {
               //scraped: {type: Boolean, default: false},
               timestamp: {type: Number, default: 0}, // this is the last reviews web scrape
@@ -126,13 +131,14 @@ var UserModel = {
 
           yelp: {
             id: {type: String},
-            auth: {
+            //populated: {type: Boolean, default: false},
+            /*auth: {
               consumerKey: {type: String},
               consumerSecret: {type: String},
               oauthAccessToken: {type: String},
               oauthAccessTokenSecret: {type: String}
             },
-            business: {},
+            business: {},*/
             update: {
               //scraped: { type: Boolean, default: false},
               timestamp: {type: Number, default: 0} // this is the last api call time

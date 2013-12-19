@@ -15,8 +15,8 @@ var crypto = require('crypto'),
 			facebook: require('../server/harvesters/facebook'),
 			twitter: require('../server/harvesters/twitter'),
 			foursquare: require('../server/harvesters/foursquare'),
-			google: require('../server/harvesters/google'),
-			yelp: require('../server/harvesters/yelp'),
+			//google: require('../server/harvesters/google'),
+			//yelp: require('../server/harvesters/yelp'),
 			klout: require('../server/harvesters/klout')
 		};
 
@@ -129,7 +129,7 @@ var SocialController = {
 					// if select GET param is passed then bring up user business pages list 
 					else if(!f.account.id || !f.account.oauthAccessToken || req.query.select)
 						facebook.get('me', {fields: 'accounts.fields(name,picture.type(square),id)'}, function(err, response) {
-							if(err || response.error) {
+							if(err || response.error) {						
 								Error.handler('facebook', err || response.error, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 								return res.redirect('/social/facebook/connect?login=true')
 							}
@@ -147,8 +147,7 @@ var SocialController = {
 					else if(f.account.id && f.account.oauthAccessToken)
 
 						// if this is the first time loading Facebook initilize the data Facebook harvester
-						// note: this can take a good bit of time, warn user and show loading 
-						if(!user.Business[indx].Social.facebook.account.data) {
+						if(!user.Business[indx].Social.facebook.account.populated) {
 							var harvest = new Harvester.facebook;
 
 							harvest.getMetrics({
@@ -166,14 +165,29 @@ var SocialController = {
 								}			
 
 								// all is good
-								console.log('loaded inital Facebook data')
-								res.json({
-									success: true,
-									connected: true,
-									account: true,
-									data: {businesses: null},
-									url: null
-								});
+								console.log('Facebook initial populate callback complete!')
+
+								Model.User.findById(user._id, function(err, saveUser) {
+									if(err) {
+										Log.error('Error querying User collection', {error: err, user_id: user._id, business_id: user.Business[indx]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+										return res.redirect('/social/facebook/connect?login=true')
+									}
+									saveUser.Business[indx].Social.facebook.account.populated = true;
+									saveUser.save(function(err) {
+										if(err) {
+											Log.error('Error saving to User collection', {error: err, user_id: user._id, business_id: user.Business[indx]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+											return res.redirect('/social/facebook/connect?login=true')
+										}
+
+										res.json({
+											success: true,
+											connected: true,
+											account: true,
+											data: {businesses: null},
+											url: null
+										});
+									})
+								})			
 							});
 						} else {
 							// we have everything we need so lets load the facebook page
@@ -244,21 +258,65 @@ var SocialController = {
 
 				// load twitter api and database twitter credentials
 				var	twitter = Auth.load('twitter'),
-						t = user.Business[req.session.Business.index].Social.twitter;
+						indx = req.session.Business.index,
+						t = user.Business[indx].Social.twitter;
 
 				// if we have all the needed session variables then lets load the page
 				if(req.session.twitter && req.session.twitter.oauthAccessToken && req.session.twitter.oauthAccessTokenSecret && req.session.twitter.id && !req.query.login) {
-					// note: we used to verify credentials but since the harvester is always running any anomaly should reset the access tokens and force the user to relogin
-					// twitter.get('/account/verify_credentials.json', {include_entities: false, skip_status: true}, function(err, response) {})
 						
-						// TODO: check if first load and then call harvester for initial data (refer to facebook above for example)
-						res.json({
-							success: true,
-							connected: true,
-							account: null,
-							data: {success: true},
-							url: null
-						})
+						// if this is the first time loading Twitter initilize the data Twitter harvester
+						if(!user.Business[indx].Social.twitter.populated) {
+							var harvest = new Harvester.twitter;
+
+							harvest.getMetrics({
+								methods: ['credentials', 'timeline', 'dm', 'mentions', 'retweets', 'favorited', 'retweeters', 'friends', 'followers'],
+								user: user._id,
+								analytics_id: user.Business[indx].Analytics.id,
+								index: indx,
+								network_id: t.id || req.session.twitter.id,
+								auth_token: t.auth.oauthAccessToken || req.session.twitter.oauthAccessToken,
+								token_secret: t.auth.oauthAccessTokenSecret || req.session.twitter.oauthAccessTokenSecret
+							}, function(err) {
+								if (err) {
+									// if things didn't load properly log error and force user to relogin to twitter
+									Log.error(err, {error: err, user_id: user._id, business_id: user.Business[indx]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+									return res.redirect('/social/twitter/connect?login=true')
+								}
+
+								// all is good
+								console.log('Twitter initial populate callback complete!')
+
+								Model.User.findById(user._id, function(err, saveUser) {
+									if(err) {
+										Log.error('Error querying User collection', {error: err, user_id: user._id, business_id: user.Business[indx]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+										return res.redirect('/social/twitter/connect?login=true')
+									}
+									saveUser.Business[indx].Social.twitter.populated = true;
+									saveUser.save(function(err) {
+										if(err) {
+											Log.error('Error saving to User collection', {error: err, user_id: user._id, business_id: user.Business[indx]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+											return res.redirect('/social/twitter/connect?login=true')
+										}
+
+										res.json({
+											success: true,
+											connected: true,
+											account: true,
+											data: {businesses: null},
+											url: null
+										});
+									})
+								})				
+							});
+						} else {
+							res.json({
+								success: true,
+								connected: true,
+								account: null,
+								data: {success: true},
+								url: null
+							})
+						}
 
 				} else if (
 					// if we have the needed credentials in the database load them into the session (unless we have a forced login param in GET query)
@@ -279,7 +337,6 @@ var SocialController = {
 					res.redirect('/social/twitter/connect');
 
 				} else {
-console.log('we should be in here');
 					// seems we have nothing. lets get the request token used for the app oauth dialog url
 					twitter.oauth.getOAuthRequestToken(function(err, oauthRequestToken, oauthRequestTokenSecret, response) {
 						if (err || response.errors || !oauthRequestToken || !oauthRequestTokenSecret) {
@@ -322,7 +379,8 @@ console.log('we should be in here');
 				}
 
 				// load foursquare business credentials
-				var f = user.Business[req.session.Business.index].Social.foursquare;
+				var indx = req.session.Business.index,
+						f = user.Business[indx].Social.foursquare;
 
 				// if we have a foursquare session loaded and no forced login GET param then lets load foursquare
 				if(req.session.foursquare && req.session.foursquare.oauthAccessToken && !req.query.login) {
@@ -331,17 +389,62 @@ console.log('we should be in here');
 					foursquare = Auth.load('foursquare');
 
 					// if select GET param is passed then bring up user's managed venues list
-					if(f.venue.id && !req.query.id && !req.query.select)
+					if(f.venue.id && f.auth.oauthAccessToken && !req.query.id && !req.query.select)
 
-						// TODO: check if first load and then call harvester for initial data (refer to facebook above for example)
-						res.json({
-							success: true,
-							connected: true,
-							venue: true,
-							data: {},
-							url: null
-						})
+						// if this is the first time loading Foursquare initilize the data Twitter harvester
+						if(!user.Business[indx].Social.foursquare.venue.populated) {
+							var harvest = new Harvester.foursquare;
 
+							harvest.getMetrics({
+								methods: ['venue', 'stats'],
+								user: user._id,
+								analytics_id: user.Business[indx].Analytics.id,
+								index: indx,
+								network_id: f.id,
+								network_id: f.venue.id,
+								auth_token: f.auth.oauthAccessToken
+							}, function(err) {
+								if (err) {
+									// if things didn't load properly log error and force user to relogin to foursquare
+									Log.error(err, {error: err, user_id: user._id, business_id: user.Business[indx]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+									return res.redirect('/social/foursquare/connect?login=true')
+								}
+
+								// all is good
+								console.log('Foursquare initial populate callback complete!')
+
+								Model.User.findById(user._id, function(err, saveUser) {
+									if(err) {
+										Log.error('Error querying User collection', {error: err, user_id: user._id, business_id: user.Business[indx]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+										return res.redirect('/social/foursquare/connect?login=true')
+									}
+									saveUser.Business[indx].Social.foursquare.venue.populated = true;
+									saveUser.save(function(err) {
+										if(err) {
+											Log.error('Error saving to User collection', {error: err, user_id: user._id, business_id: user.Business[indx]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+											return res.redirect('/social/foursquare/connect?login=true')
+										}
+
+										res.json({
+											success: true,
+											connected: true,
+											account: true,
+											data: {businesses: null},
+											url: null
+										});
+									})
+								})
+								
+							});
+						} else {
+							res.json({
+								success: true,
+								connected: true,
+								venue: true,
+								data: {},
+								url: null
+							})
+						}
 					// if we have database data and session is loaded then we are good to go
 					else if(req.query.id)
 						foursquare.get('venues/managed', {v: foursquare.client.verified}, function(err, response) {
@@ -375,8 +478,8 @@ console.log('we should be in here');
 								}
 							}
 
-							// return success
-							res.json({success: found}) // res.redirect('/social/foursquare/connect' + (found ? '' : '?login=true'));
+							// res.json({success: found})
+							res.redirect('/social/foursquare/connect' + (found ? '' : '?login=true'));
 						})
 
 					// send back user business pages list
@@ -527,293 +630,6 @@ console.log('we should be in here');
 		}
 	},
 
-	google_plus_connect: {
-		path: '/social/google/plus/connect',
-		json: function(req, res, next) {
-			// if no user in session then redirect to login
-			if(!req.session.passport.user)
-				res.redirect('/login')
-
-			Utils.getUser(req.session.passport.user, function(err, user) {
-				if (err || !user) {
-					// basic database error handling
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
-					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})	
-				}
-
-				// load google business credentials
-				var g = user.Business[req.session.Business.index].Social.google;
-console.log(g.business.data);
-				// if we have a google session loaded and no forced login GET param then lets load foursquare
-				if(req.session.google && req.session.google.oauthAccessToken && req.session.google.oauthRefreshToken && !req.query.login) {
-
-					// if tokens have expired then force user to relogin to google plus
-					if((req.session.google.created + req.session.google.expires) * 1000 <= Date.now())
-						res.redirect('/social/google/login');
-
-					// TODO: fix this cluster f**k below
-					// TODO: check if first load and then call harvester for initial data (refer to facebook above for example)
-					if(g.business.id && g.business.data.reference) {
-
-						google = Auth.load('google_discovery');
-
-						var tokens = {
-							access_token: g.auth.oauthAccessToken,
-							refresh_token: g.auth.oauthRefreshToken
-						}
-
-						google.oauth.setAccessTokens(tokens);
-
-						google
-							.discover('plus', 'v1')
-							.execute(function(err, client) {
-								client
-								.plus.people.search({ query: 'Speak Social' })
-								//.plus.people.get({ userId: 'me' })
-								//.plus.people.get({ userId: '100941364374251988809' }) // andy
-								//.plus.activities.list({ userId: '100941364374251988809', collection: 'public' })
-								.withAuthClient(google.oauth)
-								.execute(function(err, data) {
-									if(err || !data) {
-										Error.handler('google', 'Failure on google plus execute after oauth process', err, data, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
-										req.session.messages.push(err);
-										//return res.redirect('/social/google?error=true');
-										data = err || 'error';
-									}
-
-
-									res.json({
-										success: true,
-										connected: true,
-										data: {success: true, plus: data} //data,
-									})
-
-								})
-							})
-
-						
-					} else {
-						user.Business[req.session.Business.index].Social.google.places = {
-							id: 'e4353411a15c29a7f2f815a3d9cecf4fcad0c87f',
-							data: { 
-								formatted_address: '5350 Burnet Road #2, Austin, TX, United States',
-					       icon: 'http://maps.gstatic.com/mapfiles/place_api/icons/restaurant-71.png',
-					       id: 'e4353411a15c29a7f2f815a3d9cecf4fcad0c87f',
-					       name: 'Roll On Sushi Diner',
-					       price_level: 2,
-					       rating: 4.6,
-					       reference: 'CoQBdQAAALO078NBmk-qhyi42NaMhwIoKqdJtkyIHvnfI5YnmBKWNR8nhk61XtxUtr_lxFKSCRbcZDbLYp2rdQaxw8GVY7mm5fO8EqNPP9QAZp9Sc11pYzdqrv93uEiAbOxeYfYG6PiPiADUFnRAvnpxCxFGDd43-OHoVEgNSKjSiX3DAtAqEhCBICO8NNA9HK2jes1iDUN5GhRdhjetEewmfhY_P2-MIutpL3Pzcw',
-					     }
-						}
-						user.save(function(err, save) {
-
-						})
-						// set this up via sockets and not GET http request
-						/*google = Auth.load('google');
-						google.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {key: google.client.key, query: 'Roll On Sushi Diner, Austin, Texas', sensor: false}, function(err, response) {
-							console.log(err, response);
-							res.json({
-								success: true,
-								connected: true,
-								account: true,
-								data: {success: true}, //data,
-							})
-						})*/
-
-						res.json({
-							success: true,
-							connected: true,
-							setup: true,
-							data: {success: true} //data,
-						})
-					}
-
-				} else if(
-					// if we have the needed credentials in the database load them into the session (unless we have a forced login param in GET query)
-					!req.query.login
-					&& g.auth.oauthAccessToken
-					&& g.auth.oauthRefreshToken
-					&& g.auth.expires
-					&& g.auth.created
-					&& ((g.auth.created + g.auth.expires) * 1000 > Date.now())
-				) {
-
-					// load google api and set access tokens from database
-					google = Auth.load('google_discovery');
-					google.oauth.setAccessTokens({
-						access_token: g.auth.oauthAccessToken,
-						refresh_token: g.auth.oauthRefreshToken
-					});
-
-					// load google session and reload page now that session is set
-					req.session.google = {
-						oauthAccessToken: g.auth.oauthAccessToken,
-						oauthRefreshToken: g.auth.oauthRefreshToken,
-						expires: g.auth.expires,
-						created: g.auth.created
-					}
-					res.redirect('/social/google/connect');
-				
-				} else {
-					// we have nothing, create a state for auth and load the app authorization dialog url
-					req.session.googleState = crypto.randomBytes(10).toString('hex');
-					
-					res.json({
-						success: true,
-						connected: false,
-						venue: false,
-						data: null,
-						url: Auth.getOauthDialogUrl('google', {response_type: 'code', access_type: 'offline', state: req.session.googleState, approval_prompt: 'force'})
-					})
-				}
-			})
-		}
-	},
-
-
-	google_places_connect: {
-		path: '/social/google/places/connect',
-		json: function(req, res, next) {
-			// if no user in session then redirect to login
-			if(!req.session.passport.user)
-				res.redirect('/login')
-
-			Utils.getUser(req.session.passport.user, function(err, user) {
-				if (err || !user) {
-					// basic database error handling
-					Log.error(err ? err : 'No user returned', {error: err, user_id: req.session.passport.user, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
-					return res.redirect(err ? '/logout' : '/login') //return res.json({success: false, error: 'User is not logged in'})	
-				}
-
-				// load google business credentials
-				var g = user.Business[req.session.Business.index].Social.google;
-console.log(g.business.data);
-				// if we have a google session loaded and no forced login GET param then lets load foursquare
-				if(req.session.google && req.session.google.oauthAccessToken && req.session.google.oauthRefreshToken && !req.query.login) {
-
-					// if tokens have expired then force user to relogin to google plus
-					if((req.session.google.created + req.session.google.expires) * 1000 <= Date.now())
-						res.redirect('/social/google/login');
-
-					// TODO: fix this cluster f**k below
-					// TODO: check if first load and then call harvester for initial data (refer to facebook above for example)
-					if(g.business.id && g.business.data.reference) {
-
-						google = Auth.load('google_discovery');
-
-						var tokens = {
-							access_token: g.auth.oauthAccessToken,
-							refresh_token: g.auth.oauthRefreshToken
-						}
-
-						google.oauth.setAccessTokens(tokens);
-
-						google
-							.discover('plus', 'v1')
-							.execute(function(err, client) {
-								client
-								.plus.people.search({ query: 'Speak Social' })
-								//.plus.people.get({ userId: 'me' })
-								//.plus.people.get({ userId: '100941364374251988809' }) // andy
-								//.plus.activities.list({ userId: '100941364374251988809', collection: 'public' })
-								.withAuthClient(google.oauth)
-								.execute(function(err, data) {
-									if(err || !data) {
-										Error.handler('google', 'Failure on google plus execute after oauth process', err, data, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
-										req.session.messages.push(err);
-										//return res.redirect('/social/google?error=true');
-										data = err || 'error';
-									}
-
-
-									res.json({
-										success: true,
-										connected: true,
-										data: {success: true, plus: data} //data,
-									})
-
-								})
-							})
-
-						
-					} else {
-						user.Business[req.session.Business.index].Social.google.places = {
-							id: 'e4353411a15c29a7f2f815a3d9cecf4fcad0c87f',
-							data: { 
-								formatted_address: '5350 Burnet Road #2, Austin, TX, United States',
-					       icon: 'http://maps.gstatic.com/mapfiles/place_api/icons/restaurant-71.png',
-					       id: 'e4353411a15c29a7f2f815a3d9cecf4fcad0c87f',
-					       name: 'Roll On Sushi Diner',
-					       price_level: 2,
-					       rating: 4.6,
-					       reference: 'CoQBdQAAALO078NBmk-qhyi42NaMhwIoKqdJtkyIHvnfI5YnmBKWNR8nhk61XtxUtr_lxFKSCRbcZDbLYp2rdQaxw8GVY7mm5fO8EqNPP9QAZp9Sc11pYzdqrv93uEiAbOxeYfYG6PiPiADUFnRAvnpxCxFGDd43-OHoVEgNSKjSiX3DAtAqEhCBICO8NNA9HK2jes1iDUN5GhRdhjetEewmfhY_P2-MIutpL3Pzcw',
-					     }
-						}
-						user.save(function(err, save) {
-
-						})
-						// set this up via sockets and not GET http request
-						/*google = Auth.load('google');
-						google.get('https://maps.googleapis.com/maps/api/place/textsearch/json', {key: google.client.key, query: 'Roll On Sushi Diner, Austin, Texas', sensor: false}, function(err, response) {
-							console.log(err, response);
-							res.json({
-								success: true,
-								connected: true,
-								account: true,
-								data: {success: true}, //data,
-							})
-						})*/
-
-						res.json({
-							success: true,
-							connected: true,
-							setup: true,
-							data: {success: true} //data,
-						})
-					}
-
-				} else if(
-					// if we have the needed credentials in the database load them into the session (unless we have a forced login param in GET query)
-					!req.query.login
-					&& g.auth.oauthAccessToken
-					&& g.auth.oauthRefreshToken
-					&& g.auth.expires
-					&& g.auth.created
-					&& ((g.auth.created + g.auth.expires) * 1000 > Date.now())
-				) {
-
-					// load google api and set access tokens from database
-					google = Auth.load('google_discovery');
-					google.oauth.setAccessTokens({
-						access_token: g.auth.oauthAccessToken,
-						refresh_token: g.auth.oauthRefreshToken
-					});
-
-					// load google session and reload page now that session is set
-					req.session.google = {
-						oauthAccessToken: g.auth.oauthAccessToken,
-						oauthRefreshToken: g.auth.oauthRefreshToken,
-						expires: g.auth.expires,
-						created: g.auth.created
-					}
-					res.redirect('/social/google/connect');
-				
-				} else {
-					// we have nothing, create a state for auth and load the app authorization dialog url
-					req.session.googleState = crypto.randomBytes(10).toString('hex');
-					
-					res.json({
-						success: true,
-						connected: false,
-						venue: false,
-						data: null,
-						url: Auth.getOauthDialogUrl('google', {response_type: 'code', access_type: 'offline', state: req.session.googleState, approval_prompt: 'force'})
-					})
-				}
-			})
-		}
-	},
-
 	yelp_connect: {
 		path: '/social/yelp/connect',
 		get: function(req, res) {
@@ -829,57 +645,24 @@ console.log(g.business.data);
 				}
 
 				// load google business credentials
-				var y = user.Business[req.session.Business.index].Social.yelp;
+				var indx = req.session.Business.index,
+						y = user.Business[indx].Social.yelp;
 
 				// if we have yelp credentials then load the page data
-				if (y.id && !req.query.setup)	{
-
-					// load yelp api
-					yelp = Auth.load('yelp');
-					request.get({
-						url: yelp.base + 'business/' + y.id,
-						oauth: yelp.client,
-						json: true
-					},
-					function(err, response) {
-						// error handling
-						if(err || (response && response.statusCode !== 200)) {
-							Error.handler('yelp', err || response.statusCode, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
-							return res.redirect('/social/yelp/connect?setup=true')
-						}
-
-						res.json({
-							success: true,
-							connected: true,
-							data: response.body
-						})
+				if (y.id && y.populated && !req.query.setup)	{
+					res.json({
+						success: true,
+						connected: true,
+						data: true //response.body
 					})
-
 				} else {
-
-					// load yelp api
-					/*yelp = Auth.load('yelp');
-					request.get({
-						url: yelp.base + 'search',
-						qs: {term: 'Roll On Sushi Diner', location: 'Austin'}, // real search terms here
-						oauth: yelp.client,
-						json: true
-					},
-					function(err, response) {
-						// error handling
-						if(err || (response && response.statusCode !== 200)) {
-							Error.handler('yelp', err || response.statusCode, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
-							return res.redirect('/social/yelp/connect?setup=true')
-						}*/
-
-						res.json({
-							success: true,
-							connected: false,
-							setup: req.query.setup ? true : false,
-							search: true,
-							data: null
-						});
-					//})
+					res.json({
+						success: true,
+						connected: false,
+						//setup: req.query.setup ? true : false,
+						search: true,
+						data: null
+					});
 				}
 			});
 		}

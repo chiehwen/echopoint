@@ -98,8 +98,8 @@ console.log('at yelp business info update method...');
 						timestamp: timestamp,
 						data: response
 					}
-console.log('here1');
-					User.Business[index].Social.yelp.business = Analytics.yelp.business.data;
+
+					//User.Business[index].Social.yelp.business = Analytics.yelp.business.data;
 				}
 
 				if(response.review_count != Analytics.yelp.tracking.reviews.total) {

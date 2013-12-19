@@ -26,7 +26,8 @@ Vocada
 			controller: $routeParams.controller,
 			view: $routeParams.view || false,
 			action: $routeParams.action || false,
-			loading: true
+			loading: true,
+			populate: $location.search().populate
 		}
 
 		// some secure routes are still run by the server, route these paths to the actual addresses
@@ -109,14 +110,17 @@ Vocada
 				name: $scope.page.view,
 				google: {
 					save: function(network, id, ref) {
+						$scope.template = '/partials/loading';
 						socket.emit('saveGoogle', {network: network, id: id || null, ref: ref || null, index: $scope.user.business.index, name: $scope.network.google.name, city: $scope.network.google.city, state: $scope.network.google.state, zipcode: $scope.network.google.zipcode}, function (err, res) {
 							if(err) 
 								return console.log(err)
-							if(res.success) {								
+							if(res.success) {
+								$scope.page.populate = false;	
 								$scope.template = '/partials/social/index';
 							} else if(res.list) {							
 								$scope.network.businesses = res.list;
 								$scope.template = '/partials/social/google/'+network+'/select';
+								$scope.page.populate = true;
 							} else {
 								$scope.template = '/partials/social/connect';
 							}
@@ -128,14 +132,17 @@ Vocada
 					//	$scope.template = '/partials/social/yelp/search';
 					//},
 					save: function(id) {
+						$scope.template = '/partials/loading';
 						socket.emit('saveYelp', {index: $scope.user.business.index, id: id || null, name: $scope.network.yelp.name, city: $scope.network.yelp.city, state: $scope.network.yelp.state}, function (err, res) {
-							if(err) 
+							if(err)
 								return console.log(err)
 							if(res.success) {
+								$scope.page.populate = false;
 								$scope.template = '/partials/social/index';
 							} else if(res.list.businesses) {
 								$scope.network.businesses = res.list.businesses;
 								$scope.template = '/partials/social/yelp/select';
+								$scope.page.populate = true;
 							} else {
 								$scope.template = '/partials/social/connect';
 							}
@@ -143,7 +150,9 @@ Vocada
 					}
 				},
 				selectBusiness: function(id) {
+					$scope.page.populate = true;
 					$scope.template = '/partials/loading';
+					// TODO: add this as a socket connection
 					$http.get('/social/'+$scope.network.name+'/connect?id='+id).success(function(res) {
 						if(res.success)
 							$scope.template = '/partials/social/index';
@@ -168,16 +177,18 @@ Vocada
 				if(res.success)
 					if(res.url) {
 						$scope.network.url = res.url
-						$scope.template = '/partials/social/connect';	
+						$scope.template = '/partials/social/connect';
 					} else if(res.search) {
 						$scope.template = '/partials/social/' + $scope.network.name + (res.child_network ? '/'+res.child_network : '') + '/search'
 					} else if(res.connected && res.data.businesses) {
 						$scope.network.businesses = res.data.businesses;
 						$scope.template = '/partials/social/select';
-					} else if(res.setup){
+					/*} else if(res.setup){
 						console.log('here');
 						$scope.template = '/partials/social/' + $scope.network.name + '/setup';
+						$scope.page.populate = true;*/
 					} else {
+						$scope.page.populate = false;
 						$scope.template = '/partials/social/index';
 					}
 					
@@ -290,13 +301,13 @@ Vocada
 console.log($scope.firebase);
 		// get individual module settings data from firebase
 		angularFire($scope.firebase.url, $scope, 'remoteModules', []).
-		then(function() {
-			$scope.modules.data = $scope.remoteModules;
-			for(var i=0,l=$scope.modules.data.length; i<l; i++)
-				$scope.modules.data[i].id = i;
-			$scope.modules.count = l;
-console.log('MODULES', $scope.modules);			
-		});
+			then(function() {
+				$scope.modules.data = $scope.remoteModules;
+				for(var i=0,l=$scope.modules.data.length; i<l; i++)
+					$scope.modules.data[i].id = i;
+				$scope.modules.count = l;
+	console.log('MODULES', $scope.modules);
+			});
 	}])
 
 

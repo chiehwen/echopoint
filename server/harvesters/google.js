@@ -119,10 +119,10 @@ console.log('at the google plus business update method');
 					Analytics.google.plus = {
 						id: Analytics.google.plus.id,
 						timestamp: timestamp,
-						data: place
+						data: business
 					}
 
-					User.Business[index].Social.google.plus.data = Analytics.google.plus.data;
+					//User.Business[index].Social.google.plus.data = Analytics.google.plus.data;
 				}
 
 				if(Analytics.google.tracking.plusOnes.total != business.plusOneCount) {
@@ -173,7 +173,7 @@ console.log('at the google plus activity method');
 						access_token: data.accessToken,
 						refresh_token: data.refreshToken
 					},
-					limit = 100; //Analytics.google.activities.length ? 10 : 100;
+					limit = 100;
 
 			google.oauth.setAccessTokens(tokens);
 
@@ -304,7 +304,12 @@ console.log('at the google plus activity method');
 						data: list[x]
 					})
 
-					Engagers.push({google_id: results[i].likes.data[x].id})
+					// add to engagers if we have new users who are not this business
+					if(list[x].actor.id !== data.network_id) 
+						Engagers.push({google_id: list[x].actor.id})
+
+					if(list[x].object && list[x].object.actor && list[x].object.actor.id !== data.network_id)
+						Engagers.push({google_id: list[x].object.actor.id})
 				}
 
 				var orderedActivites = Analytics.google.activities.sort(Utils.sortBy('created_timestamp', false, parseInt))
@@ -365,7 +370,7 @@ console.log('at the google places business update method');
 						data: place
 					}
 
-					User.Business[index].Social.google.places.data = Analytics.google.places.data;
+					//User.Business[index].Social.google.places.data = Analytics.google.places.data;
 				}
 
 				if(place.reviews.length) {

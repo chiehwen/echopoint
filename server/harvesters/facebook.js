@@ -55,16 +55,17 @@ console.log('at facebook business page update method...');
 						data: {name: response.name,category: response.category, category_list: response.category_list,description: response.description,about: response.about,location: response.location,website: response.website,username: response.username}
 					}
 
-					Model.User.findById(data.user, function(err, user) {
+					/*Model.User.findById(data.user, function(err, user) {
 						if(err || !user)
 							return Log.error('Error querying user in User collection', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 						
-						user.Business[data.index].Social.facebook.account.data = Analytics.facebook.business.data;
+						//user.Business[data.index].Social.facebook.account.data = Analytics.facebook.business.data;
+						user.Business[data.index].Social.facebook.account.populated = true;
 						user.save(function(err) {
 							if(err)
 								return Log.error('Error saving Facebook page data to user table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 						})
-					})
+					})*/
 				}
 
 				if(response.likes != Analytics.facebook.tracking.page.likes.total) {

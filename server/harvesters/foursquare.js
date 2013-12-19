@@ -275,7 +275,7 @@ console.log('at foursquare stats method');
 							}
 						}
 					
-					engagers.push({foursquare_id: stats.topVisitors[x].user.id, meta:{ foursquare: {analytics_id: Analytics._id}}})
+					Engagers.push({foursquare_id: stats.topVisitors[x].user.id, meta:{ foursquare: {analytics_id: Analytics._id}}})
 					newTopVisitors.push({id: stats.topVisitors[x].user.id, checkins: stats.topVisitors[x].checkins})			
 				}
 
@@ -301,7 +301,7 @@ console.log('at foursquare stats method');
 					if(Analytics.foursquare.tracking.recentVisitors.history[0])
 						if(stats.recentVisitors[x].id != Analytics.foursquare.tracking.recentVisitors.history[0].list[x].id) {
 							recentVisitorsChange = true;
-							engagers.push({foursquare_id: stats.recentVisitors[x].user.id, meta:{ foursquare: {analytics_id: Analytics._id}}})
+							Engagers.push({foursquare_id: stats.recentVisitors[x].user.id, meta:{ foursquare: {analytics_id: Analytics._id}}})
 							continue;
 						}
 					else
@@ -368,7 +368,7 @@ console.log('at foursquare tips method');
 
 					for(var i=0,l=response.response.tips.items.length;i<l;i++) {
 						business.foursquare.tips.active.push(response.response.tips.items[i])
-						engagers.push({foursquare_id: response.response.tips.items[i].user.id, meta:{ foursquare: {analytics_id: business._id}}})
+						Engagers.push({foursquare_id: response.response.tips.items[i].user.id, meta:{ foursquare: {analytics_id: business._id}}})
 					}
 
 					if(response.response.tips.count > offset+count) {

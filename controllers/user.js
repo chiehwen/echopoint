@@ -270,7 +270,423 @@ var UserController = {
 								"settings": []
 							}
 						]
-					}
+					},
+
+					"twitter": {
+						"modules": [
+							{ 
+								"name": "tip", 
+								"type": "text",
+								"sortable": false,
+								"dashboarded": null,
+								"hidden": false,
+								"sizing": false,
+								"large": true,
+								"closeable": true,
+								"menu": false,
+								"settings": []
+							},
+							{
+								"name": "notifications",
+								"type": "list",
+								"sortable": false,
+								"dashboarded": true,
+								"hidden": false,
+								"sizing": false,
+								"large": false,
+								"menu": [],
+								"icon": "globe",
+								"settings": [
+									{"type": "post", "val": true},
+									{"type": "like", "val": true},
+									{"type": "comment", "val": true},
+									{"type": "share", "val": true},
+									{"type": "top_commenter", "val": true},
+									{"type": "top_liking_user", "val": true},
+									{"type": "top_sharer", "val": true},
+									{"type": "profile", "val": true}
+								]
+							},
+							{
+								"name": "statistics",
+								"title": "quick stats",
+								"type": "list",
+								"sortable": false,
+								"dashboarded": false,
+								"hidden": false,
+								"sizing": false,
+								"large": false,
+								"menu": [],
+								"settings": [
+									{"type": "post_count", "val": true},
+									{"type": "total_likes", "val": true},
+									{"type": "page_visits", "val": true},
+									{"type": "unique_page_visits", "val": true},
+									{"type": "total_checkins", "val": true},
+									{"type": "latest_viral_score", "val": true},
+									{"type": "highest_viral_score", "val": true}
+								]
+							},
+							{
+								"name": "posts",
+								"title": "wall posts",
+								"type": "graph",
+								"sortable": true,
+								"dashboarded": false,
+								"hidden": false,
+								"sizing": true,
+								"large": true,
+								"menu": { 
+									custom: [
+										{
+											label: 'display column view', 
+											icon: 'bar-chart',
+											action: 'changeDisplay(column)', // 'dashboard', 'hide', 'help', 'resize', 'timeframe'
+											current: null, // 'onDashboard', 'offDashboard', 'large', 'small', '30day', '60day'
+											meta: null,
+											divider: true
+										}
+									],
+									timeframes: ['15 days', '30 days', '90 days']
+								},
+								"timeframe": "15 days",
+								"settings": []
+							}
+						]
+					},
+
+					"foursquare": {
+						"modules": [
+							{ 
+								"name": "tip", 
+								"type": "text",
+								"sortable": false,
+								"dashboarded": null,
+								"hidden": false,
+								"sizing": false,
+								"large": true,
+								"closeable": true,
+								"menu": false,
+								"settings": []
+							},
+							{
+								"name": "notifications",
+								"type": "list",
+								"sortable": false,
+								"dashboarded": true,
+								"hidden": false,
+								"sizing": false,
+								"large": false,
+								"menu": [],
+								"icon": "globe",
+								"settings": [
+									{"type": "post", "val": true},
+									{"type": "like", "val": true},
+									{"type": "comment", "val": true},
+									{"type": "share", "val": true},
+									{"type": "top_commenter", "val": true},
+									{"type": "top_liking_user", "val": true},
+									{"type": "top_sharer", "val": true},
+									{"type": "profile", "val": true}
+								]
+							},
+							{
+								"name": "statistics",
+								"title": "quick stats",
+								"type": "list",
+								"sortable": false,
+								"dashboarded": false,
+								"hidden": false,
+								"sizing": false,
+								"large": false,
+								"menu": [],
+								"settings": [
+									{"type": "post_count", "val": true},
+									{"type": "total_likes", "val": true},
+									{"type": "page_visits", "val": true},
+									{"type": "unique_page_visits", "val": true},
+									{"type": "total_checkins", "val": true},
+									{"type": "latest_viral_score", "val": true},
+									{"type": "highest_viral_score", "val": true}
+								]
+							},
+							{
+								"name": "posts",
+								"title": "wall posts",
+								"type": "graph",
+								"sortable": true,
+								"dashboarded": false,
+								"hidden": false,
+								"sizing": true,
+								"large": true,
+								"menu": { 
+									custom: [
+										{
+											label: 'display column view', 
+											icon: 'bar-chart',
+											action: 'changeDisplay(column)', // 'dashboard', 'hide', 'help', 'resize', 'timeframe'
+											current: null, // 'onDashboard', 'offDashboard', 'large', 'small', '30day', '60day'
+											meta: null,
+											divider: true
+										}
+									],
+									timeframes: ['15 days', '30 days', '90 days']
+								},
+								"timeframe": "15 days",
+								"settings": []
+							}
+						]
+					},
+
+					"yelp": {
+						"modules": [
+							{ 
+								"name": "tip", 
+								"type": "text",
+								"sortable": false,
+								"dashboarded": null,
+								"hidden": false,
+								"sizing": false,
+								"large": true,
+								"closeable": true,
+								"menu": false,
+								"settings": []
+							},
+							{
+								"name": "notifications",
+								"type": "list",
+								"sortable": false,
+								"dashboarded": true,
+								"hidden": false,
+								"sizing": false,
+								"large": false,
+								"menu": [],
+								"icon": "globe",
+								"settings": [
+									{"type": "post", "val": true},
+									{"type": "like", "val": true},
+									{"type": "comment", "val": true},
+									{"type": "share", "val": true},
+									{"type": "top_commenter", "val": true},
+									{"type": "top_liking_user", "val": true},
+									{"type": "top_sharer", "val": true},
+									{"type": "profile", "val": true}
+								]
+							},
+							{
+								"name": "statistics",
+								"title": "quick stats",
+								"type": "list",
+								"sortable": false,
+								"dashboarded": false,
+								"hidden": false,
+								"sizing": false,
+								"large": false,
+								"menu": [],
+								"settings": [
+									{"type": "post_count", "val": true},
+									{"type": "total_likes", "val": true},
+									{"type": "page_visits", "val": true},
+									{"type": "unique_page_visits", "val": true},
+									{"type": "total_checkins", "val": true},
+									{"type": "latest_viral_score", "val": true},
+									{"type": "highest_viral_score", "val": true}
+								]
+							},
+							{
+								"name": "posts",
+								"title": "wall posts",
+								"type": "graph",
+								"sortable": true,
+								"dashboarded": false,
+								"hidden": false,
+								"sizing": true,
+								"large": true,
+								"menu": { 
+									custom: [
+										{
+											label: 'display column view', 
+											icon: 'bar-chart',
+											action: 'changeDisplay(column)', // 'dashboard', 'hide', 'help', 'resize', 'timeframe'
+											current: null, // 'onDashboard', 'offDashboard', 'large', 'small', '30day', '60day'
+											meta: null,
+											divider: true
+										}
+									],
+									timeframes: ['15 days', '30 days', '90 days']
+								},
+								"timeframe": "15 days",
+								"settings": []
+							}
+						]
+					},
+
+					"google_plus": {
+						"modules": [
+							{ 
+								"name": "tip", 
+								"type": "text",
+								"sortable": false,
+								"dashboarded": null,
+								"hidden": false,
+								"sizing": false,
+								"large": true,
+								"closeable": true,
+								"menu": false,
+								"settings": []
+							},
+							{
+								"name": "notifications",
+								"type": "list",
+								"sortable": false,
+								"dashboarded": true,
+								"hidden": false,
+								"sizing": false,
+								"large": false,
+								"menu": [],
+								"icon": "globe",
+								"settings": [
+									{"type": "post", "val": true},
+									{"type": "like", "val": true},
+									{"type": "comment", "val": true},
+									{"type": "share", "val": true},
+									{"type": "top_commenter", "val": true},
+									{"type": "top_liking_user", "val": true},
+									{"type": "top_sharer", "val": true},
+									{"type": "profile", "val": true}
+								]
+							},
+							{
+								"name": "statistics",
+								"title": "quick stats",
+								"type": "list",
+								"sortable": false,
+								"dashboarded": false,
+								"hidden": false,
+								"sizing": false,
+								"large": false,
+								"menu": [],
+								"settings": [
+									{"type": "post_count", "val": true},
+									{"type": "total_likes", "val": true},
+									{"type": "page_visits", "val": true},
+									{"type": "unique_page_visits", "val": true},
+									{"type": "total_checkins", "val": true},
+									{"type": "latest_viral_score", "val": true},
+									{"type": "highest_viral_score", "val": true}
+								]
+							},
+							{
+								"name": "posts",
+								"title": "wall posts",
+								"type": "graph",
+								"sortable": true,
+								"dashboarded": false,
+								"hidden": false,
+								"sizing": true,
+								"large": true,
+								"menu": { 
+									custom: [
+										{
+											label: 'display column view', 
+											icon: 'bar-chart',
+											action: 'changeDisplay(column)', // 'dashboard', 'hide', 'help', 'resize', 'timeframe'
+											current: null, // 'onDashboard', 'offDashboard', 'large', 'small', '30day', '60day'
+											meta: null,
+											divider: true
+										}
+									],
+									timeframes: ['15 days', '30 days', '90 days']
+								},
+								"timeframe": "15 days",
+								"settings": []
+							}
+						]
+					},
+
+					"google_places": {
+						"modules": [
+							{ 
+								"name": "tip", 
+								"type": "text",
+								"sortable": false,
+								"dashboarded": null,
+								"hidden": false,
+								"sizing": false,
+								"large": true,
+								"closeable": true,
+								"menu": false,
+								"settings": []
+							},
+							{
+								"name": "notifications",
+								"type": "list",
+								"sortable": false,
+								"dashboarded": true,
+								"hidden": false,
+								"sizing": false,
+								"large": false,
+								"menu": [],
+								"icon": "globe",
+								"settings": [
+									{"type": "post", "val": true},
+									{"type": "like", "val": true},
+									{"type": "comment", "val": true},
+									{"type": "share", "val": true},
+									{"type": "top_commenter", "val": true},
+									{"type": "top_liking_user", "val": true},
+									{"type": "top_sharer", "val": true},
+									{"type": "profile", "val": true}
+								]
+							},
+							{
+								"name": "statistics",
+								"title": "quick stats",
+								"type": "list",
+								"sortable": false,
+								"dashboarded": false,
+								"hidden": false,
+								"sizing": false,
+								"large": false,
+								"menu": [],
+								"settings": [
+									{"type": "post_count", "val": true},
+									{"type": "total_likes", "val": true},
+									{"type": "page_visits", "val": true},
+									{"type": "unique_page_visits", "val": true},
+									{"type": "total_checkins", "val": true},
+									{"type": "latest_viral_score", "val": true},
+									{"type": "highest_viral_score", "val": true}
+								]
+							},
+							{
+								"name": "posts",
+								"title": "wall posts",
+								"type": "graph",
+								"sortable": true,
+								"dashboarded": false,
+								"hidden": false,
+								"sizing": true,
+								"large": true,
+								"menu": { 
+									custom: [
+										{
+											label: 'display column view', 
+											icon: 'bar-chart',
+											action: 'changeDisplay(column)', // 'dashboard', 'hide', 'help', 'resize', 'timeframe'
+											current: null, // 'onDashboard', 'offDashboard', 'large', 'small', '30day', '60day'
+											meta: null,
+											divider: true
+										}
+									],
+									timeframes: ['15 days', '30 days', '90 days']
+								},
+								"timeframe": "15 days",
+								"settings": []
+							}
+						]
+					},
+					
 				}
 			)
 		}

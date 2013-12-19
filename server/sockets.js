@@ -6,7 +6,10 @@ var Auth = require('./auth').getInstance(),
 		Notification = require('./notification'),
 		Session = require('./session'),
 		Url = require('url'),
-		Model = Model || Object;
+		Model = Model || Object,Harvester = {
+			google: require('./harvesters/google'),
+			yelp: require('./harvesters/yelp')
+		};
 
 var Socket = (function() {
 
@@ -174,105 +177,6 @@ var Socket = (function() {
 				}
 			},
 			social: {
-				yelp: {
-					save: function(data, callback) {
-						if(!passportUserId) 
-							return callback(err || 'user id error!');
-						
-						Utils.getUser(passportUserId, function(err, user) {
-							if(err || !user) return callback(err || 'no user found!');
-
-							var yelp = Auth.load('yelp');
-
-							// load dependencies for processing yelp requests
-							var request = require('request'),
-									qs = require('querystring');
-
-							if(data.id)
-								checkYelpId(data.id, function(success) {
-									if(!success)
-										return callback('Invalid Yelp Business ID');
-console.log('indexing', data.index);									
-									user.Business[data.index].Social.yelp = {id: data.id}
-									user.save(function(err) {
-										if(err) console.log(err);
-									});
-									callback(null, {success: true})
-								})
-							else 
-								processYelpSearch(function(err, list) {
-									if(err || !list)
-										return callback(err || 'No results we\'re returned');
-									callback(null, list);
-								})
-
-							function processYelpSearch(cb, retry) {
-								if(!data.name || !data.city)
-									cb(msg || 'No search parameters provided')
-
-								var location = data.state ? (data.city + ', ' + data.state) : data.city;
-
-								request.get({
-									url: yelp.base + 'search?' + qs.stringify({term: data.name.trim(), location: location.trim()}),
-									oauth: yelp.client,
-									json: true
-								},
-								function(err, response) {
-									// if a connection error occurs retry request (up to 3 attempts) 
-									if(err && (response.statusCode === 503 || response.statusCode === 504 || retries.indexOf(err.code) > -1)) {
-										if(retry && retry > 2) {
-											Error.handler('yelp', 'Yelp business method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
-											return callback(err || response.statusCode || 'Error reaching Yelp');
-										}
-
-										return processYelpSearch(cb, retry ? ++retry : 1)
-									}
-
-									// error handling
-									if(err || (response && response.statusCode !== 200)) {	
-										Error.handler('yelp', err || response.statusCode, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
-										return callback(err || response.statusCode || 'Error querying Yelp');
-									}
-
-									if(response.body && response.body.businesses && response.body.businesses.length)
-										cb(null, {list: response.body})
-									else
-										cb('No businesses were found')
-								})
-							}
-
-							function checkYelpId(id, cb, retry) {
-								request.get({
-									url: yelp.base + 'business/' + id,
-									oauth: yelp.client,
-									json: true
-								},
-								function(err, response) {
-									// if a connection error occurs retry request (up to 3 attempts) 
-									if(err && (response.statusCode === 503 || response.statusCode === 504 || retries.indexOf(err.code) > -1)) {
-										if(retry && retry > 2) {
-											Error.handler('yelp', 'Yelp business method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
-											return cb(false)
-										}
-
-										return checkYelpId(id, cb, retry ? ++retry : 1)
-									}
-
-									// error handling
-									if(err || (response && response.statusCode !== 200) || !response || !response.body) {	
-										Error.handler('yelp', err || response.statusCode, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
-										return cb(false)
-									}
-
-									cb(true);
-								})
-							}
-						})
-						
-					}
-				},
-
-
 				google: {
 					save: function(data, callback) {
 						if(!passportUserId) 
@@ -346,7 +250,7 @@ console.log('indexing', data.index);
 									google
 										.discover('plus', 'v1')
 										.execute(function(err, client) {
-											if(err || !response || response.error) {
+											if(err || !client) {
 												// LOG ERROR HERE
 												return cb(err || 'No response returned from google')
 											}
@@ -355,7 +259,7 @@ console.log('indexing', data.index);
 												.plus.people.get({ userId: id })
 												.withAuthClient(google.oauth)
 												.execute(function(err, response) {
-//console.log(results);
+
 													if(err || !response || response.error) {
 														// LOG ERROR HERE
 														return cb(err || 'No response returned from google')
@@ -383,17 +287,52 @@ console.log('indexing', data.index);
 									if(err)
 										return callback('Invalid Google+ ID');
 
-									user.Business[data.index].Social.google.plus = {
-										id: result.id,
-										data: result
-									}
-									user.save(function(err) {
-										if(err) {
-											// LOG ERROR HERE
-											callback('Failure to save Google Places data')
-										}
-										callback(null, {success: true})
-									});
+									user.Business[data.index].Social.google.plus = {id: result.id}
+
+									var harvest = new Harvester.google;
+
+									harvest.getMetrics(user, {
+										methods: ['plus', 'activity'],
+										user_id: user._id,
+										business_id: user.Business[data.index]._id,
+										analytics_id: user.Business[data.index].Analytics.id,
+										index: data.index,
+										network_id: result.id,
+										accessToken: g.auth.oauthAccessToken,
+										refreshToken: g.auth.oauthRefreshToken
+									}, function(err, update) {
+										console.log('Google+ initial populate callback complete!')
+
+										user.save(function(err, save) {
+											if(err && err.name !== 'VersionError') {
+												Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+												return callback('Error saving to User collection')
+											}
+
+											// if we have a versioning overwrite error than load up the analytics document again
+											if(err && err.name === 'VersionError')
+												Model.User.findById(user._id, function(err, saveUser) {
+													if(err) {
+														Log.error('Error querying User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+														return callback('Error querying to User collection')
+													}
+
+													saveUser.Business[data.index].Social.google = user.Business[data.index].Social.google;
+													saveUser.markModified('.Business['+index+'].Social.google')
+
+													saveUser.save(function(err, save) {
+														if(err) {
+															Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+															return callback('Error saving to user collection')
+														}
+														callback(null, {success: true})
+													})
+												})
+											else
+												callback(null, {success: true})
+										})
+									})
+
 								})
 							else if(data.ref)
 								details.places(data.ref, function(err, result) {									
@@ -401,17 +340,54 @@ console.log('indexing', data.index);
 										return callback('Invalid Google details reference');
 
 									user.Business[data.index].Social.google.places = {
-										id: result.id,
-										pageId: parseGoogleUrl(result.url),
-										data: result
+										//id: result.id,
+										id: parseGoogleUrl(result.url),
+										reference: g.places.reference
 									}
-									user.save(function(err) {
-										if(err) {
-											// LOG ERROR HERE
-											callback('Failure to save Google Places data')
-										}
-										callback(null, {success: true})
-									});
+									
+									var harvest = new Harvester.google;
+
+									harvest.getMetrics(user, {
+										methods: ['places', 'reviews'],
+										user_id: user._id,
+										business_id: user.Business[data.index]._id,
+										analytics_id: user.Business[data.index].Analytics.id,
+										index: data.index,
+										network_id: user.Business[data.index].Social.google.places.id,
+										network_ref: data.ref
+									}, function(err, update) {
+										console.log('Google Places initial populate callback complete!')
+
+										user.save(function(err, save) {
+											if(err && err.name !== 'VersionError') {
+												Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+												return callback('Error saving to User collection')
+											}
+
+											// if we have a versioning overwrite error than load up the analytics document again
+											if(err && err.name === 'VersionError')
+												Model.User.findById(user._id, function(err, saveUser) {
+													if(err) {
+														Log.error('Error querying User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+														return callback('Error querying to User collection')
+													}
+
+													saveUser.Business[data.index].Social.google = user.Business[data.index].Social.google;
+													saveUser.markModified('.Business['+index+'].Social.google')
+
+													saveUser.save(function(err, save) {
+														if(err) {
+															Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+															return callback('Error saving to user collection')
+														}
+														callback(null, {success: true})
+													})
+												})
+											else
+												callback(null, {success: true})
+										})
+									})
+
 								})
 							else 
 								search[data.network](function(err, list) {
@@ -468,9 +444,143 @@ console.log(response);
 								})
 							}
 						})
+					}
+				},
+
+				yelp: {
+					save: function(data, callback) {
+						if(!passportUserId) 
+							return callback(err || 'user id error!');
+						
+						Utils.getUser(passportUserId, function(err, user) {
+							if(err || !user) return callback(err || 'no user found!');
+
+							var yelp = Auth.load('yelp');
+
+							// load dependencies for processing yelp requests
+							var request = require('request'),
+									qs = require('querystring');
+
+							if(data.id)
+								checkYelpId(data.id, function(success) {
+									if(!success)
+										return callback('Invalid Yelp Business ID');
+								
+									user.Business[data.index].Social.yelp = {id: data.id}
+
+									var harvest = new Harvester.yelp
+
+									harvest.getMetrics(user, {
+										methods: ['business', 'reviews'],
+										index: data.index,
+										network_id: data.id
+									}, function(err, update) {
+										console.log('Yelp initial populate callback complete!')
+										
+										user.save(function(err, save) {
+											if(err && err.name !== 'VersionError') {
+												Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+												return callback('Error querying User collection')
+											}
+
+											// if we have a versioning overwrite error than load up the analytics document again
+											if(err && err.name === 'VersionError')
+												Model.User.findById(passportUserId, function(err, saveUser) {
+													if(err) {
+														Log.error('Error querying User collection', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+														return callback('Error querying User collection')
+													}
+
+													saveUser.Business[data.index].Social.yelp = user.Business[index].Social.yelp;
+													saveUser.markModified('.Business['+indx+'].Social.yelp')
+
+													saveUser.save(function(err, save) {
+														if(err) {
+															Log.error('Error saving to User collection', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+															return res.json({success: false})
+														}
+
+														callback(null, {success: true})
+													})
+												})
+											else
+												callback(null, {success: true})
+										})
+									})
+								})
+							else 
+								processYelpSearch(function(err, list) {
+									if(err || !list)
+										return callback(err || 'No results we\'re returned');
+									callback(null, list);
+								})
+
+							function processYelpSearch(cb, retry) {
+								if(!data.name || !data.city)
+									cb(msg || 'No search parameters provided')
+
+								var location = data.state ? (data.city + ', ' + data.state) : data.city;
+
+								request.get({
+									url: yelp.base + 'search?' + qs.stringify({term: data.name.trim(), location: location.trim()}),
+									oauth: yelp.client,
+									json: true
+								},
+								function(err, response) {
+									// if a connection error occurs retry request (up to 3 attempts) 
+									if(err && (response.statusCode === 503 || response.statusCode === 504 || retries.indexOf(err.code) > -1)) {
+										if(retry && retry > 2) {
+											Error.handler('yelp', 'Yelp business method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
+											return callback(err || response.statusCode || 'Error reaching Yelp');
+										}
+
+										return processYelpSearch(cb, retry ? ++retry : 1)
+									}
+
+									// error handling
+									if(err || (response && response.statusCode !== 200)) {	
+										Error.handler('yelp', err || response.statusCode, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+										return callback(err || response.statusCode || 'Error querying Yelp');
+									}
+
+									if(response.body && response.body.businesses && response.body.businesses.length)
+										cb(null, {list: response.body})
+									else
+										cb('No businesses were found')
+								})
+							}
+
+							function checkYelpId(id, cb, retry) {
+								request.get({
+									url: yelp.base + 'business/' + id,
+									oauth: yelp.client,
+									json: true
+								},
+								function(err, response) {
+									// if a connection error occurs retry request (up to 3 attempts) 
+									if(err && (response.statusCode === 503 || response.statusCode === 504 || retries.indexOf(err.code) > -1)) {
+										if(retry && retry > 2) {
+											Error.handler('yelp', 'Yelp business method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
+											return cb(false)
+										}
+
+										return checkYelpId(id, cb, retry ? ++retry : 1)
+									}
+
+									// error handling
+									if(err || (response && response.statusCode !== 200) || !response || !response.body) {	
+										Error.handler('yelp', err || response.statusCode, err, response, {file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+										return cb(false)
+									}
+
+									cb(true);
+								})
+							}
+						})
 						
 					}
 				}
+				
 			}
 		},
 

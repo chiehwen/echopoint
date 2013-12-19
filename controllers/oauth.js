@@ -171,7 +171,7 @@ var OauthController = {
 							});
 
 							// redirect back to twitter page
-							res.redirect('/social/twitter');
+							res.redirect('/social/twitter?populate');
 					});
 
 				});

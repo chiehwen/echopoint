@@ -14,7 +14,7 @@ var GoogleCron = function() {
 	// private functions
 	var jobs = {
 		plus: function(methods) { // CHANGE THE FALSE BACK TO TRUE
-			Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: { $and: [{'Social.google.plus.id': {$exists: false}}, {$or : [{'Social.google.update.plus.timestamp': {$exists: false}}, {'Social.google.update.plus.timestamp': {$lt: Utils.timestamp() - 86400 /* 86400 seconds = 24 hours */}}]} ] }}}, {lean: true}, function(err, match) {
+			Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: { $and: [{'Social.google.plus.id': {$exists: true}}, {$or : [{'Social.google.update.plus.timestamp': {$exists: false}}, {'Social.google.update.plus.timestamp': {$lt: Utils.timestamp() - 86400 /* 86400 seconds = 24 hours */}}]} ] }}}, {lean: true}, function(err, match) {
 				if (err)
 					return Log.error(err, {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
@@ -38,8 +38,8 @@ var GoogleCron = function() {
 					})
 
 					var g = user.Business[index].Social.google;
-// UNCOMMENT g.plus.id WHEN WE HAVE PROPER FRONT-END CONNECTION FOR PLUS
-					if (/*g.plus.id && */g.auth.oauthAccessToken && g.auth.oauthRefreshToken) {
+
+					if (g.plus.id && g.auth.oauthAccessToken && g.auth.oauthRefreshToken) {
 						var harvest = new Harvester.google;
 
 						harvest.getMetrics(user, {
@@ -48,18 +48,12 @@ var GoogleCron = function() {
 							business_id: user.Business[index]._id,
 							analytics_id: user.Business[index].Analytics.id,
 							index: index,
-							network_id: '100524621236878636693',// network_id: g.plus.id
+							network_id: g.plus.id,
 							accessToken: g.auth.oauthAccessToken,
 							refreshToken: g.auth.oauthRefreshToken
 						}, function(err, update) {
-							/*user.save(function(err) {
-								if(err)
-									return Log.error('Error saving to Users table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
-								console.log('Google callback complete')
-							})*/
-
 							console.log('Google activity callback complete [' + methods.toString() + ']')
-return // TEMP, remove in production
+
 							user.save(function(err, save) {
 								if(err && err.name !== 'VersionError')
 									return Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
@@ -87,7 +81,7 @@ return // TEMP, remove in production
 		},
 
 		places: function(methods) {
-			Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: { $and: [{'Social.google.places.id': {$exists: true}}, {'Social.google.places.data.reference': {$exists: true}}, {$or : [{'Social.google.update.places.timestamp': {$exists: false}}, {'Social.google.places.update.timestamp': {$lt: Utils.timestamp() - 86400 /* 86400 seconds = 24 hours */}}]} ] }}}, {lean: true}, function(err, match) {
+			Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: { $and: [{'Social.google.places.id': {$exists: true}}, {'Social.google.places.reference': {$exists: true}}, {$or : [{'Social.google.update.places.timestamp': {$exists: false}}, {'Social.google.places.update.timestamp': {$lt: Utils.timestamp() - 86400 /* 86400 seconds = 24 hours */}}]} ] }}}, {lean: true}, function(err, match) {
 				if (err)
 					return Log.error(err, {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
@@ -110,7 +104,7 @@ return // TEMP, remove in production
 					})
 
 					var g = user.Business[index].Social.google.places;
-					if (g.id && g.data.reference) {
+					if (g.id && g.reference) {
 						var harvest = new Harvester.google
 
 						harvest.getMetrics(user, {
@@ -120,7 +114,7 @@ return // TEMP, remove in production
 							analytics_id: user.Business[index].Analytics.id,
 							index: index,
 							network_id: g.id,
-							network_ref: g.data.reference
+							network_ref: g.reference
 						}, function(err, update) {
 							/*user.save(function(err) {
 								if(err)
