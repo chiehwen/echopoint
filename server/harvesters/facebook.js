@@ -12,7 +12,7 @@ var FacebookHarvester = function() {
 			facebook,
 			data,
 			update = false,
-			retries = Utils.retryErrorCodes,
+			retries = Utils.retryErrorCodes.concat([2]),
 			since = 0,
 			next = function(i, cb, stop) {
 				var i = i+1;
@@ -274,7 +274,7 @@ console.log('at the facebook posts [update] method...');
 
 								// put user ids into engagers array for the engagers table
 								for(var b = 0, b_length = results[i].comments.data.length; b < b_length; b++)
-									Engagers.push({facebook_id: results[i].comments.data[b].from.id})
+									Engagers.push({facebook_id: results[x].comments.data[b].from.id})
 
 								update = localUpdate = true;
 							}
@@ -476,7 +476,7 @@ console.log('at facebook engagers method');
 					for(var i=0, l=engagers.length; i<l; i++) {
 						engagers[i].save(function(err, save) {
 							if(err)
-								Log.error('Error saving to Engagers table', {error: err, engagers_id: engagers[i]._id, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+								Log.error('Error saving to Engagers table', {error: err, engagers_id: engagers[i]._id.toString(), meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 						})
 					}
 
@@ -509,7 +509,7 @@ console.log('at facebook engagers method');
 								}
 								engagers[y].save(function(err, save) {
 									if(err)
-										return Log.error('Error saving to Engager table', {error: err, engagers_id: engagers[y]._id, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+										return Log.error('Error saving to Engager table', {error: err, engagers_id: engagers[y]._id.toString(), meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 								})
 								break
 							}

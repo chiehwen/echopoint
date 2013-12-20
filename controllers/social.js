@@ -91,7 +91,7 @@ var SocialController = {
 					if(req.query.id)
 						facebook.get('me', {fields: 'id,accounts.fields(id,access_token)'}, function(err, response) {
 							if(err || response.error) {
-								Error.handler('facebook', err || response.error, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+								Error.handler('facebook', err || response.error, err, response, {user_id: user._id.toString(), business_id: user.Business[req.session.Business.index]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 								return res.redirect('/social/facebook/connect?login=true')
 							}
 
@@ -112,7 +112,7 @@ var SocialController = {
 
 									user.save(function(err) {
 										if(err) {
-											Log.error('Error saving Facebook credentials', {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+											Log.error('Error saving Facebook credentials', {error: err, user_id: user._id.toString(), business_id: user.Business[req.session.Business.index]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 											req.session.messages.push('Error saving Facebook credentials to application')
 											res.redirect('/social/facebook/connect?login=true');
 										}
@@ -130,7 +130,7 @@ var SocialController = {
 					else if(!f.account.id || !f.account.oauthAccessToken || req.query.select)
 						facebook.get('me', {fields: 'accounts.fields(name,picture.type(square),id)'}, function(err, response) {
 							if(err || response.error) {						
-								Error.handler('facebook', err || response.error, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+								Error.handler('facebook', err || response.error, err, response, {user_id: user._id.toString(), business_id: user.Business[req.session.Business.index]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 								return res.redirect('/social/facebook/connect?login=true')
 							}
 
@@ -160,7 +160,7 @@ var SocialController = {
 							}, function(err) {
 								if (err) {
 									// if things didn't load properly log error and force user to relogin to facebook
-									Log.error(err, {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+									Log.error(err, {error: err, user_id: user._id.toString(), business_id: user.Business[req.session.Business.index]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 									return res.redirect('/social/facebook/connect?login=true')
 								}			
 
@@ -169,13 +169,13 @@ var SocialController = {
 
 								Model.User.findById(user._id, function(err, saveUser) {
 									if(err) {
-										Log.error('Error querying User collection', {error: err, user_id: user._id, business_id: user.Business[indx]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+										Log.error('Error querying User collection', {error: err, user_id: user._id.toString(), business_id: user.Business[indx]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 										return res.redirect('/social/facebook/connect?login=true')
 									}
 									saveUser.Business[indx].Social.facebook.account.populated = true;
 									saveUser.save(function(err) {
 										if(err) {
-											Log.error('Error saving to User collection', {error: err, user_id: user._id, business_id: user.Business[indx]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+											Log.error('Error saving to User collection', {error: err, user_id: user._id.toString(), business_id: user.Business[indx]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 											return res.redirect('/social/facebook/connect?login=true')
 										}
 
@@ -279,7 +279,7 @@ var SocialController = {
 							}, function(err) {
 								if (err) {
 									// if things didn't load properly log error and force user to relogin to twitter
-									Log.error(err, {error: err, user_id: user._id, business_id: user.Business[indx]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+									Log.error(err, {error: err, user_id: user._id.toString(), business_id: user.Business[indx]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 									return res.redirect('/social/twitter/connect?login=true')
 								}
 
@@ -288,13 +288,13 @@ var SocialController = {
 
 								Model.User.findById(user._id, function(err, saveUser) {
 									if(err) {
-										Log.error('Error querying User collection', {error: err, user_id: user._id, business_id: user.Business[indx]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+										Log.error('Error querying User collection', {error: err, user_id: user._id.toString(), business_id: user.Business[indx]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 										return res.redirect('/social/twitter/connect?login=true')
 									}
 									saveUser.Business[indx].Social.twitter.populated = true;
 									saveUser.save(function(err) {
 										if(err) {
-											Log.error('Error saving to User collection', {error: err, user_id: user._id, business_id: user.Business[indx]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+											Log.error('Error saving to User collection', {error: err, user_id: user._id.toString(), business_id: user.Business[indx]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 											return res.redirect('/social/twitter/connect?login=true')
 										}
 
@@ -339,8 +339,9 @@ var SocialController = {
 				} else {
 					// seems we have nothing. lets get the request token used for the app oauth dialog url
 					twitter.oauth.getOAuthRequestToken(function(err, oauthRequestToken, oauthRequestTokenSecret, response) {
-						if (err || response.errors || !oauthRequestToken || !oauthRequestTokenSecret) {
-							Error.handler('twitter', err ? err : 'Error getting twitter request tokens for initial authorize url', err, response, {request_token: oauthRequestToken, token_secret: oauthRequestTokenSecret, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+						if (err || (response && response.errors) || !oauthRequestToken || !oauthRequestTokenSecret) {
+							Log.error('Error getting twitter request tokens for initial authorize url', {error: err, response: response, request_token: oauthRequestToken, token_secret: oauthRequestTokenSecret, user_id: user._id.toString(), business_id: user.Business[req.session.Business.index]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber()})
+							//Error.handler('twitter', err ? err : 'Error getting twitter request tokens for initial authorize url', err, response, {request_token: oauthRequestToken, token_secret: oauthRequestTokenSecret, user_id: user._id.toString(), business_id: user.Business[req.session.Business.index]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							return res.json({success: false, error: 'Error getting OAuth request token : ' + JSON.stringify(err)});
 						}
 
@@ -406,7 +407,7 @@ var SocialController = {
 							}, function(err) {
 								if (err) {
 									// if things didn't load properly log error and force user to relogin to foursquare
-									Log.error(err, {error: err, user_id: user._id, business_id: user.Business[indx]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+									Log.error(err, {error: err, user_id: user._id.toString(), business_id: user.Business[indx]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 									return res.redirect('/social/foursquare/connect?login=true')
 								}
 
@@ -415,13 +416,13 @@ var SocialController = {
 
 								Model.User.findById(user._id, function(err, saveUser) {
 									if(err) {
-										Log.error('Error querying User collection', {error: err, user_id: user._id, business_id: user.Business[indx]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+										Log.error('Error querying User collection', {error: err, user_id: user._id.toString(), business_id: user.Business[indx]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 										return res.redirect('/social/foursquare/connect?login=true')
 									}
 									saveUser.Business[indx].Social.foursquare.venue.populated = true;
 									saveUser.save(function(err) {
 										if(err) {
-											Log.error('Error saving to User collection', {error: err, user_id: user._id, business_id: user.Business[indx]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+											Log.error('Error saving to User collection', {error: err, user_id: user._id.toString(), business_id: user.Business[indx]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 											return res.redirect('/social/foursquare/connect?login=true')
 										}
 
@@ -449,7 +450,7 @@ var SocialController = {
 					else if(req.query.id)
 						foursquare.get('venues/managed', {v: foursquare.client.verified}, function(err, response) {
 							if(err || response.meta.code !== 200 || response.meta.errorType) {
-								Error.handler('foursquare', err || response.meta.errorType, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber()})
+								Error.handler('foursquare', err || response.meta.errorType, err, response, {user_id: user._id.toString(), business_id: user.Business[req.session.Business.index]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber()})
 								return res.redirect('/social/foursquare/connect?login=true');
 							}
 
@@ -468,7 +469,7 @@ var SocialController = {
 
 									user.save(function(err) {
 										if(err) {
-											Log.error('Error saving Foursquare credentials', {error: err, user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+											Log.error('Error saving Foursquare credentials', {error: err, user_id: user._id.toString(), business_id: user.Business[req.session.Business.index]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 											req.session.messages.push('Error saving Foursquare credentials to application')
 											res.redirect('/social/foursquare/connect?login=true');
 										}
@@ -487,7 +488,7 @@ var SocialController = {
 
 						foursquare.get('venues/managed', {v: foursquare.client.verified}, function(err, response) {
 							if(err || response.meta.code !== 200 || response.meta.errorType) {
-								Error.handler('foursquare', err || response.meta.errorType, err, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber()})
+								Error.handler('foursquare', err || response.meta.errorType, err, response, {user_id: user._id.toString(), business_id: user.Business[req.session.Business.index]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber()})
 								return res.redirect('/social/foursquare/connect?login=true');
 							}
 
@@ -551,13 +552,12 @@ var SocialController = {
 				// load google business credentials
 				var g = user.Business[req.session.Business.index].Social.google,
 						network = req.query.child_network || req.session.googleChildNetwork || 'plus';
-//console.log('child_network', network);
-//console.log(g.business.data);
+
 				// if we have a google session loaded and no forced login GET param then lets load google
 				if(req.session.google && req.session.google.oauthAccessToken && req.session.google.oauthRefreshToken && !req.query.login) {
 
 					if(network === 'plus') {
-						if(!g.plus.id || !g.plus.data)
+						if(!g.plus.id || !g.plus.populated)
 							res.json({
 								success: true,
 								connected: true,
@@ -573,7 +573,7 @@ var SocialController = {
 								child_network: network
 							})
 					} else {
-						if(!g.places.id || !g.places.data)
+						if(!g.places.id || !g.places.reference || !g.places.populated)
 							res.json({
 								success: true,
 								connected: true,
@@ -599,7 +599,7 @@ var SocialController = {
 
 					// load google api and set access tokens from database
 					google = Auth.load('google_discovery');
-					google.oauth.setAccessTokens({
+					google.oauth.setCredentials({
 						access_token: g.auth.oauthAccessToken,
 						refresh_token: g.auth.oauthRefreshToken
 					});
@@ -615,7 +615,8 @@ var SocialController = {
 				
 				} else {
 					// we have nothing, create a state for auth and load the app authorization dialog url
-					req.session.googleState = crypto.randomBytes(10).toString('hex');
+					var state = crypto.randomBytes(10).toString('hex');
+					req.session.googleState = state;
 					req.session.googleChildNetwork = network;
 
 					res.json({
@@ -623,7 +624,7 @@ var SocialController = {
 						connected: false,
 						venue: false,
 						data: null,
-						url: Auth.getOauthDialogUrl('google', {response_type: 'code', access_type: 'offline', state: req.session.googleState, approval_prompt: 'force'})
+						url: Auth.getOauthDialogUrl('google', {response_type: 'code', access_type: 'offline', state: state, approval_prompt: 'force'})
 					})
 				}
 			})
@@ -696,7 +697,7 @@ var SocialController = {
 					// load feed just to check connect (will most likely be removed)
 					instagram.get('users/self/feed', function(err, response) {
 						if(err || (response.meta && (response.meta.code !== 200 || response.meta.error_type))) {
-							Error.handler('instagram', err || response.meta, response.meta, response, {user_id: user._id, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+							Error.handler('instagram', err || response.meta, response.meta, response, {user_id: user._id.toString(), business_id: user.Business[req.session.Business.index]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							res.redirect('/social/instagram/connect?login=true');
 						}
 

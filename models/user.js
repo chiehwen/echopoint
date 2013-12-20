@@ -106,7 +106,7 @@ var UserModel = {
             },
             plus: {
               id: {type: String},
-              //populated: {type: Boolean, default: false},
+              populated: {type: Boolean, default: false},
               //data: {},
               update: {
                 timestamp: {type: Number, default: 0} // this is the last plus api call time
@@ -116,7 +116,7 @@ var UserModel = {
               id: {type: String},
               //pageId: {type: String}, // places have a seperate G+ page (with a seperate ID) that only includes reviews and basic business info... it's very confusing 
               reference: {type: String},
-              //populated: {type: Boolean, default: false},
+              populated: {type: Boolean, default: false},
               //data: {},
               update: {
                 timestamp: {type: Number, default: 0} // this is the last places/maps api call time

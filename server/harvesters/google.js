@@ -50,7 +50,7 @@ console.log('at the google plus business update method');
 						refresh_token: data.refreshToken
 					};
 
-			google.oauth.setAccessTokens(tokens);
+			google.oauth.setCredentials(tokens);
 
 			google
 				.discover('plus', 'v1')
@@ -175,7 +175,7 @@ console.log('at the google plus activity method');
 					},
 					limit = 100;
 
-			google.oauth.setAccessTokens(tokens);
+			google.oauth.setCredentials(tokens);
 
 			google
 				.discover('plus', 'v1')
@@ -398,12 +398,13 @@ console.log('at the google places business update method');
 					})*/
 
 					Analytics.google.tracking.rating.api_timestamp = timestamp;
-					Analytics.google.tracking.rating.api_score = parseFloat(place.rating);
+					if(place.rating && !Number.isNaN(place.rating))
+						Analytics.google.tracking.rating.api_score = parseFloat(place.rating);
 				}	
 
 				if(localUpdate)
 					console.log('saving updated Google business and rating data from API...');
-
+console.log('Business google reviews timestamp: ',Business.Social.google.reviews.timestamp);
 				if(!Business.Social.google.reviews.timestamp || (changeTimestamp && Business.Social.google.reviews.timestamp < changeTimestamp))
 					next(itr, cb)
 				else
@@ -663,12 +664,23 @@ console.log('at the google reviews method');
 			} // end Google page id else
 		},
 
-		engagers: function(itr, cb, indx, retry) {
+		engagers: function(itr, cb, indx, retry, userId, businessId) {
 console.log('at google engagers method');
-
+			
+			var indx = indx || 0;
 			if(indx && indx > 5) {	
 				// LOG ERROR HERE
+				console.log('google "indx" increase retries exceeded');
 				return next(itr, cb)
+			}
+
+			if(userId) {
+				indx = 0;
+				var query = {_id: userId},
+					criteria = {};
+			} else {
+				var query = {Business: {$exists: true}},
+					criteria = {'Business': {$elemMatch: { $and: [{'Social.google.auth.oauthAccessToken': {$exists: true}}, {'Social.google.auth.oauthRefreshToken': {$exists: true}}]} }}
 			}
 
 			Model.Engagers.find({
@@ -685,26 +697,34 @@ console.log('at google engagers method');
 				if(!engagers.length)
 					return next(itr, cb);
 
-				Model.User.find({Business: {$exists: true}}, {'Business': {$elemMatch: { $and: [{'Social.google.auth.oauthAccessToken': {$exists: true}}, {'Social.google.auth.oauthRefreshToken': {$exists: true}}]} }}, {lean: true}, function(err, user) {
+				Model.User.find(query, criteria, {lean: true}, function(err, user) {
 					if(err) {
 						Log.error('Error querying User collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 						return next(itr, cb);
 					}
 
-					var indx = indx || 0;
-
 					// if for some reason not a single business exists with auth credentials then exit
 					if(!user || !user[indx])
 						return next(itr, cb);
 
-					if(!user[indx].Business || !user[indx].Business.length || !user[indx].Business[0].Social.google.auth.oauthAccessToken || !user[indx].Business[0].Social.google.auth.oauthRefreshToken)
-						return Harvest.engagers(itr, cb, indx ? ++indx : 1, 0)
+					
+					var businessIndex = 0;
+					if(userId && businessId && user[indx].Business && user[indx].Business.length)
+						for(var i = 0, l = user[indx].Business.length; i < l; i++)
+							if(user[indx].Business[i]._id === businessId) {
+								businessIndex = i;
+								break;
+							}
+
+
+					if(!user[indx].Business || !user[indx].Business.length || !user[indx].Business[businessIndex].Social.google.auth.oauthAccessToken || !user[indx].Business[businessIndex].Social.google.auth.oauthRefreshToken)
+						return Harvest.engagers(itr, cb, indx ? ++indx : 1, 0, false)
 
 					var google = Auth.load('google_discovery');
 
-					google.oauth.setAccessTokens({
-						access_token: user[indx].Business[0].Social.google.auth.oauthAccessToken,
-						refresh_token: user[indx].Business[0].Social.google.auth.oauthRefreshToken
+					google.oauth.setCredentials({
+						access_token: user[indx].Business[businessIndex].Social.google.auth.oauthAccessToken,
+						refresh_token: user[indx].Business[businessIndex].Social.google.auth.oauthRefreshToken
 					});
 
 					google
@@ -712,69 +732,135 @@ console.log('at google engagers method');
 						.execute(function(err, client) {
 							// error handling						
 							if(err || !client) {
-								Error.handler('google', 'Failure on Google discover API module .execute()', err, client, {error: err, user_id: user[indx]._id, business_id: user[indx].Business[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+								Error.handler('google', 'Failure on Google discover API module .execute()', err, client, {error: err, user_id: user[indx]._id.toString(), business_id: user[indx].Business[0]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 								return next(itr, cb)
 							}
 
-							var batch = client.newBatchRequest()
-									saveCount = 0;
+							var batch = client.newBatchRequest();
 
 							for(var i = 0, l = engagers.length; i < l; i++)
 								batch.add(client.plus.people.get({userId: engagers[i].google_id}).withAuthClient(google.oauth))
 
-							batch.execute(function(err, response) {
-								// if a connection error occurs retry request (up to 3 attempts) 
-								if(err && retries.indexOf(err.code) > -1) {
-									if(retry && retry > 2) {
-										Error.handler('google', 'Google activity method failed to connect in 3 attempts!', err, response, {error: err, user_id: user[indx]._id, business_id: user[indx].Business[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber()})
-										return next(itr, cb);
-									}
-
-									return Harvest.engagers(itr, cb, indx ? indx : 0, retry ? ++retry : 1)
-								}
-
-								// error handling						
-								if(err && (!response || !response.length)) {
-									Error.handler('google', 'Failure on google plus execute after oauth process', err, response, {user_id: user[indx]._id, business_id: user[indx].Business[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
-									//return next(itr, cb)
-									return Harvest.engagers(itr, cb, indx ? ++indx : 1, retry)
-								}
-
-								var timestamp = Util.timestamp();
-
-								// google has stupidly set error and returned items in two seperate arrays but with no real way to relate the two, here we rely on an error index count
-								var errorIndex = 0;
-								for(var x=0, l=response.length; x<l; x++) {
-
-									if(!response[x]) {
-										if(err[errorIndex])
-											Error.handler('google', 'Error in batch return item', err[errorIndex], null, {user_id: user[indx]._id, business_id: user[indx].Business[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
-										else
-											Error.handler('google', 'Errored or missing batch return item with no related error index in err array!', err[errorIndex], null, {user_id: user[indx]._id, business_id: user[indx].Business[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
-										continue;
-									}
-
-									for(var y=0, len=engagers.length; y<len; y++)
-										if(response[x].id == engagers[y].google_id) {
-											engagers[y].Google = {
-												id: response[x].id,
-												timestamp: timestamp,
-												data: response[x]
-											}
-											engagers[y].save(function(err, save) {
-												if(err)
-													return Log.error('Error saving to Engager collection', {error: err, engagers_id: engagers[y]._id, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
-												saveCount++;
-											})
-											break
+							batch
+								.withAuthClient(google.oauth)
+								.execute(function(err, response) {
+									// if a connection error occurs retry request (up to 3 attempts) 
+									if(err && retries.indexOf(err.code) > -1) {
+										if(retry && retry > 2) {
+											Error.handler('google', 'Google activity method failed to connect in 3 attempts!', err, response, {error: err, user_id: user[indx]._id.toString(), business_id: user[indx].Business[0]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber()})
+											return next(itr, cb);
 										}
-								}
 
-								if(saveCount)	
-									console.log('saved '+saveCount+' google engager(s)');
+										if(userId && businessId)
+											return Harvest.engagers(itr, cb, indx ? indx : 0, retry ? ++retry : 1, userId, businessId)
+										else
+											return Harvest.engagers(itr, cb, indx ? indx : 0, retry ? ++retry : 1)
+									}
 
-								// stop here if we found engagers to not exceed api limits
-								next(itr, cb, true)
+									// google node module is really stupid and although singular requests will auto-refresh the access_token we get no such luck with batch calls which means if we detect that the token has expired with must manually reset the access token with the refresh token 
+									var resetAccessToken = false;
+									if(err && err.length)
+										for(var i = 0, length = err.length; i < length; i++)
+											if(err[i] && err[i].code && err[i].code === 401) {
+												resetAccessToken = true;
+												break;
+											}
+
+									if(resetAccessToken) {
+										google.oauth.refreshAccessToken(function(err, creds) {
+											if(err)
+												return Log.error('Error refreshing Google+ access token', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+
+											var credentials = {
+												oauthAccessToken: creds.access_token,
+												expires: creds.expires_in,
+												created: Utils.timestamp()
+											}
+
+											if(creds.refresh_token)
+												credentials.oauthRefreshToken = creds.refresh_token
+
+											Model.User.findById(user[indx]._id, function(err, saveUser) {
+												if(err)
+													return Log.error('Error querying User collection', {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+
+												var foundIndex = false;
+												for(var i = 0, length = saveUser.Business.length; i < length; i++) 
+													if(user[indx].Business[businessIndex]._id.toString() === saveUser.Business[i]._id.toString()) {
+														foundIndex = i;
+														break;
+													}
+
+												if(foundIndex !== false) {
+													saveUser.Business[foundIndex].Social.google.auth = credentials
+
+													saveUser.save(function(err, save) {
+														if(err) 
+															return Log.error('Error saving to Engager collection', {error: err, engagers_id: engagers[y]._id.toString(), meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+														
+														return Harvest.engagers(itr, cb, 0, 0, user[indx]._id, user[indx].Business[businessIndex]._id)
+													})
+												} else {
+													return next(itr, cb)
+												}
+											})
+
+											
+										})
+
+									} else {
+										// basic error handling						
+										if(err && (!response || !response.length)) {
+											Error.handler('google', 'Failure on google plus execute after oauth process', err, response, {user_id: user[indx]._id.toString(), business_id: user[indx].Business[0]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+											if(userId && businessId)
+												return next(itr, cb)
+											else
+												return Harvest.engagers(itr, cb, indx ? ++indx : 1, retry)
+										}
+
+										var timestamp = Utils.timestamp(),
+												saveCount = 0;
+
+										// google has stupidly set error and returned items in two seperate arrays but with no real way to relate the two, here we rely on an error index count
+										for(var x=0, l=engagers.length; x<l; x++) {
+
+											if(!response[x]) {
+												if(!err[x]) {
+													Error.handler('google', 'Errored or missing batch return item with no related error index in err array!', err[x], null, {user_id: user[indx]._id.toString(), business_id: user[indx].Business[businessIndex]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+												} else if(err[x] && err[x].code === 404) {
+													engagers[x].google_id = undefined;
+													engagers[x].save(function(err, save) {
+														if(err)
+															return Log.error('Error saving to Engager collection', {error: err, engager_id: engagers[x]._id.toString(), meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+													})
+												} else {
+													Error.handler('google', 'Error in batch return item', err[x], null, {user_id: user[indx]._id.toString(), business_id: user[indx].Business[businessIndex]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+												}
+												continue;
+											} else if(response[x].id == engagers[x].google_id) {
+												engagers[x].Google = {
+													id: response[x].id,
+													timestamp: timestamp,
+													data: response[x]
+												}
+												engagers[x].save(function(err, save) {
+													if(err)
+														return Log.error('Error saving to Engager collection', {error: err, engager_id: engagers[x]._id.toString(), meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+													
+												})
+												saveCount++;
+											} else {
+												// something bad happened 
+												return Log.error('Something between the Google engagers response did not match up properly', {response_item: response[x], engager_id: engagers[x]._id.toString(), meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+											}
+										}
+
+										if(saveCount)	
+											console.log('saved '+saveCount+' google engager(s)');
+
+										// stop here if we found engagers to not exceed api limits
+										next(itr, cb, true)
+									}
 
 							})
 						})

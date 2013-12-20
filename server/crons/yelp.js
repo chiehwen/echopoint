@@ -36,7 +36,7 @@ var YelpCron = function() {
 					user.Business[index].Social.yelp.update.timestamp = Utils.timestamp();
 					user.save(function(err) {
 						if(err)
-							Log.error('Error saving to Users table', {error: err, user_id: user._id, business_id: user.Business[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+							Log.error('Error saving to Users table', {error: err, user_id: user._id.toString(), business_id: user.Business[0]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					})
 
 					var y = user.Business[index].Social.yelp;
@@ -52,20 +52,20 @@ var YelpCron = function() {
 							
 							user.save(function(err, save) {
 								if(err && err.name !== 'VersionError')
-									return Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+									return Log.error('Error saving to User table', {error: err, user_id: user._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 								// if we have a versioning overwrite error than load up the analytics document again
 								if(err && err.name === 'VersionError')
 									Model.User.findById(user._id, function(err, saveUser) {
 										if(err)
-											return Log.error('Error querying User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+											return Log.error('Error querying User table', {error: err, user_id: user._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 										saveUser.Business[index].Social.yelp = user.Business[index].Social.yelp;
 										saveUser.markModified('.Business['+index+'].Social.yelp')
 
 										saveUser.save(function(err, save) {
 											if(err)
-												return Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+												return Log.error('Error saving to User table', {error: err, user_id: user._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 										})
 									})
 							})

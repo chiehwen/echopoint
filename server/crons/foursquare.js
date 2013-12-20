@@ -66,20 +66,20 @@ var FoursquareCron = function() {
 					console.log('Foursquare tips callback complete [' + methods.toString() + ']');							
 					business.save(function(err, save) {
 						if(err && err.name !== 'VersionError')
-							return Log.error('Error saving Foursquare analytics to database', {error: err, analytics_id: business._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+							return Log.error('Error saving Foursquare analytics to database', {error: err, analytics_id: business._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 						// if we have a versioning overwrite error than load up the analytics document again
 						if(err && err.name === 'VersionError')
 							Model.Analytics.findById(business._id, function(err, analytics) {
 								if(err)
-									return Log.error('Error querying Analytic table', {error: err, analytics_id: business._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+									return Log.error('Error querying Analytic table', {error: err, analytics_id: business._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 								analytics.foursquare = business.foursquare;
 								analytics.markModified('foursquare')
 
 								analytics.save(function(err, save) {
 									if(err)
-										return Log.error('Error saving Foursquare analytics to database', {error: err, analytics_id: business._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+										return Log.error('Error saving Foursquare analytics to database', {error: err, analytics_id: business._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 								})
 							})

@@ -107,6 +107,11 @@ var Auth = (function() {
 						this.options.headers.Authorization = 'Bearer ' + (oauthBearerToken || Config.twitter.oauth_bearer_token);
 						return this;
 					}
+
+					Twitter.removeBearerToken = function() {
+						this.options.headers.Authorization = undefined;
+						return this;
+					}
 				}
 
 				return Twitter;
@@ -136,10 +141,10 @@ var Auth = (function() {
 						Config.google.callback 
 					);
 
-					GoogleDiscoveryApi.oauth.setAccessTokens = function(tokens) {
-						this.credentials = tokens;
-						return this;
-					}
+					//GoogleDiscoveryApi.oauth.setAccessTokens = function(tokens) {
+						//GoogleOAuth.setCredentials(tokens);
+						//return ;//this;
+					//}
 
 					GoogleDiscoveryApi.apiKey = Config.google.key;
 				}

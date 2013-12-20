@@ -59,16 +59,16 @@ console.log('at instagram engagers populate method...');
 						// if a connection error occurs retry request (up to 3 attempts) 
 						if(err && retries.indexOf(err.code) > -1) {
 							if(retry && retry > 2) {
-								Error.handler('instagram', 'Instagram user method failed to connect in 3 attempts!', err, credentials, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
+								Error.handler('instagram', 'Instagram engagers method failed to connect in 3 attempts!', err, credentials, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 								return next(itr, cb);
 							}
 
-							return Harvest.user(itr, cb, engager._id, retry ? ++retry : 1)
+							return Harvest.engagers(itr, cb, engager._id, retry ? ++retry : 1)
 						}
 
-						// if the user has set account to private then exit gracefully since we cannot retrieve the user data
+						// if the engager has set account to private then exit gracefully since we cannot retrieve the engager's data
 						if(response && response.meta && response.meta.error_message === 'you cannot view this resource')
-							return Harvest.user(itr, cb, null, null)
+							return Harvest.engagers(itr, cb, null, null)
 
 						// error handling
 						if(err || (response && response.meta && response.meta.code !== 200)) {
@@ -84,8 +84,8 @@ console.log('at instagram engagers populate method...');
 
 						engager.save(function(err, save) {
 							if(err)
-								return Log.error('Error saving to Engager table', {error: err, engager_id: engager._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
-							console.log('saving new instagram user data to engagers document...');
+								return Log.error('Error saving to Engager table', {error: err, engager_id: engager._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+							console.log('saving new instagram engager data to engagers document...');
 							next(itr, cb);
 						})
 					})

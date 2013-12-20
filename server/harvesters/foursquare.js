@@ -74,7 +74,7 @@ console.log('at foursquare venue method');
 						user.Business[data.index].Social.foursquare.venue.data = Analytics.foursquare.business.data;
 						user.save(function(err) {
 							if(err)
-								return Log.error('Error saving to User table', {error: err, user_id: data.user, business_id: user.Business[req.session.Business.index]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+								return Log.error('Error saving to User table', {error: err, user_id: data.user, business_id: user.Business[req.session.Business.index]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 						})
 					});
 				}
@@ -453,11 +453,11 @@ console.log('at foursquare engagers method...');
 						// once we make sure we don't have a connection error to Facebook we save the discovery timestamps set above
 						engager.save(function(err, save) {
 							if(err)
-								Log.error('Error saving to Engagers table', {error: err, engagers_id: engagers[i]._id, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+								Log.error('Error saving to Engagers table', {error: err, engagers_id: engager[i]._id.toString(), meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 						})
 
 						if(err || !response || !response.meta || response.meta.code !== 200 || response.meta.errorType) {
-							Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {user_id: user[0]._id, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
+							Error.handler('foursquare', err || response.meta.errorType || response.meta.code, err, response, {user_id: user[0]._id.toString(), meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 							return next(itr, cb);
 						}
 console.log(response.response.user.contact);
@@ -486,7 +486,7 @@ console.log(response.response.user.contact);
 									}	
 								]}, function(err, match) {
 									if(err)
-										return Log.error('Error querying Engagers table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+										return Log.error('Error querying Engagers table', {error: err, user_id: user._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 console.log('match found! ', match);
 
 									if(!match) {
@@ -506,7 +506,7 @@ console.log('match found! ', match);
 										engager.markModified('Foursquare')
 										engager.save(function(err) {
 											if(err)
-												return Log.error('Error saving to Engager table', {error: err, user_id: user[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+												return Log.error('Error saving to Engager table', {error: err, user_id: user[0]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 											return next(itr, cb)
 										})
 										
@@ -519,7 +519,7 @@ console.log('match found! ', match);
 
 										engager.remove(function(err) {
 											if(err)
-												return Log.error('Error removing document from Engager table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+												return Log.error('Error removing document from Engager table', {error: err, user_id: user._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 										
 											if(response.response.user.contact.facebook && !match.facebook_id)
 												match.facebook_id = response.response.user.contact.facebook
@@ -531,7 +531,7 @@ console.log('match found! ', match);
 											match.markModified('Foursquare');
 											match.save(function(err) {
 												if(err)
-													return Log.error('Error saving to Engager table', {error: err, user_id: user[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+													return Log.error('Error saving to Engager table', {error: err, user_id: user[0]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 												return next(itr, cb)
 											})
@@ -544,7 +544,7 @@ console.log('match found! ', match);
 							engager.Foursquare = response.response.user;
 							engager.save(function(err) {
 								if(err)
-									return Log.error('Error saving to Engager table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+									return Log.error('Error saving to Engager table', {error: err, user_id: user._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 								next(itr, cb)
 							})
 						}		
@@ -612,7 +612,7 @@ console.log('match found! ', match);
 			Harvest[data.methods[0]](0, function() {
 				if(Engagers.length) 
 					Model.Engagers.collection.insert(Engagers, {safe: true, continueOnError: true}, function(err, save) {
-						if(err && err.indexOf('E11000 duplicate key error') < 0)
+						if(err && err.code !== 11000)
 							return Log.error('Error saving to Engagers table', {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					})
 

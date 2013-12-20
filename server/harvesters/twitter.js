@@ -719,7 +719,7 @@ console.log('at twitter list of followers method');
 							Followers.twitter = followers.ids;
 							Followers.save(function(err, success) {
 								if(err)
-									return Log.error('Error saving to Engager table', {error: err, engager_id: users[x]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+									return Log.error('Error saving to Engager table', {error: err, engager_id: users[x]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 								console.log('saving first round of followers to Followers Model');
 								return next(itr, cb);
 							})
@@ -756,7 +756,7 @@ console.log('at twitter list of followers method');
 								
 								Followers.save(function(err, success) {
 									if(err)
-										return Log.error('Error saving to Engager table', {error: err, engager_id: users[x]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+										return Log.error('Error saving to Engager table', {error: err, engager_id: users[x]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 									console.log('we have saved new followers from the dropped followers twitter function');
 								})
 							}
@@ -934,7 +934,7 @@ console.log('at twitter populateById method');
 										//engagers[i].meta.twitter.update.timestamp = timestamp;
 										engagers[x].save(function(err, save) {
 											if(err)
-												return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})							
+												return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})							
 											console.log('saved Twitter user to Engagers via ID');
 										})
 										continue localEngagingUsers;
@@ -945,7 +945,7 @@ console.log('at twitter populateById method');
 								engagers[x].twitter_id = undefined;
 								engagers[x].save(function(err, save) {
 									if(err)
-										return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+										return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 									console.log('removed twitter id from engagers at populateById');
 								})
 							}
@@ -979,7 +979,7 @@ console.log('at twitter populateByScreenName method');
 							twitter = Auth.load('twitter', user[0].Business[0].Social.twitter.auth.oauthAccessToken, user[0].Business[0].Social.twitter.auth.oauthAccessTokenSecret)
 
 						var timestamp = Utils.timestamp(),
-								twitterUserHandlesCsv;
+								twitterUserHandlesCsv = '';
 
 						for(var i=0, l=engagers.length; i<l; i++) {
 							twitterUserHandlesCsv += engagers[i].meta.foursquare.twitter_handle + ',';
@@ -993,7 +993,7 @@ console.log('at twitter populateByScreenName method');
 						// previously we added a special case error handling to skip if it returned 404 but 
 						// if twitter is down and returns a 404 then all those SNs get marked as deleted!
 						// here we add the SN for twitter's own account: "twitter"
-						twitterUsersCsv += 'twitter'
+						twitterUserHandlesCsv += 'twitter'
 
 						twitter.get('/users/lookup.json', {screen_name: twitterUserHandlesCsv, include_entities: false}, function(err, response) {
 							// if a connection error occurs retry request (up to 3 attempts) 
@@ -1034,7 +1034,7 @@ console.log('at twitter populateByScreenName method');
 											//if(err.indexOf('E11000 duplicate key error') > -1)
 												// we have a duplicate. we need to direct this to merge these twitter Id's
 											if(err)
-												return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+												return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 											console.log('saved Twitter users to engagers via Screen Names');
 										})
 										continue localEngagingUsers;
@@ -1045,7 +1045,7 @@ console.log('at twitter populateByScreenName method');
 								engagers[x].meta.foursquare.twitter_handle = undefined;
 								engagers[x].save(function(err, save) {
 									if(err)
-										return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+										return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 									console.log('removed twitter handle given by foursquare from engagers at populateByScreenName');
 								})
 							}
@@ -1085,7 +1085,7 @@ console.log('at twitter engagers duplicate method');
 							// if we have more than 2 duplicates something is very wrong
 							// log the error and continue so we can look into this further via the log files
 							if(groups[i].total > 2)	{
-								Log.error('Error saving to Engager table', {error: err, duplicate_screenname: groups[i]._id, total_duplicates: groups[i].total, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+								Log.error('Error saving to Engager table', {error: err, duplicate_screenname: groups[i]._id.toString(), total_duplicates: groups[i].total, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 								continue;
 							}
 
@@ -1168,7 +1168,7 @@ console.log('at twitter engagers update method');
 
 									engagers[x].save(function(err, save) {
 										if(err)
-											return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})							
+											return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})							
 									})
 									continue localEngagingUsers;
 								}
@@ -1178,7 +1178,7 @@ console.log('at twitter engagers update method');
 							engagers[x].twitter_id = undefined;
 							engagers[x].save(function(err, save) {
 								if(err)
-									return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+									return Log.error('Error saving to Engager table', {error: err, engager_id: engagers[x]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 								console.log('removed user from engagers ');
 							})
 						}

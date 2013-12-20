@@ -34,7 +34,7 @@ var GoogleCron = function() {
 //						user.Business[index].Social.google.plus.update.timestamp = Utils.timestamp();
 					user.save(function(err) {
 						if(err)
-							Log.error('Error saving to Users table', {error: err, user_id: user._id, business_id: user.Business[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+							Log.error('Error saving to Users table', {error: err, user_id: user._id.toString(), business_id: user.Business[0]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					})
 
 					var g = user.Business[index].Social.google;
@@ -56,20 +56,20 @@ var GoogleCron = function() {
 
 							user.save(function(err, save) {
 								if(err && err.name !== 'VersionError')
-									return Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+									return Log.error('Error saving to User table', {error: err, user_id: user._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 								// if we have a versioning overwrite error than load up the analytics document again
 								if(err && err.name === 'VersionError')
 									Model.User.findById(user._id, function(err, saveUser) {
 										if(err)
-											return Log.error('Error querying User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+											return Log.error('Error querying User table', {error: err, user_id: user._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 										saveUser.Business[index].Social.google = user.Business[index].Social.google;
 										saveUser.markModified('.Business['+index+'].Social.google')
 
 										saveUser.save(function(err, save) {
 											if(err)
-												return Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+												return Log.error('Error saving to User table', {error: err, user_id: user._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 										})
 									})
@@ -100,7 +100,7 @@ var GoogleCron = function() {
 					user.Business[index].Social.google.places.update.timestamp = Utils.timestamp();
 					user.save(function(err) {
 						if(err)
-							Log.error('Error saving to Users table', {error: err, user_id: user._id, business_id: user.Business[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+							Log.error('Error saving to Users table', {error: err, user_id: user._id.toString(), business_id: user.Business[0]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					})
 
 					var g = user.Business[index].Social.google.places;
@@ -125,20 +125,20 @@ var GoogleCron = function() {
 							console.log('Google business callback complete [' + methods.toString() + ']')
 							user.save(function(err, save) {
 								if(err && err.name !== 'VersionError')
-									return Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+									return Log.error('Error saving to User table', {error: err, user_id: user._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 								// if we have a versioning overwrite error than load up the analytics document again
 								if(err && err.name === 'VersionError')
 									Model.User.findById(user._id, function(err, saveUser) {
 										if(err)
-											return Log.error('Error querying User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+											return Log.error('Error querying User table', {error: err, user_id: user._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 										saveUser.Business[index].Social.google = user.Business[index].Social.google;
 										saveUser.markModified('.Business['+index+'].Social.google')
 
 										saveUser.save(function(err, save) {
 											if(err)
-												return Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+												return Log.error('Error saving to User table', {error: err, user_id: user._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 										})
 									})
@@ -151,8 +151,9 @@ var GoogleCron = function() {
 
 		// call every 48 hours if business method hasn't triggered a reviews update. 
 		reviews: function(methods) {
-			// TODO: possibly skip user table for this call and just use analytics table directly
-			Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: { $or : [{'Social.google.reviews.timestamp': {$exists: false}}, {'Social.google.reviews.timestamp': {$lt: Utils.timestamp() - 172800 /* 172800 seconds = 48 hours */}}]} }}, {lean: true}, function(err, match) {
+			// TODO: possibly skip User collection for this call and just use Analytics collection directly
+			// we use the $and statement here because we only want this called if the initial call has been made before, this will get called automatically by the places inital setup and cron if timestamp is undefined
+			Model.User.findOne({Business: {$exists: true}}, {Business: {$elemMatch: { $and : [{'Social.google.reviews.timestamp': {$exists: true}}, {'Social.google.reviews.timestamp': {$gt: 0}}, {'Social.google.reviews.timestamp': {$lt: Utils.timestamp() - 172800 /* 172800 seconds = 48 hours */}}]} }}, {lean: true}, function(err, match) {
 				if (err)
 					return Log.error(err, {error: err, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
@@ -171,7 +172,7 @@ var GoogleCron = function() {
 					user.Business[index].Social.google.reviews.timestamp = Utils.timestamp();
 					user.save(function(err) {
 						if(err)
-							Log.error('Error saving to Users table', {error: err, user_id: user._id, business_id: user.Business[0]._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+							Log.error('Error saving to Users table', {error: err, user_id: user._id.toString(), business_id: user.Business[0]._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 					})
 
 					// if this user is missing a connecting Analytics model then log error and call function again for next user
@@ -186,7 +187,7 @@ var GoogleCron = function() {
 							return jobs.reviews(methods)
 						}
 
-						if(!analytics.google.places.id || !analytics.google.palces.data || !analytics.google.places.data.url) 
+						if(!analytics.google.places.id || !analytics.google.places.data || !analytics.google.places.data.url) 
 							return jobs.reviews(methods)
 
 						var harvest = new Harvester.google
@@ -202,20 +203,20 @@ var GoogleCron = function() {
 							console.log('Google reviews callback complete [' + methods.toString() + ']')
 							user.save(function(err, save) {
 								if(err && err.name !== 'VersionError')
-									return Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+									return Log.error('Error saving to User table', {error: err, user_id: user._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 								// if we have a versioning overwrite error than load up the User collection again
 								if(err && err.name === 'VersionError')
 									Model.User.findById(user._id, function(err, saveUser) {
 										if(err)
-											return Log.error('Error querying User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+											return Log.error('Error querying User table', {error: err, user_id: user._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 										saveUser.Business[index].Social.google = user.Business[index].Social.google;
 										saveUser.markModified('.Business['+index+'].Social.google')
 
 										saveUser.save(function(err, save) {
 											if(err)
-												return Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
+												return Log.error('Error saving to User table', {error: err, user_id: user._id.toString(), file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
 
 										})
 									})

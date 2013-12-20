@@ -197,7 +197,7 @@ var Socket = (function() {
 							var search = {
 								plus: function(cb) {
 
-									google.oauth.setAccessTokens({
+									google.oauth.setCredentials({
 										access_token: g.auth.oauthAccessToken,
 										refresh_token: g.auth.oauthRefreshToken
 									})
@@ -242,7 +242,7 @@ var Socket = (function() {
 							var details = {
 								plus: function(id, cb) {
 
-									google.oauth.setAccessTokens({
+									google.oauth.setCredentials({
 										access_token: g.auth.oauthAccessToken,
 										refresh_token: g.auth.oauthRefreshToken
 									});
@@ -303,6 +303,7 @@ var Socket = (function() {
 									}, function(err, update) {
 										console.log('Google+ initial populate callback complete!')
 
+										user.Business[data.index].Social.google.plus.populated = true;
 										user.save(function(err, save) {
 											if(err && err.name !== 'VersionError') {
 												Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
@@ -358,6 +359,7 @@ var Socket = (function() {
 									}, function(err, update) {
 										console.log('Google Places initial populate callback complete!')
 
+										user.Business[data.index].Social.google.places.populated = true;
 										user.save(function(err, save) {
 											if(err && err.name !== 'VersionError') {
 												Log.error('Error saving to User table', {error: err, user_id: user._id, file: __filename, line: Utils.stack()[0].getLineNumber(), time: new Date().toUTCString(), timestamp: Utils.timestamp()})
@@ -412,7 +414,7 @@ var Socket = (function() {
 							function checkGoogleId(id, cb) {
 								var google = Auth.load('google_discovery');
 
-								google.oauth.setAccessTokens({
+								google.oauth.setCredentials({
 									access_token: g.auth.oauthAccessToken,
 									refresh_token: g.auth.oauthRefreshToken
 								});
