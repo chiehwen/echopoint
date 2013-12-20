@@ -1,0 +1,26 @@
+ul(class='data-content page-notifications-list')
+	li 
+		i(class='icon-warning-sign red')
+		span
+			b you may have negative sentimented tweets!
+	li(ng-show='options.direct_messages')
+		i.icon-edit
+		span <b>1</b> new direct message!
+	li(ng-show='options.mentions')
+		i @
+		span you have <b>24</b> new @ mentions
+	li(ng-show='options.retweets')
+		i.icon-thumbs-up-alt
+		span you have <b>234</b> new retweets!
+	li(ng-show='options.favorited_count')
+		i.icon-comments-alt
+		span <b>47</b> new favorited clicks
+	li(ng-show='options.new_followers')
+		i.icon-share
+		span you have lost <b>3</b> followers
+	li(ng-show='options.verified_user_follows')
+		i.icon-user
+		span a new follower is a <b>verifed</b> account!
+	li(ng-show='options.profile')
+		i.icon-building
+		span you have updated your business information

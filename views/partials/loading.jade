@@ -1,7 +1,15 @@
 include ../mixins
 
-div(class='page-loading', ng-show='page.populate')
-		span loading
-		img(src='/images/ng-load.gif')
+div(ng-show='page.populate')
+	div(class='page-notice social-populate')
+		h1 We are processing your <span class='capitalize'>{{network.name}}</span> data
+		p 
+			small This make take a minute. Please do not navigate away from this page or close the browser.
+
+	div(class='social-populate-load social-login-button facebook-login-button')
+		div(class='icon blue border app-color {{network.name}}')
+			i(class='{{network.icon || "icon-"+network.name}} active')
+			span loading
+				img(src='/images/ng-load.gif')
 
 mixin vocadaFooter

@@ -9,7 +9,7 @@ exports.productionModeActive = false;
 // this must be updated manually AT LEAST once every 24 hours (more if possible)
 // to get this you must look at request headers from a legit browser request on a business locals page
 // after load more review has been clicked
-exports.googleTimestampHash = 'AObGSAgzRiIPhjNgiteqGLikQ6qjzn2RLQ:1387505624560' 
+exports.googleTimestampHash = 'AObGSAgWyxRM6gxFFhdc0Qf0_5rzQRjpcg:1387572894111' 
 
 // this is for Angular JS bootstraped pages
 exports.bootstrapRoute = 'bootstrap';

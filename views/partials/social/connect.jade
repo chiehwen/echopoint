@@ -1,8 +1,8 @@
 div.social-login
-	p Please login to {{network.name}} using your admin account.
+	p Please login to <span class='capitalize'>{{network.name}}</span> using your admin account.
 	div(class="social-login-button facebook-login-button")
 		a(href="{{network.url}}", class="icon blue border app-color {{network.name}}", ng-click="{true: network.yelp.setup(), false: null}[network.name == 'yelp']")
-			<i class='icon-{{network.icon || network.name}} active'></i>
+			<i class='{{network.icon || "icon-"+network.name}} active'></i>
 			span login
 
 div.help-box

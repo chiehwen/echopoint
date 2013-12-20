@@ -155,7 +155,7 @@ var PartialsController = {
 		}
 	},
 
-	// module viewport partials
+	// Facebook module viewport partials 
 	facebook_tip: {
 		restricted: false,
 		path: '/partials/modules/facebook/tip/index',
@@ -185,7 +185,7 @@ var PartialsController = {
 		}
 	},
 
- 	// help viewport partials
+ 	// Facebook help viewport partials
  	facebook_notifications_help: {
  		restricted: false,
  		path: '/partials/modules/facebook/notifications/help',
@@ -208,7 +208,7 @@ var PartialsController = {
  		}
  	},
 
- 	// options viewport partials
+ 	// Facebook options viewport partials
  	facebook_notifications_management: {
  		restricted: false,
  		path: '/partials/modules/facebook/notifications/management',
@@ -228,6 +228,412 @@ var PartialsController = {
  		path: '/partials/modules/facebook/posts/management',
  		get: function(req, res) {
  			res.render('partials/modules/facebook/posts/management');
+ 		}
+ 	},
+
+
+ 	// Twitter module viewport partials 
+	twitter_tip: {
+		restricted: false,
+		path: '/partials/modules/twitter/tip/index',
+		get: function(req, res) {
+			res.render('partials/modules/twitter/tip/index');
+		}
+	},
+	twitter_notifications: {
+		restricted: false,
+		path: '/partials/modules/twitter/notifications/index',
+		get: function(req, res) {
+			res.render('partials/modules/twitter/notifications/index');
+		}
+	},
+	twitter_statistics: {
+		restricted: false,
+		path: '/partials/modules/twitter/statistics/index',
+		get: function(req, res) {
+			res.render('partials/modules/twitter/statistics/index');
+		}
+	},
+	twitter_tweets: {
+		restricted: false,
+		path: '/partials/modules/twitter/tweets/index',
+		get: function(req, res) {
+			res.render('partials/modules/twitter/tweets/index');
+		}
+	},
+	twitter_mentions: {
+		restricted: false,
+		path: '/partials/modules/twitter/mentions/index',
+		get: function(req, res) {
+			res.render('partials/modules/twitter/mentions/index');
+		}
+	},
+
+ 	// Twitter help viewport partials
+ 	twitter_notifications_help: {
+ 		restricted: false,
+ 		path: '/partials/modules/twitter/notifications/help',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/twitter/notifications/help');
+ 		}
+ 	},
+ 	twitter_statistics_help: {
+ 		restricted: false,
+ 		path: '/partials/modules/twitter/statistics/help',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/twitter/statistics/help');
+ 		}
+ 	},
+ 	twitter_tweets_help: {
+ 		restricted: false,
+ 		path: '/partials/modules/twitter/tweets/help',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/twitter/tweets/help');
+ 		}
+ 	},
+ 	twitter_mentions_help: {
+ 		restricted: false,
+ 		path: '/partials/modules/twitter/mentions/help',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/twitter/mentions/help');
+ 		}
+ 	},
+
+ 	// Twitter options viewport partials
+ 	twitter_notifications_management: {
+ 		restricted: false,
+ 		path: '/partials/modules/twitter/notifications/management',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/twitter/notifications/management');
+ 		}
+ 	},
+ 	twitter_statistics_management: {
+ 		restricted: false,
+ 		path: '/partials/modules/twitter/statistics/management',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/twitter/statistics/management');
+ 		}
+ 	},
+ 	twitter_tweets_management: {
+ 		restricted: false,
+ 		path: '/partials/modules/twitter/tweets/management',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/twitter/tweets/management');
+ 		}
+ 	},
+ 	twitter_mentions_management: {
+ 		restricted: false,
+ 		path: '/partials/modules/twitter/mentions/management',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/twitter/mentions/management');
+ 		}
+ 	},
+
+
+ 	// Foursquare module viewport partials 
+	foursquare_tip: {
+		restricted: false,
+		path: '/partials/modules/foursquare/tip/index',
+		get: function(req, res) {
+			res.render('partials/modules/foursquare/tip/index');
+		}
+	},
+	foursquare_notifications: {
+		restricted: false,
+		path: '/partials/modules/foursquare/notifications/index',
+		get: function(req, res) {
+			res.render('partials/modules/foursquare/notifications/index');
+		}
+	},
+	foursquare_statistics: {
+		restricted: false,
+		path: '/partials/modules/foursquare/statistics/index',
+		get: function(req, res) {
+			res.render('partials/modules/foursquare/statistics/index');
+		}
+	},
+	foursquare_posts: {
+		restricted: false,
+		path: '/partials/modules/foursquare/posts/index',
+		get: function(req, res) {
+			res.render('partials/modules/foursquare/posts/index');
+		}
+	},
+
+ 	// Foursquare help viewport partials
+ 	foursquare_notifications_help: {
+ 		restricted: false,
+ 		path: '/partials/modules/foursquare/notifications/help',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/foursquare/notifications/help');
+ 		}
+ 	},
+ 	foursquare_statistics_help: {
+ 		restricted: false,
+ 		path: '/partials/modules/foursquare/statistics/help',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/foursquare/statistics/help');
+ 		}
+ 	},
+ 	foursquare_posts_help: {
+ 		restricted: false,
+ 		path: '/partials/modules/foursquare/posts/help',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/foursquare/posts/help');
+ 		}
+ 	},
+
+ 	// Foursquare options viewport partials
+ 	foursquare_notifications_management: {
+ 		restricted: false,
+ 		path: '/partials/modules/foursquare/notifications/management',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/foursquare/notifications/management');
+ 		}
+ 	},
+ 	foursquare_statistics_management: {
+ 		restricted: false,
+ 		path: '/partials/modules/foursquare/statistics/management',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/foursquare/statistics/management');
+ 		}
+ 	},
+ 	foursquare_posts_management: {
+ 		restricted: false,
+ 		path: '/partials/modules/foursquare/posts/management',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/foursquare/posts/management');
+ 		}
+ 	},
+
+
+ 	// Google+ module viewport partials 
+	google_plus_tip: {
+		restricted: false,
+		path: '/partials/modules/google/plus/tip/index',
+		get: function(req, res) {
+			res.render('partials/modules/google/plus/tip/index');
+		}
+	},
+	google_plus_notifications: {
+		restricted: false,
+		path: '/partials/modules/google/plus/notifications/index',
+		get: function(req, res) {
+			res.render('partials/modules/google/plus/notifications/index');
+		}
+	},
+	google_plus_statistics: {
+		restricted: false,
+		path: '/partials/modules/google/plus/statistics/index',
+		get: function(req, res) {
+			res.render('partials/modules/google/plus/statistics/index');
+		}
+	},
+	google_plus_posts: {
+		restricted: false,
+		path: '/partials/modules/google/plus/posts/index',
+		get: function(req, res) {
+			res.render('partials/modules/google/plus/posts/index');
+		}
+	},
+
+ 	// Google+ help viewport partials
+ 	google_plus_notifications_help: {
+ 		restricted: false,
+ 		path: '/partials/modules/google/plus/notifications/help',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/google/plus/notifications/help');
+ 		}
+ 	},
+ 	google_plus_statistics_help: {
+ 		restricted: false,
+ 		path: '/partials/modules/google/plus/statistics/help',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/google/plus/statistics/help');
+ 		}
+ 	},
+ 	google_plus_posts_help: {
+ 		restricted: false,
+ 		path: '/partials/modules/google/plus/posts/help',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/google/plus/posts/help');
+ 		}
+ 	},
+
+ 	// Google+ options viewport partials
+ 	google_plus_notifications_management: {
+ 		restricted: false,
+ 		path: '/partials/modules/google/plus/notifications/management',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/google/plus/notifications/management');
+ 		}
+ 	},
+ 	google_plus_statistics_management: {
+ 		restricted: false,
+ 		path: '/partials/modules/google/plus/statistics/management',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/google/plus/statistics/management');
+ 		}
+ 	},
+ 	google_plus_posts_management: {
+ 		restricted: false,
+ 		path: '/partials/modules/google/plus/posts/management',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/google/plus/posts/management');
+ 		}
+ 	},
+
+
+ 	// Google Places module viewport partials 
+	google_places_tip: {
+		restricted: false,
+		path: '/partials/modules/google/places/tip/index',
+		get: function(req, res) {
+			res.render('partials/modules/google/places/tip/index');
+		}
+	},
+	google_places_notifications: {
+		restricted: false,
+		path: '/partials/modules/google/places/notifications/index',
+		get: function(req, res) {
+			res.render('partials/modules/google/places/notifications/index');
+		}
+	},
+	google_places_statistics: {
+		restricted: false,
+		path: '/partials/modules/google/places/statistics/index',
+		get: function(req, res) {
+			res.render('partials/modules/google/places/statistics/index');
+		}
+	},
+	google_places_posts: {
+		restricted: false,
+		path: '/partials/modules/google/places/posts/index',
+		get: function(req, res) {
+			res.render('partials/modules/google/places/posts/index');
+		}
+	},
+
+ 	// Google Places help viewport partials
+ 	google_places_notifications_help: {
+ 		restricted: false,
+ 		path: '/partials/modules/google/places/notifications/help',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/google/places/notifications/help');
+ 		}
+ 	},
+ 	google_places_statistics_help: {
+ 		restricted: false,
+ 		path: '/partials/modules/google/places/statistics/help',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/google/places/statistics/help');
+ 		}
+ 	},
+ 	google_places_posts_help: {
+ 		restricted: false,
+ 		path: '/partials/modules/google/places/posts/help',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/google/places/posts/help');
+ 		}
+ 	},
+
+ 	// Google Places options viewport partials
+ 	google_places_notifications_management: {
+ 		restricted: false,
+ 		path: '/partials/modules/google/places/notifications/management',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/google/places/notifications/management');
+ 		}
+ 	},
+ 	google_places_statistics_management: {
+ 		restricted: false,
+ 		path: '/partials/modules/google/places/statistics/management',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/google/places/statistics/management');
+ 		}
+ 	},
+ 	google_places_posts_management: {
+ 		restricted: false,
+ 		path: '/partials/modules/google/places/posts/management',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/google/places/posts/management');
+ 		}
+ 	},
+
+
+ 	// Yelp module viewport partials 
+	yelp_tip: {
+		restricted: false,
+		path: '/partials/modules/yelp/tip/index',
+		get: function(req, res) {
+			res.render('partials/modules/yelp/tip/index');
+		}
+	},
+	yelp_notifications: {
+		restricted: false,
+		path: '/partials/modules/yelp/notifications/index',
+		get: function(req, res) {
+			res.render('partials/modules/yelp/notifications/index');
+		}
+	},
+	yelp_statistics: {
+		restricted: false,
+		path: '/partials/modules/yelp/statistics/index',
+		get: function(req, res) {
+			res.render('partials/modules/yelp/statistics/index');
+		}
+	},
+	yelp_posts: {
+		restricted: false,
+		path: '/partials/modules/yelp/posts/index',
+		get: function(req, res) {
+			res.render('partials/modules/yelp/posts/index');
+		}
+	},
+
+ 	// Yelp help viewport partials
+ 	yelp_notifications_help: {
+ 		restricted: false,
+ 		path: '/partials/modules/yelp/notifications/help',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/yelp/notifications/help');
+ 		}
+ 	},
+ 	yelp_statistics_help: {
+ 		restricted: false,
+ 		path: '/partials/modules/yelp/statistics/help',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/yelp/statistics/help');
+ 		}
+ 	},
+ 	yelp_posts_help: {
+ 		restricted: false,
+ 		path: '/partials/modules/yelp/posts/help',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/yelp/posts/help');
+ 		}
+ 	},
+
+ 	// Yelp options viewport partials
+ 	yelp_notifications_management: {
+ 		restricted: false,
+ 		path: '/partials/modules/yelp/notifications/management',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/yelp/notifications/management');
+ 		}
+ 	},
+ 	yelp_statistics_management: {
+ 		restricted: false,
+ 		path: '/partials/modules/yelp/statistics/management',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/yelp/statistics/management');
+ 		}
+ 	},
+ 	yelp_posts_management: {
+ 		restricted: false,
+ 		path: '/partials/modules/yelp/posts/management',
+ 		get: function(req, res) {
+ 			res.render('partials/modules/yelp/posts/management');
  		}
  	},
 

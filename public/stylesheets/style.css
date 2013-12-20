@@ -9,6 +9,9 @@
 * {
   padding: 0;
   margin: 0;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 body {
   font: normal 13px "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -43,6 +46,9 @@ li {
 }
 .hide {
   display: none;
+}
+.capitalize {
+  text-transform: capitalize;
 }
 /*
 * login page 
@@ -157,21 +163,19 @@ li {
 .form fieldset .checkbox label {
   margin: 1px 0 0 2px;
   padding: 0;
-  line-height: 20px;
+  line-height: 28px;
 }
 .form fieldset input {
   font-size: 12px;
   letter-spacing: 1px;
   padding: 3px 0 3px 8px;
   margin: 3px 0 0;
-  border-width: 1px;
-  border-style: solid;
-  border-color: #D1D1D1;
+  border: 1px solid #D1D1D1;
   background: white;
   color: #666;
   width: 99%;
   font-weight: bold;
-  height: 15px;
+  height: 23px;
   line-height: 16px;
 }
 .module .form fieldset input {
@@ -181,6 +185,10 @@ li {
   float: left;
   margin: 5px 6px 7px 2px;
   width: auto;
+}
+.login-page-containers fieldset .input.checkbox {
+  padding-top: 0;
+  margin-top: -10px;
 }
 .form form .submit {
   /*position: absolute;
@@ -498,12 +506,32 @@ li.top-divider {
   font-size: 12px;
   letter-spacing: 2px;
 }
+.social-login .icon span {
+  bottom: -74px;
+}
+.social-populate-load .icon {
+  float: none;
+  margin: 0 auto;
+}
+.social-populate-load .icon i {
+  line-height: 83px;
+}
+.social-populate-load .icon span {
+  bottom: -73px;
+  lettter-spaing: 1px;
+}
+.social-populate-load .icon span img {
+  padding: 0 0 1px 5px;
+}
+.social-populate-load .icon.border:hover,
+.social-populate-load .icon.border:focus {
+  border: 3px solid #d1d1d1;
+}
 .icon i {
   position: absolute;
   color: #515151;
   font-size: 44px;
-  line-height: 46px;
-  top: 22px;
+  line-height: 90px;
   width: 100px;
   text-align: center;
 }
@@ -538,6 +566,13 @@ li.top-divider {
   moz-box-shadow: inset 1px 1px 6px rgba(0, 0, 0, 0.3), 1px 1px 0 rgba(255, 255, 255, 0.3);
   -webkit-box-shadow: inset 1px 1px 6px rgba(0, 0, 0, 0.3), 1px 1px 0 rgba(255, 255, 255, 0.3);
   box-shadow: inset 1px 1px 6px rgba(0, 0, 0, 0.3), 1px 1px 0 rgba(255, 255, 255, 0.3);
+}
+.icon.border i {
+  width: 94px;
+}
+.icon.border i.icon-google-places {
+  margin: 2px 0 0 28px;
+  width: 39px;
 }
 .icon.border:hover {
   border: 3px solid #c1c1c1;
@@ -654,7 +689,7 @@ li.top-divider {
 .simple-select-menu {
   margin: 0 auto;
   padding: 16px;
-  width: 340px;
+  width: 372px;
   background: #FFF;
   -webkit-border-radius: 0;
   -moz-border-radius: 0;
@@ -747,12 +782,32 @@ li.top-divider {
 .modules-align {
   margin-left: -20px;
 }
+.modules-align > .header {
+  display: none;
+  height: 50px;
+  margin-bottom: 26px;
+  width: 960px;
+}
+.modules-align > .header i {
+  font-size: 28px;
+  line-height: 50px;
+  width: 65px;
+}
+.modules-align > .header div {
+  margin-right: 16px;
+  line-height: 60px;
+  letter-spacing: 3px;
+  text-align: right;
+}
 .module {
   /*border: 1px solid #BBB;
 	box-shadow: 1px 1px 8px 1px #ccc;*/
-  width: 468px;
+  width: 470px;
   margin: 0 0 30px 20px;
   float: left;
+}
+.module.large-true {
+  width: 960px;
 }
 .sortables-container {
   clear: both;
@@ -760,29 +815,26 @@ li.top-divider {
 .sortables-container .module {
   height: 465px;
 }
-.module.large-true {
-  width: 960px;
-}
 .module .header {
   color: #EEE;
   background: #546f8e;
-  height: 28px;
+  height: 36px;
   padding: 4px 10px;
-  width: 448px;
   letter-spacing: 2px;
   position: relative;
 }
 .sortables-container .module .header {
   cursor: move;
 }
-.module.large-true .header {
-  width: 938px;
-}
+/*.module.large-true .header {
+	width: 938px;
+}*/
 .module h2 {
   font-size: 24px;
   line-height: 26px;
   font-weight: normal;
   float: left;
+  border-bottom: 0;
 }
 .module h2.small {
   font-size: 18px;
@@ -814,18 +866,18 @@ li.top-divider {
   font-size: 20px;
 }
 .module > div {
-  width: 468px;
+  width: 470px;
   margin: 0 auto;
   padding: 0;
   background: #FFF;
   border: 1px solid #BBB;
-  box-shadow: 1px 1px 8px 1px #ddd;
 }
 .module.large-true > div {
-  width: 958px;
+  width: 960px;
 }
 .module .content {
   position: relative;
+  border-top: 0;
 }
 .module .content > *,
 .module .help > * {
@@ -981,6 +1033,7 @@ i.icon-google-places {
   margin: 2px 0 0 30px;
   height: 39px;
   width: 39px;
+  top: 22px;
   float: left;
   background: url(../images/google-places-icon-sprite.png);
 }
@@ -1095,10 +1148,6 @@ footer.viewport > a {
   .module.large-true > div {
     width: 788px;
   }
-  .module .header,
-  .module.large-true .header {
-    width: 768px;
-  }
   /*
 	 * social media page fixed footer 
 	 */
@@ -1154,12 +1203,9 @@ footer.viewport > a {
     margin-bottom: 25px;
   }
   .module > div,
-  .module.large-true > div {
+  .module.large-true > div,
+  .modules-align > .header {
     width: 464px;
-  }
-  .module .header,
-  .module.large-true .header {
-    width: 444px;
   }
   /*
 	 * social media page fixed footer 
@@ -1214,12 +1260,9 @@ footer.viewport > a {
     padding: 8px 10px;
   }
   .module > div,
-  .module.large-true > div {
+  .module.large-true > div,
+  .modules-align > .header {
     width: 420px;
     box-shadow: none;
-  }
-  .module .header,
-  .module.large-true .header {
-    width: 400px;
   }
 }

@@ -1,0 +1,23 @@
+ul(class='data-content page-stats-list')
+	li(ng-show='options.total_tweets') 
+		i.icon-edit
+		span total tweets:
+			b 356 
+	li(ng-show='options.new_tweets') new tweets since last visit: 
+		b 6 
+			span.green [+2%]
+	li(ng-show='options.friend_count') the number of people you follow on twitter: 
+		b 244 
+			span.red [-4%]
+	li(ng-show='options.follower_count') the number of twitter users who follow you: 
+		b 541 
+			span.green [-14%]
+	li(ng-show='options.weekly_retweets') average weekly retweets: 
+		b 16 
+			span.unchanged [no change]
+	li(ng-show='options.weekly_mentions') average weekly @ mention you recieve: 
+		b
+			span.green 22
+	li(ng-show='options.weekly_favorite_count') average weekly favorites you recieve: 
+		b
+			span.green 51

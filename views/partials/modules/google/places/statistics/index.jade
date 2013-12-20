@@ -1,0 +1,18 @@
+ul(class='data-content page-stats-list')
+	li(ng-show='options.post_count') 
+		i.icon-edit
+		span wall posts this month:
+			b 14 
+				span.green [+11%]
+	li(ng-show='options.total_likes') total page likes: 
+		b 3576 
+			span.green [+2%]
+	li(ng-show='options.page_visits') page visitors this month: 
+		b 325 
+			span.red [-4%]
+	li(ng-show='options.unique_page_visits') unique page visitors this month: 
+		b 86 
+			span.green [+14%]
+	li(ng-show='options.total_checkins') total checkins: <b>2</b> <span class='unchanged'>[no change]</span> 
+	li(ng-show='options.latest_viral_score') lastest post's viral score: <b><span class='green'>22</span></b> <span class='unchanged'>[click here to see post data]</span> 
+	li(ng-show='options.highest_viral_score') highest post viral score: <b><span class='green'>57</span></b> <span class='unchanged'>[click here to see post data]</span>

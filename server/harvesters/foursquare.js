@@ -523,7 +523,7 @@ console.log('match found! ', match);
 										
 											if(response.response.user.contact.facebook && !match.facebook_id)
 												match.facebook_id = response.response.user.contact.facebook
-											if(response.response.user.contact.twitter && !match.Twitter && !match.Twitter.screen_name)
+											if(response.response.user.contact.twitter && (!match.Twitter || !match.Twitter.screen_name))
 												match.meta.foursquare.twitter_handle = response.response.user.contact.twitter ? response.response.user.contact.twitter.toLowerCase() : undefined;
 											if(response.response.user.contact.email)
 												match.email = response.response.user.contact.email ? response.response.user.contact.email.toLowerCase() : undefined;

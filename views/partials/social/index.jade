@@ -1,5 +1,9 @@
 div(ng-controller='SocialCtrl', class='content')
 	div.modules-align
+		div(class='header icon blue border app-color {{network.name}}')
+			i(class='{{network.icon}} active')
+			div {{network.name}}
+
 		div(ng-repeat='module in modules.data | filter:{sortable:false}', class='module {{module.title || module.name}} large-{{module.large}}', ng-include='modules.partial', ng-controller='ModuleCtrl', ng-show='load.complete&&!module.hidden')
 
 		div.sortables-container
@@ -7,7 +11,7 @@ div(ng-controller='SocialCtrl', class='content')
 
 	footer.location
 		div.current-page
-			a(class='app-color facebook'): i.icon-facebook
+			a(class='app-color {{network.name}}'): i(class='{{network.icon}}')
 			span {{network.name}} for {{user.business.name || "!{locals.business}"}}
 		div(class='page-loading', ng-hide='load.complete')
 			span loading

@@ -26,7 +26,7 @@ Vocada
 			controller: $routeParams.controller,
 			view: $routeParams.view || false,
 			action: $routeParams.action || false,
-			loading: true,
+			loading: $location.search().populate ? false : true,
 			populate: $location.search().populate
 		}
 
@@ -108,6 +108,7 @@ Vocada
 
 			$scope.network = {
 				name: $scope.page.view,
+				icon: 'icon-' + $scope.page.view + ($scope.page.action ? '-'+$scope.page.action : '') + ($scope.page.action && $scope.page.action === 'plus' ? '-sign' : ''),
 				google: {
 					save: function(network, id, ref) {
 						$scope.template = '/partials/loading';
@@ -120,6 +121,7 @@ Vocada
 							} else if(res.list) {							
 								$scope.network.businesses = res.list;
 								$scope.template = '/partials/social/google/'+network+'/select';
+								$scope.page.loading = false;
 								$scope.page.populate = true;
 							} else {
 								$scope.template = '/partials/social/connect';
@@ -142,6 +144,7 @@ Vocada
 							} else if(res.list.businesses) {
 								$scope.network.businesses = res.list.businesses;
 								$scope.template = '/partials/social/yelp/select';
+								$scope.page.loading = false;
 								$scope.page.populate = true;
 							} else {
 								$scope.template = '/partials/social/connect';
@@ -150,6 +153,7 @@ Vocada
 					}
 				},
 				selectBusiness: function(id) {
+					$scope.page.loading = false;
 					$scope.page.populate = true;
 					$scope.template = '/partials/loading';
 					// TODO: add this as a socket connection
@@ -163,13 +167,8 @@ Vocada
 			}
 
 			var childNetwork = '';
-			if($scope.network.name === 'google') {
+			if($scope.network.name === 'google')
 				childNetwork = '?child_network=' + $scope.page.action;
-				if($scope.page.action === 'places') $scope.network.icon = 'google-places';
-				else $scope.network.icon = 'google-plus-sign';
-			}
-			//if($scope.network.name === 'google') 
-				//$scope.network.icon = 'google-places';
 
 			$http.get('/social/'+$scope.network.name+'/connect' + childNetwork).success(function(res) {
 				console.log(res);
@@ -296,7 +295,7 @@ Vocada
 		}
 
 		// firebase connection data
-		$scope.firebase = {url: firebaseUrl + 'user/' + $scope.user.uid + '/business/' + $scope.user.bid + '/settings/' + $scope.network.name + '/modules/'}
+		$scope.firebase = {url: firebaseUrl + 'user/' + $scope.user.uid + '/business/' + $scope.user.bid + '/settings/' + $scope.network.name + ($scope.page.action ? '_'+$scope.page.action : '') + '/modules/'}
 		$scope.firebase.connection = new Firebase($scope.firebase.url)
 console.log($scope.firebase);
 		// get individual module settings data from firebase
@@ -356,7 +355,7 @@ console.log($scope.firebase);
 
 		$scope.view = {current: '/partials/modules/loading', loading: true, atOrigin: true};
 
-		$scope.view.origin = '/partials/modules/' + $scope.network.name + '/' + module.name + '/index';
+		$scope.view.origin = '/partials/modules/' + $scope.network.name + ($scope.page.action ? '/'+$scope.page.action : '') + '/' + module.name + '/index';
 
 		//var firebaseModuleUrl = firebaseUrl + 'user/' + $scope.$parent.user.uid + '/settings/' + $scope.network.name + '/modules/' + $scope.title;
 		//var firebaseModule = new Firebase(firebaseModuleUrl);

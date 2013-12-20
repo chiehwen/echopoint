@@ -24,12 +24,20 @@ var Socket = (function() {
 	var packet = {
 		incoming: {
 			init: function(data, callback) {
+				if(!data.sid)
+					return callback({loggedIn: false, error: 'not logged in'});
+				
 				var sid = data.sid.replace('s:','').split('.')[0];
+
+				if(!Session.store.sessions[sid])
+					return callback({loggedIn: false, error: 'not logged in'});
+
 				passportUserId = JSON.parse(Session.store.sessions[sid]).passport.user;
 
-				if(passportUserId && passportUserId != '') {
+				if(passportUserId && passportUserId !== '')
 	 				Utils.getUser(passportUserId, function(err, user) {
-	 					if (err || !user) callback({loggedIn: false, error: err});
+	 					if (err || !user) 
+	 						return callback({loggedIn: false, error: err});
 	 					var response = {
 	 						loggedIn: true,
 	 						id: user._id,
@@ -44,9 +52,8 @@ var Socket = (function() {
 	 					}
 	 					callback(response);
 					});
-				} else {
-					callback({loggedIn: false, error: 'not logged in'});
-				}				
+				else
+					callback({loggedIn: false, error: 'not logged in'});		
 			},
 			user: {
 				setUid: function(data, callback) {
@@ -343,7 +350,7 @@ var Socket = (function() {
 									user.Business[data.index].Social.google.places = {
 										//id: result.id,
 										id: parseGoogleUrl(result.url),
-										reference: g.places.reference
+										reference: data.ref
 									}
 									
 									var harvest = new Harvester.google;

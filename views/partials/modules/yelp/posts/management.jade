@@ -1,0 +1,9 @@
+ul(class='module-options {{location}}')
+	li(ng-controller='OptionCtrl', ng-repeat='option in management.settings', class='{{option.type}}', ng-click='toggleOption()') 
+		i(class='{{"icon-check"+icon.on}} {{icon.color}}') 
+		span(class='{{text.on}}') Display notification information about {{option.type}}s
+
+footer.viewport
+	h3 Facebook Posts Graph Settings
+	a(ng-click='view.toOrigin()')
+		i.icon-remove-sign

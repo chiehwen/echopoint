@@ -297,13 +297,12 @@ var UserController = {
 								"menu": [],
 								"icon": "globe",
 								"settings": [
-									{"type": "post", "val": true},
-									{"type": "like", "val": true},
-									{"type": "comment", "val": true},
-									{"type": "share", "val": true},
-									{"type": "top_commenter", "val": true},
-									{"type": "top_liking_user", "val": true},
-									{"type": "top_sharer", "val": true},
+									{"type": "direct_messages", "val": true},
+									{"type": "mentions", "val": true},
+									{"type": "retweets", "val": true},
+									{"type": "new_followers", "val": true},
+									{"type": "verified_user_follows", "val": true},
+									{"type": "favorited_count", "val": true},
 									{"type": "profile", "val": true}
 								]
 							},
@@ -318,24 +317,49 @@ var UserController = {
 								"large": false,
 								"menu": [],
 								"settings": [
-									{"type": "post_count", "val": true},
-									{"type": "total_likes", "val": true},
-									{"type": "page_visits", "val": true},
-									{"type": "unique_page_visits", "val": true},
-									{"type": "total_checkins", "val": true},
-									{"type": "latest_viral_score", "val": true},
-									{"type": "highest_viral_score", "val": true}
+									{"type": "total_tweets", "val": true},
+									{"type": "new_tweets", "val": true},
+									{"type": "friend_count", "val": true},
+									{"type": "follower_count", "val": true},
+									{"type": "weekly_retweets", "val": true},
+									{"type": "weekly_mentions", "val": true},
+									{"type": "weekly_favorite_count", "val": true}
 								]
 							},
 							{
-								"name": "posts",
-								"title": "wall posts",
+								"name": "tweets",
+								"title": "your tweets",
 								"type": "graph",
 								"sortable": true,
 								"dashboarded": false,
 								"hidden": false,
 								"sizing": true,
 								"large": true,
+								"menu": { 
+									custom: [
+										{
+											label: 'display column view', 
+											icon: 'bar-chart',
+											action: 'changeDisplay(column)', // 'dashboard', 'hide', 'help', 'resize', 'timeframe'
+											current: null, // 'onDashboard', 'offDashboard', 'large', 'small', '30day', '60day'
+											meta: null,
+											divider: true
+										}
+									],
+									timeframes: ['15 days', '30 days', '90 days']
+								},
+								"timeframe": "15 days",
+								"settings": []
+							},
+							{
+								"name": "mentions",
+								"title": "@ mentions",
+								"type": "graph",
+								"sortable": true,
+								"dashboarded": false,
+								"hidden": false,
+								"sizing": true,
+								"large": false,
 								"menu": { 
 									custom: [
 										{
@@ -686,7 +710,7 @@ var UserController = {
 							}
 						]
 					},
-					
+
 				}
 			)
 		}

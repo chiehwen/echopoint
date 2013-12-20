@@ -1,6 +1,28 @@
 include ../../mixins
 
 div(ng-controller='UserCtrl', class='content')
-	p testing
+	div.page-notice
+		h1 Please select a social network from below
+
+	div(class='dashboard-menu TEMP', style='margin:0 auto;width:375px')
+		div
+			a(href="/social/facebook", class="icon border blue app-color facebook", style='border:0')
+				i.icon-facebook
+				span facebook
+			a(href="/social/twitter", class="icon border blue app-color twitter", style='border:0')
+				i.icon-twitter
+				span twitter
+			a(href="/social/foursquare", class="icon border blue app-color foursquare", style='border:0')
+				i.icon-foursquare
+				span foursquare
+			a(href="/social/google/plus", class="icon border blue app-color google", style='border:0')
+				i.icon-google-plus-sign
+				span google+
+			a(href="/social/google/places", class="icon border blue app-color places", style='border:0')
+				i(class='icon-google-places', style='background-position:-39px 0')
+				span places
+			a(href="/social/yelp", class="icon blue app-color yelp")
+				i.icon-yelp
+				span yelp	
 
 mixin vocadaFooter

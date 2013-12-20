@@ -1,0 +1,32 @@
+ul(class='data-content page-notifications-list')
+	li 
+		i(class='icon-warning-sign red')
+		span
+			b you may have negative user comments!
+	li(ng-show='options.post')
+		i.icon-edit
+		span you have added <b>2</b> new posts to your wall
+	li(ng-show='options.post')
+		i.icon-edit
+		span you have <b>1</b> new wall post from another user
+	li(ng-show='options.like')
+		i.icon-thumbs-up-alt
+		span <b>22</b> new page likes
+	li(ng-show='options.comment')
+		i.icon-comments-alt
+		span <b>3</b> new comments
+	li(ng-show='options.share')
+		i.icon-share
+		span <b>2</b> new shares 
+	li(ng-show='options.top_commenter')
+		i.icon-user
+		span you have a <b>new top commenter</b>!
+	li(ng-show='options.top_liking_user')
+		i.icon-user
+		span you have a <b>new top liking user</b>!
+	li(ng-show='options.top_sharer')
+		i.icon-user
+		span you have a <b>new top sharing user</b>!
+	li(ng-show='options.profile')
+		i.icon-building
+		span you have updated your business information

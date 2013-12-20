@@ -273,7 +273,7 @@ console.log('at the facebook posts [update] method...');
 								Analytics.facebook.tracking.posts[y].comments.data = results[x].comments.data;
 
 								// put user ids into engagers array for the engagers table
-								for(var b = 0, b_length = results[i].comments.data.length; b < b_length; b++)
+								for(var b = 0, b_length = results[x].comments.data.length; b < b_length; b++)
 									Engagers.push({facebook_id: results[x].comments.data[b].from.id})
 
 								update = localUpdate = true;
@@ -388,6 +388,9 @@ console.log('at facebook posts_insights method');
 					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 					return next(itr, cb);
 				}
+
+				if(!response.posts)
+					return next(itr, cb)
 
 				var timestamp = Utils.timestamp()
 
