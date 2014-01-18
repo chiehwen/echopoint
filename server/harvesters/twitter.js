@@ -202,10 +202,11 @@ console.log('at twitter timeline update method');
 						//response[i].retweets = {history:[{timestamp:timestamp,total:parseInt(response[i].retweet_count, 10)}],total:parseInt(response[i].retweet_count, 10), timestamp: timestamp};
 						//response[i].favorited_count = {};
 						response[i].timestamp = Utils.timestamp();
-						Analytics.twitter.timeline.tweets.push(response[i]);
+						Analytics.twitter.timeline.tweets.push({id: response[i].id_str, id_str: response[i].id_str, data: response[i]});
 					}
 
 					Analytics.twitter.timeline.since_id = response[0].id_str;
+					Analytics.twitter.timeline.sentiment.update = true;
 					Analytics.twitter.timeline.timestamp = Utils.timestamp();
 
 					console.log('saving twitter user timeline...');

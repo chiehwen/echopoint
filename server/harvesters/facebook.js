@@ -31,7 +31,7 @@ console.log('at facebook business page update method...');
 				// if a connection error occurs retry request (up to 3 attempts) 
 				if(err && retries.indexOf(err.code) > -1) {
 					if(retry && retry > 2) {
-						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
+						Log.warn('Facebook page method failed to connect in 3 attempts!', {error: err, response: response, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 						return next(itr, cb);
 					}
 
@@ -40,7 +40,7 @@ console.log('at facebook business page update method...');
 
 				// error handling
 				if(err || !response || response.error) {
-					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+					Error.handler('facebook', err || response, {error: err, response: response, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 					return next(itr, cb);
 				}
 
@@ -127,7 +127,7 @@ console.log('at facebook posts [new] method...');
 				// if a connection error occurs retry request (up to 3 attempts) 
 				if(err && retries.indexOf(err.code) > -1) {
 					if(retry && retry > 2) {
-						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
+						Log.warn('Facebook page method failed to connect in 3 attempts!', {error: err, response: response, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 						return next(itr, cb);
 					}
 
@@ -136,7 +136,7 @@ console.log('at facebook posts [new] method...');
 
 				// error handling
 				if(err || !response || response.error) {
-					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+					Error.handler('facebook', err || response, {error: err, response: response, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 					return Harvest.posts_update(itr, cb);
 				}
 
@@ -220,7 +220,7 @@ console.log('at the facebook posts [update] method...');
 				// if a connection error occurs retry request (up to 3 attempts) 
 				if(err && retries.indexOf(err.code) > -1) {
 					if(retry && retry > 2) {
-						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
+						Log.warn('Facebook page method failed to connect in 3 attempts!', {error: err, response: response, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 						return next(itr, cb);
 					}
 
@@ -229,7 +229,7 @@ console.log('at the facebook posts [update] method...');
 
 				// error handling
 				if(err || !response || response.error) {
-					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+					Error.handler('facebook', err || response, {error: err, response: response, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 					return next(itr, cb);
 				}
 
@@ -310,7 +310,7 @@ console.log('at facebook page_insights method...');
 				// if a connection error occurs retry request (up to 3 attempts) 
 				if(err && retries.indexOf(err.code) > -1) {
 					if(retry && retry > 2) {
-						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
+						Log.warn('Facebook page method failed to connect in 3 attempts!', {error: err, response: response, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 						return next(itr, cb);
 					}
 
@@ -319,7 +319,7 @@ console.log('at facebook page_insights method...');
 
 				// error handling
 				if(err || !response || response.error) {
-					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+					Error.handler('facebook', err || response, {error: err, response: response, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 					return next(itr, cb);
 				}
 
@@ -376,7 +376,7 @@ console.log('at facebook posts_insights method');
 				// if a connection error occurs retry request (up to 3 attempts) 
 				if(err && retries.indexOf(err.code) > -1) {
 					if(retry && retry > 2) {
-						Error.handler('facebook', 'Facebook page method failed to connect in 3 attempts!', err, response, {error: err, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
+						Log.warn('Facebook page method failed to connect in 3 attempts!', {error: err, response: response, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 						return next(itr, cb);
 					}
 
@@ -385,7 +385,7 @@ console.log('at facebook posts_insights method');
 
 				// error handling
 				if(err || !response || response.error) {
-					Error.handler('facebook', err || response, err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+					Error.handler('facebook', err || response, {error: err, response: response, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 					return next(itr, cb);
 				}
 
@@ -468,7 +468,7 @@ console.log('at facebook engagers method');
 					// if a connection error occurs retry request (up to 3 attempts) 
 					if(err && retries.indexOf(err.code) > -1) {
 						if(retry && retry > 2) {
-							Error.handler('facebook', 'Facebook update method failed to connect in 3 attempts!', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+							Error.handler('facebook', 'Facebook update method failed to connect in 3 attempts!', {error: err, response: response, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber()})
 							return next(itr, cb);
 						}
 
@@ -485,19 +485,19 @@ console.log('at facebook engagers method');
 
 					// error handling
 					if(err || !response || response.error) {
-						Error.handler('facebook', 'Facebook API error', err, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+						Error.handler('facebook', 'Facebook API error', {error: err, response: response, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 						return next(itr, cb)
 					}
 
 					for(var x=0, l=response.length; x<l; x++) {
 
 						if(response[x].code !== 200 || !response[x].body || response[x].body === '') {
-							Error.handler('facebook', response[x].code, response[x].code, response, {meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+							Error.handler('facebook',  'Facebook error within a batch call response' || response[x].code, {error: null, response: response[x], meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							continue;
 						}
 
 						if(!response[x].body.isJSON()) {
-							Error.handler('facebook', 'Not valid JSON', null, response[x].body, {response: response, meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
+							Error.handler('facebook', 'Not valid JSON within Facebook batch call response', {error : null, response: response[x], meta: data, file: __filename, line: Utils.stack()[0].getLineNumber(), level: 'error'})
 							continue;
 						}
 

@@ -392,6 +392,48 @@ var Logger = (function() {
 				return logger.klout
 			},
 
+			sentiment140: function () {
+				if(!logger.sentiment140)
+					logger.sentiment140 = new (winston.Logger)({
+						transports: [
+							new winston.transports.Console({
+								colorize: true
+							}),
+							new (winston.transports.File)({
+								handleExceptions: false,
+								name: 'sentiment140_warnings',
+								filename: 'server/logs/sentiment/sentiment140/warnings.json',
+								level: 'warn',
+								json: true
+							}),
+							new (winston.transports.File)({
+								handleExceptions: false,
+								name: 'klout_errors',
+								filename: 'server/logs/sentiment/sentiment140/errors.json',
+								level: 'error',
+								json: true
+							}),
+	/*
+							new (winston.transports.Loggly)(
+								{
+									subdomain: "vocada",
+									inputToken: "3373e727-da7a-4d97-a317-20464e47d77e", 
+									json: true
+								}
+							),
+							new (winston.transports.Papertrail)({
+								host: 'logs.papertrailapp.com',
+								port: 28648
+			        })
+	*/
+						],
+
+						exitOnError: false
+					})
+
+				return logger.sentiment140
+			},
+
 			bitly: function () {
 				if(!logger.bitly)
 					logger.bitly = new (winston.Logger)({

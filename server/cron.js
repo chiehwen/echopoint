@@ -14,7 +14,8 @@ var Auth = require('./auth').getInstance(),
 			google: require('./crons/google'),
 			yelp: require('./crons/yelp'),
 			instagram: require('./crons/instagram'),
-			klout: require('./crons/klout')
+			klout: require('./crons/klout'),
+			sentiment140: require('./crons/sentiment140')
 		};
 
 var CronJobs = {
@@ -226,12 +227,21 @@ var CronJobs = {
 		})
 	},
 
-
 	klout: new CronJob({
 		cronTime: '*/5 * * * * *', // run every 5 seconds, each method is only run if the other isn't needed so only 1 in the array will be run every 5 seconds 
 		onTick: function() {
 			var klout = new Crons.klout
 			klout.getJob('metrics', ['id', 'user', 'update', 'discovery'])
+		},
+		start: false
+	}),
+
+
+	sentiment140: new CronJob({
+		cronTime: '*/15 * * * * *', // run every minute, each method is only run if the other isn't needed so only 1 in the array will be run every 5 seconds 
+		onTick: function() {
+			var sentiment140 = new Crons.sentiment140
+			sentiment140.getJob('populate', ['sentiment'])
 		},
 		start: false
 	})

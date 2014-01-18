@@ -21,6 +21,7 @@ var fs = require('fs'),
 		Bitly = null,
 		Flickr = null,
 		Klout = null,
+		Sentiment140 = null,
 		nTwitter = require('ntwitter'),
 		//GoogleOAuth = require('googleapis').OAuth2Client,
 		googleapis = require('googleapis'),
@@ -244,6 +245,19 @@ var Auth = (function() {
 				}
 
 				return Klout;
+			},
+
+			sentiment140: function() {
+				if(!Sentiment140) {
+					Sentiment140 = {
+						client: {
+							baseUrl: 'http://www.sentiment140.com',
+							id: 'scott@speaksocial.net'
+						}
+					}
+				}
+
+				return Sentiment140;
 			}
 		};
 

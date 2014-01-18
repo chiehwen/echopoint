@@ -59,10 +59,13 @@ Cron.instagram.engagers.start();
 
 Cron.klout.start();
 
+Cron.sentiment140.start();
+
 //////// END OF CRON TESTING ////////
 */
 
-
+//var Cron = require('./server/cron');
+//Cron.sentiment140.start();
 
 var Harvester = {
 			facebook: require('./server/harvesters/facebook'),
@@ -106,6 +109,11 @@ var Crons = {
 //Crons.yelp.getJob('metrics', ['business', 'reviews'])
 
 
+//Model.Analytics.findOne({'twitter.timeline.tweets': {$exists: true}, 'twitter.timeline.tweets': {$ne: []}}, function(err, match) { 
+//console.log(err, match.twitter.timeline.tweets[0]);
+//match.twitter.timeline.sentiment = {update:true, timestamp: 0}
+//match.save()
+//})
 
 
 //google = Auth.load('google_discovery');

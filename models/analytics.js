@@ -106,10 +106,15 @@
         timeline: {
           since_id: {type: String, default: '1'}, // this is time of last check used with the .since parameter of facebook graph
           timestamp: {type: Number},
+          sentiment: { // this keeps track of needed sentmient lookup, individual tweet sentiment scores are in tweets array below
+            update: {type: Boolean, default: false},
+            timestamp: {type: Number, default: 0}
+          },
           tweets: [
           // these are added to the tweets object field within 
           // the harvester, but here are the schema references
             /*
+            data: {}, // this is where the true twitter data from Twitter API goes
             retweets: {
               history: [{
                 timestamp: {type: Number},
@@ -139,6 +144,9 @@
               }],
               timestamp: {type: Number},
               total: {type: Number}
+            },
+            sentiment: {
+              polarity: {type: Number}
             }
             */
           ]
